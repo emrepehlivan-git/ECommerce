@@ -142,7 +142,13 @@ public static class DependencyInjection
                 options.SetIssuer(new Uri(configuration["Authentication:Authority"]!));
                 options.AddAudiences(configuration["Authentication:Audience"]!);
 
-                options.UseSystemNetHttp();
+                options.UseSystemNetHttp(httpOptions =>
+                {
+                    httpOptions.ConfigureHttpClientHandler(handler =>
+                    {
+                        handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true;
+                    });
+                });
 
                 options.UseAspNetCore();
 
@@ -194,7 +200,7 @@ public static class DependencyInjection
                             Id = "oauth2"
                         }
                     },
-                    new[] { "api" }
+                    new[] { "api" , "openid" , "profile" , "email" , "address" , "phone" , "roles" }
                 }
             });
         });

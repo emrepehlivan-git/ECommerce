@@ -6,6 +6,10 @@ using ECommerce.Application.Parameters;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Ardalis.Result.AspNetCore;
+using ECommerce.Persistence.Contexts;
+using ECommerce.Domain.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.WebAPI.Controllers;
 

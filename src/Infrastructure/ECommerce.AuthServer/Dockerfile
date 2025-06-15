@@ -31,9 +31,30 @@ RUN apt-get update && \
 # Create a script to generate the certificate
 RUN echo '#!/bin/bash\n\
 if [ ! -f /app/auth.pfx ]; then\n\
-    openssl req -x509 -newkey rsa:4096 -keyout /tmp/key.pem -out /tmp/cert.pem -days 365 -nodes -subj "/CN=localhost"\n\
+    # Create a config file for the certificate with SAN\n\
+    cat > /tmp/cert.conf <<EOF\n\
+[req]\n\
+distinguished_name = req_distinguished_name\n\
+req_extensions = v3_req\n\
+prompt = no\n\
+\n\
+[req_distinguished_name]\n\
+CN = ecommerce.authserver\n\
+\n\
+[v3_req]\n\
+keyUsage = critical, digitalSignature, keyEncipherment, keyAgreement\n\
+extendedKeyUsage = critical, serverAuth, clientAuth\n\
+subjectAltName = @alt_names\n\
+basicConstraints = critical, CA:false\n\
+\n\
+[alt_names]\n\
+DNS.1 = ecommerce.authserver\n\
+DNS.2 = localhost\n\
+IP.1 = 127.0.0.1\n\
+EOF\n\
+    openssl req -x509 -newkey rsa:4096 -keyout /tmp/key.pem -out /tmp/cert.pem -days 365 -nodes -config /tmp/cert.conf -extensions v3_req\n\
     openssl pkcs12 -export -out /app/auth.pfx -inkey /tmp/key.pem -in /tmp/cert.pem -password pass:YourSecurePassword\n\
-    rm /tmp/key.pem /tmp/cert.pem\n\
+    rm /tmp/key.pem /tmp/cert.pem /tmp/cert.conf\n\
 fi\n\
 dotnet ECommerce.AuthServer.dll' > /app/startup.sh && \
 chmod +x /app/startup.sh

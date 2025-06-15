@@ -50,7 +50,11 @@ builder.Services.AddOpenIddict()
     })
     .AddServer(options =>
     {
-        options.SetIssuer(new Uri("https://localhost:5002"));
+        var isRunningInContainer = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
+        var issuerUrl = builder.Environment.IsDevelopment() && isRunningInContainer
+            ? "https://ecommerce.authserver:8081"
+            : "https://localhost:5002";
+        options.SetIssuer(new Uri(issuerUrl));
 
         options.SetAuthorizationEndpointUris("/connect/authorize")
                .SetTokenEndpointUris("/connect/token")
