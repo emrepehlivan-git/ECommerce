@@ -31,29 +31,7 @@ public sealed class PriceTests
     }
 
     [Fact]
-    public void Create_WithCustomCurrency_ShouldCreatePrice()
-    {
-        // Act
-        var price = Price.Create(100);
-
-        // Assert
-        price.Should().NotBeNull();
-        price.Value.Should().Be(100);
-    }
-
-    [Fact]
     public void Zero_ShouldCreateZeroPrice()
-    {
-        // Act
-        var price = Price.Zero;
-
-        // Assert
-        price.Should().NotBeNull();
-        price.Value.Should().Be(0);
-    }
-
-    [Fact]
-    public void Zero_WithCustomCurrency_ShouldCreateZeroPrice()
     {
         // Act
         var price = Price.Zero;
@@ -170,7 +148,7 @@ public sealed class PriceTests
     }
 
     [Fact]
-    public void ToString_ShouldReturnFormattedValueWithCurrency()
+    public void ToString_ShouldReturnFormattedValue()
     {
         // Arrange
         var price = Price.Create(100.50m);
@@ -182,16 +160,5 @@ public sealed class PriceTests
         result.Should().Be("100.50");
     }
 
-    [Fact]
-    public void ToString_WithCustomCurrency_ShouldReturnFormattedValueWithCurrency()
-    {
-        // Arrange
-        var price = Price.Create(100.50m);
 
-        // Act
-        var result = price.ToString();
-
-        // Assert
-        result.Should().Be("100.50");
-    }
 }

@@ -16,6 +16,7 @@ services:
       - ASPNETCORE_Kestrel__Certificates__Default__Password=YourSecurePassword
       - Serilog__WriteTo__1__Args__serverUrl=http://ecommerce.seq:5341
       - Authentication__Authority=https://ecommerce.authserver:8081
+      - Authentication__SwaggerAuthority=https://localhost:5002
       - Authentication__Audience=api
       - Authentication__ClientId=api
       - Authentication__ClientSecret=api-secret
@@ -29,8 +30,8 @@ services:
       - 4001:8081
     volumes:
       - keys:/root/.aspnet/DataProtection-Keys
-      - ./certs/webapi.pfx:/app/webapi.pfx:ro
-      - ./certs/ca.crt:/app/ca.crt:ro
+    networks:
+      - ecommerce-network
 
   ecommerce.authserver:
     container_name: ecommerce.authserver
@@ -53,8 +54,9 @@ services:
       - 5001:8080
       - 5002:8081
     volumes:
-      - ./certs/authserver.pfx:/app/auth.pfx:ro
-      - ./certs/ca.crt:/app/ca.crt:ro
+      - keys:/root/.aspnet/DataProtection-Keys
+    networks:
+      - ecommerce-network
 
   ecommerce.db:
     container_name: ecommerce.db
@@ -67,6 +69,23 @@ services:
       - 5432:5432
     volumes:
       - pgdata:/var/lib/postgresql/data
+    networks:
+      - ecommerce-network
+
+  ecommerce.pgadmin:
+    container_name: ecommerce.pgadmin
+    image: dpage/pgadmin4
+    ports:
+      - 8082:80
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@example.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    depends_on:
+      - ecommerce.db
+    networks:
+      - ecommerce-network
+    volumes:
+      - pgadmin:/var/lib/pgadmin
 
   ecommerce.redis:
     container_name: ecommerce.redis
@@ -75,6 +94,8 @@ services:
       - 6379:6379
     volumes:
       - redisdata:/data
+    networks:
+      - ecommerce-network
 
   ecommerce.seq:
     container_name: ecommerce.seq
@@ -85,9 +106,16 @@ services:
       - ACCEPT_EULA=Y
     volumes:
       - seqdata:/data
+    networks:
+      - ecommerce-network
 
 volumes:
   pgdata:
   redisdata:
   seqdata:
   keys:
+  pgadmin:
+  
+networks:
+  ecommerce-network:
+    driver: bridge

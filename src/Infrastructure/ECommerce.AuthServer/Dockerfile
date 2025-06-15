@@ -24,14 +24,23 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
-# CA sertifikasını sistem sertifika deposuna ekle
-RUN apt-get update && apt-get install -y ca-certificates
-COPY certs/ca.crt /usr/local/share/ca-certificates/ecommerce-ca.crt
-RUN update-ca-certificates
+# Install OpenSSL
+RUN apt-get update && \
+    apt-get install -y openssl ca-certificates
+
+# Create a script to generate the certificate
+RUN echo '#!/bin/bash\n\
+if [ ! -f /app/auth.pfx ]; then\n\
+    openssl req -x509 -newkey rsa:4096 -keyout /tmp/key.pem -out /tmp/cert.pem -days 365 -nodes -subj "/CN=localhost"\n\
+    openssl pkcs12 -export -out /app/auth.pfx -inkey /tmp/key.pem -in /tmp/cert.pem -password pass:YourSecurePassword\n\
+    rm /tmp/key.pem /tmp/cert.pem\n\
+fi\n\
+dotnet ECommerce.AuthServer.dll' > /app/startup.sh && \
+chmod +x /app/startup.sh
 
 ENV ASPNETCORE_URLS=http://+:8080;https://+:8081
 ENV ASPNETCORE_HTTPS_PORT=8081
 ENV ASPNETCORE_Kestrel__Certificates__Default__Path=/app/auth.pfx
 ENV ASPNETCORE_Kestrel__Certificates__Default__Password=YourSecurePassword
 
-ENTRYPOINT ["dotnet", "ECommerce.AuthServer.dll"]
+ENTRYPOINT ["/app/startup.sh"]

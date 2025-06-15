@@ -34,6 +34,7 @@ public class Worker : IHostedService
             new Uri("https://oauth.pstmn.io/v1/callback"),
             new Uri("http://localhost:3000/api/auth/callback/openiddict"),
             new Uri("https://oidcdebugger.com/debug"),
+            new Uri("https://oauth.pstmn.io/v1/vscode-callback"),
         },
             PostLogoutRedirectUris = { new Uri("http://localhost:3000/") },
             Permissions =

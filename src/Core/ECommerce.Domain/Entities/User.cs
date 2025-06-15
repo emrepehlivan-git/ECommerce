@@ -36,7 +36,7 @@ public sealed class User : IdentityUser<Guid>
         const string EmailRegex = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
 
         if (string.IsNullOrWhiteSpace(email))
-            throw new NullReferenceException("Email cannot be null or empty.");
+            throw new ArgumentException("Email cannot be null or empty.", nameof(email));
 
         if (!Regex.IsMatch(email, EmailRegex))
             throw new ArgumentException("Invalid email address.");

@@ -31,16 +31,21 @@ public class OrderEndpointsTests : IClassFixture<CustomWebApplicationFactory>, I
     {
         using var scope = _factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        var user = User.Create("order@example.com", "Order", "User");
-        var uniqueCategoryName = "Orders_" + Guid.NewGuid();
+        
+        // Her test için benzersiz veriler oluştur
+        var uniqueId = Guid.NewGuid().ToString("N")[..8];
+        var user = User.Create($"order{uniqueId}@example.com", "Order", "User");
+        var uniqueCategoryName = $"Orders_{uniqueId}";
         var category = Category.Create(uniqueCategoryName);
         category.Id = Guid.NewGuid();
+        
         context.Users.Add(user);
         context.Categories.Add(category);
         await context.SaveChangesAsync();
 
-        var product = Product.Create("Item", "desc", 10m, category.Id, 5);
+        var product = Product.Create($"Item_{uniqueId}", "desc", 10m, category.Id, 5);
         context.Products.Add(product);
+        context.ProductStocks.Add(product.Stock);
         await context.SaveChangesAsync();
 
         var address = new
@@ -67,7 +72,10 @@ public class OrderEndpointsTests : IClassFixture<CustomWebApplicationFactory>, I
         }
         response.EnsureSuccessStatusCode();
 
-        var order = await context.Orders.FirstAsync();
+        // Oluşturulan order'ı bul - user ID'ye göre
+        var order = await context.Orders
+            .Where(o => o.UserId == user.Id)
+            .FirstAsync();
         return (order.Id, user, product);
     }
 
@@ -107,6 +115,7 @@ public class OrderEndpointsTests : IClassFixture<CustomWebApplicationFactory>, I
         var categoryId = product.CategoryId;
         var secondProduct = Product.Create("Second", "desc", 5m, categoryId, 5);
         context.Products.Add(secondProduct);
+        context.ProductStocks.Add(secondProduct.Stock);
         await context.SaveChangesAsync();
 
         var response = await _client.PostAsJsonAsync($"/api/Order/{orderId}/items", new { ProductId = secondProduct.Id, Quantity = 2 });

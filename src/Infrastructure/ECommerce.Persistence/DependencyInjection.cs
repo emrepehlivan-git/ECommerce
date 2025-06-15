@@ -4,6 +4,7 @@ using ECommerce.Domain.Entities;
 using ECommerce.Persistence.Contexts;
 using ECommerce.Persistence.Interceptors;
 using ECommerce.Persistence.Repositories;
+using ECommerce.Persistence.Seeds;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -19,6 +20,7 @@ public static class DependencyInjection
         ConfigureDbContext(services, configuration);
         ConfigureIdentity(services);
         AddRepositories(services);
+        services.AddDatabaseSeeder();
 
         return services;
     }
@@ -49,11 +51,11 @@ public static class DependencyInjection
     {
         services.AddIdentity<User, Role>(options =>
         {
-            options.Password.RequiredLength = 8;
-            options.Password.RequireDigit = true;
-            options.Password.RequireLowercase = true;
-            options.Password.RequireUppercase = true;
-            options.Password.RequireNonAlphanumeric = true;
+            options.Password.RequiredLength = 6;
+            options.Password.RequireDigit = false;
+            options.Password.RequireLowercase = false;
+            options.Password.RequireUppercase = false;
+            options.Password.RequireNonAlphanumeric = false;
             options.User.RequireUniqueEmail = true;
         })
         .AddEntityFrameworkStores<ApplicationDbContext>()

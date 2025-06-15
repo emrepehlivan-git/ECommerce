@@ -20,7 +20,7 @@ public sealed class RoleTests
 #pragma warning restore CS8604 // Possible null reference argument.
 
         // Assert
-        act.Should().Throw<NullReferenceException>()
+        act.Should().Throw<ArgumentException>()
             .WithMessage("Name cannot be null or empty.*");
     }
 

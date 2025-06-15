@@ -17,6 +17,7 @@ public sealed class Role : IdentityRole<Guid>
         Validate(name);
 
         Name = name;
+        NormalizedName = name.ToUpperInvariant();
     }
 
     public static Role Create(string name)
@@ -29,6 +30,7 @@ public sealed class Role : IdentityRole<Guid>
         Validate(name);
 
         Name = name;
+        NormalizedName = name.ToUpperInvariant();
     }
 
     public void AddPermission(RolePermission rolePermission)
@@ -50,7 +52,7 @@ public sealed class Role : IdentityRole<Guid>
     private void Validate(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new NullReferenceException("Name cannot be null or empty.");
+            throw new ArgumentException("Name cannot be null or empty.", nameof(name));
 
         if (name.Length < 2)
             throw new ArgumentException("Name cannot be less than 2 characters.");

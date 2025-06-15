@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="Bogus" />
       <PackageReference Include="EFCore.NamingConventions" />
       <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
       <PackageReference Include="OpenIddict.EntityFrameworkCore" />

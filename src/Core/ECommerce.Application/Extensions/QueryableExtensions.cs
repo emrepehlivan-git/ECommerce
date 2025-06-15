@@ -94,29 +94,52 @@ public static class QueryableExtensions
         return query;
     }
 
-    public static IQueryable<T> OrderByIf<T>(this IQueryable<T> query, string? orderBy, bool condition)
+    public static IQueryable<T> ApplyOrderBy<T>(this IQueryable<T> query, Filter filter)
     {
-        if (condition && !string.IsNullOrWhiteSpace(orderBy))
+        if (filter.OrderByFields.Count == 0)
+            return query;
+
+        IOrderedQueryable<T>? orderedQuery = null;
+
+        for (int i = 0; i < filter.OrderByFields.Count; i++)
         {
-            return ApplyOrder(query, orderBy, "OrderBy");
+            var orderByField = filter.OrderByFields[i];
+            
+            if (i == 0)
+            {
+                // İlk sıralama için OrderBy veya OrderByDescending kullan
+                orderedQuery = orderByField.IsDescending
+                    ? ApplyOrder(query, orderByField.PropertyName, "OrderByDescending")
+                    : ApplyOrder(query, orderByField.PropertyName, "OrderBy");
+            }
+            else
+            {
+                // Sonraki sıralamalar için ThenBy veya ThenByDescending kullan
+                orderedQuery = orderByField.IsDescending
+                    ? ApplyOrder(orderedQuery!, orderByField.PropertyName, "ThenByDescending")
+                    : ApplyOrder(orderedQuery!, orderByField.PropertyName, "ThenBy");
+            }
         }
-        return query;
+
+        return orderedQuery ?? query;
     }
 
-    private static IQueryable<T> ApplyOrder<T>(IQueryable<T> source, string property, string methodName)
+    private static IOrderedQueryable<T> ApplyOrder<T>(IQueryable<T> source, string property, string methodName)
     {
         string[] props = property.Split('.');
         Type type = typeof(T);
         ParameterExpression arg = Expression.Parameter(type, "x");
         Expression expr = arg;
+        
         foreach (string prop in props)
         {
             PropertyInfo? pi = type.GetProperty(prop, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
             if (pi == null)
-                return source;
+                throw new ArgumentException($"Property '{prop}' not found on type '{type.Name}'");
             expr = Expression.Property(expr, pi);
             type = pi.PropertyType;
         }
+        
         Type delegateType = typeof(Func<,>).MakeGenericType(typeof(T), type);
         LambdaExpression lambda = Expression.Lambda(delegateType, expr, arg);
 
@@ -128,6 +151,6 @@ public static class QueryableExtensions
                 .MakeGenericMethod(typeof(T), type)
                 .Invoke(null, [source, lambda]);
 
-        return (IQueryable<T>)(result ?? source);
+        return (IOrderedQueryable<T>)(result ?? throw new InvalidOperationException($"Failed to apply order method '{methodName}'"));
     }
 }

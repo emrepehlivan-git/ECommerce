@@ -14,7 +14,8 @@ public sealed class FullNameTests
 #pragma warning restore CS8604 // Possible null reference argument.
 
         // Assert
-        act.Should().Throw<NullReferenceException>();
+        act.Should().Throw<ArgumentException>()
+            .WithMessage("First name cannot be null or empty.*");
     }
 
     [Theory]
@@ -29,7 +30,8 @@ public sealed class FullNameTests
 #pragma warning restore CS8604 // Possible null reference argument.
 
         // Assert
-        act.Should().Throw<NullReferenceException>();
+        act.Should().Throw<ArgumentException>()
+            .WithMessage("Last name cannot be null or empty.*");
     }
 
     [Theory]

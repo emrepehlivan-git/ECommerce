@@ -5,13 +5,12 @@ using ECommerce.Application.Repositories;
 using ECommerce.Application.Features.Products.DTOs;
 using ECommerce.Application.Parameters;
 using ECommerce.SharedKernel;
-using Mapster;
 using MediatR;
 using ECommerce.Domain.Entities;
 
 namespace ECommerce.Application.Features.Products.Queries;
 
-public sealed record GetAllProductsQuery(PageableRequestParams PageableRequestParams, bool IncludeCategory = false) : IRequest<PagedResult<List<ProductDto>>>;
+public sealed record GetAllProductsQuery(PageableRequestParams PageableRequestParams, bool IncludeCategory = false, string? OrderBy = null) : IRequest<PagedResult<List<ProductDto>>>;
 
 public sealed class GetAllProductsQueryHandler(
     IProductRepository productRepository,
@@ -19,8 +18,11 @@ public sealed class GetAllProductsQueryHandler(
 {
     public override async Task<PagedResult<List<ProductDto>>> Handle(GetAllProductsQuery query, CancellationToken cancellationToken)
     {
+        var filter = Filter.FromOrderByString(query.OrderBy);
+        
         return await productRepository.Query(
              include: x => x.IncludeIf(query.IncludeCategory, y => y.Category))
+            .ApplyOrderBy(filter)
             .ApplyPagingAsync<Product, ProductDto>(query.PageableRequestParams, cancellationToken: cancellationToken);
     }
 }

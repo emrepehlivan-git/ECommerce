@@ -15,16 +15,16 @@ public sealed record FullName
 
     public static FullName Create(string firstName, string lastName)
     {
-        return new FullName(firstName.Trim(), lastName.Trim());
+        return new FullName(firstName?.Trim() ?? string.Empty, lastName?.Trim() ?? string.Empty);
     }
 
     private void Validate(string firstName, string lastName)
     {
         if (string.IsNullOrWhiteSpace(firstName))
-            throw new NullReferenceException("First name cannot be null or empty.");
+            throw new ArgumentException("First name cannot be null or empty.", nameof(firstName));
 
         if (string.IsNullOrWhiteSpace(lastName))
-            throw new NullReferenceException("Last name cannot be null or empty.");
+            throw new ArgumentException("Last name cannot be null or empty.", nameof(lastName));
 
         if (firstName.Length < 3)
             throw new ArgumentException("First name cannot be less than 3 characters.", nameof(firstName));

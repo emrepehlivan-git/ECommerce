@@ -35,8 +35,8 @@ public sealed class CategoryController : BaseApiController
         return result.ToActionResult(this);
     }
 
-    [Authorize(PermissionConstants.Categories.Create)]
     [HttpPost]
+    [Authorize(Policy = PermissionConstants.Categories.Create)]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
@@ -48,8 +48,8 @@ public sealed class CategoryController : BaseApiController
         return result.ToActionResult(this);
     }
 
-    [Authorize(PermissionConstants.Categories.Update)]
     [HttpPut("{id}")]
+    [Authorize(Policy = PermissionConstants.Categories.Update)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
@@ -61,8 +61,8 @@ public sealed class CategoryController : BaseApiController
         return result.ToActionResult(this);
     }
 
-    [Authorize(PermissionConstants.Categories.Delete)]
     [HttpDelete("{id}")]
+    [Authorize(Policy = PermissionConstants.Categories.Delete)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]

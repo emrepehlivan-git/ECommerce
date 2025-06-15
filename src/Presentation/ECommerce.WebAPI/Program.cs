@@ -1,4 +1,5 @@
 using ECommerce.WebAPI;
+using ECommerce.Persistence.Seeds;
 
 ECommerce.Application.Common.Logging.ILogger? logger = null;
 
@@ -11,6 +12,11 @@ try
     var app = builder.Build();
 
     await app.ApplyMigrations();
+
+    if (app.Environment.IsDevelopment())
+    {
+        await app.SeedDatabaseAsync();
+    }
 
     logger = app.Services.GetService<ECommerce.Application.Common.Logging.ILogger>();
 

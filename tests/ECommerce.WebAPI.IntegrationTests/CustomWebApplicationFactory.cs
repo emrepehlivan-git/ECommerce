@@ -14,6 +14,8 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        builder.UseEnvironment("Testing");
+        
         builder.ConfigureAppConfiguration((context, config) =>
         {
             var overrides = new Dictionary<string, string?>

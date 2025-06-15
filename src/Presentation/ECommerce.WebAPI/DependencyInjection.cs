@@ -1,8 +1,4 @@
-using System.Globalization;
-using System.Net;
-using System.Net.Security;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
+using System.Globalization; 
 using ECommerce.Application;
 using ECommerce.Application.Constants;
 using ECommerce.Application.Interfaces;
@@ -16,9 +12,7 @@ using ECommerce.WebAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Validation.AspNetCore;
-using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace ECommerce.WebAPI;
 
@@ -27,6 +21,26 @@ public static class DependencyInjection
     public static IServiceCollection AddPresentation(this IServiceCollection services, IConfiguration configuration)
     {
         ConfigureLocalization(services);
+        
+        // Configure CORS first before Swagger
+        services.AddCors(options =>
+        {
+            options.AddPolicy("AllowAllOrigins", builder =>
+            {
+                builder.WithOrigins(
+                    "http://localhost:3000", 
+                    "https://localhost:3000",
+                    "https://localhost:5002",
+                    "http://localhost:5001",
+                    "http://localhost:4000",
+                    "https://localhost:4001"
+                )
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials();
+            });
+        });
+        
         ConfigureSwagger(services, configuration);
 
         services.AddApplication()
@@ -51,39 +65,30 @@ public static class DependencyInjection
         ConfigureOpenIddict(services, configuration);
 
         services.AddAuthorization();
-        services.AddCors(options =>
-        {
-            options.AddPolicy("AllowAllOrigins", builder =>
-            {
-                builder.WithOrigins("http://localhost:3000", "https://localhost:5002")
-                    .AllowAnyMethod()
-                    .AllowAnyHeader()
-                    .AllowCredentials();
-            });
-        });
 
         return services;
     }
 
     public static WebApplication UsePresentation(this WebApplication app, IWebHostEnvironment environment)
     {
-
         app.UseRequestLocalization();
+        
+        // Apply CORS before other middleware
+        app.UseCors("AllowAllOrigins");
 
         if (environment.IsDevelopment())
         {
-            app.UseSwagger();
+            app.UseSwagger(c => {
+                c.RouteTemplate = "swagger/{documentName}/swagger.json";
+            });
             app.UseSwaggerUI(options =>
             {
                 options.SwaggerEndpoint("/swagger/v1/swagger.json", "ECommerce API v1");
                 options.OAuthClientId("swagger-client");
-                options.OAuthAppName("ECommerce API");
                 options.OAuthUsePkce();
-                options.OAuthScopes(["api", "email", "profile", "roles"]);
+                options.OAuthScopeSeparator(" ");
             });
         }
-
-        app.UseCors("AllowAllOrigins");
 
         app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
         app.UseHttpsRedirection();
@@ -131,38 +136,13 @@ public static class DependencyInjection
 
     private static void ConfigureOpenIddict(IServiceCollection services, IConfiguration configuration)
     {
-        X509Certificate2? caCert = null;
-        if (File.Exists("/app/ca.crt"))
-        {
-            caCert = new X509Certificate2("/app/ca.crt");
-        }
-
         services.AddOpenIddict()
             .AddValidation(options =>
             {
                 options.SetIssuer(new Uri(configuration["Authentication:Authority"]!));
                 options.AddAudiences(configuration["Authentication:Audience"]!);
 
-                options.UseSystemNetHttp()
-                .ConfigureHttpClientHandler(handler =>
-                {
-                    if (caCert is not null)
-                    {
-                        handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
-                        {
-                            if (errors == SslPolicyErrors.None)
-                                return true;
-
-                            var chainWithExtra = new X509Chain();
-                            chainWithExtra.ChainPolicy.ExtraStore.Add(caCert);
-                            chainWithExtra.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
-                            chainWithExtra.ChainPolicy.VerificationFlags = X509VerificationFlags.AllowUnknownCertificateAuthority;
-
-                            return chainWithExtra.Build(cert ?? throw new InvalidOperationException("Certificate is null"));
-                        };
-                    }
-                });
-
+                options.UseSystemNetHttp();
 
                 options.UseAspNetCore();
 
@@ -179,6 +159,10 @@ public static class DependencyInjection
                 Version = "v1",
                 Description = "ECommerce API with OpenIddict Authentication"
             });
+            
+            // Use localhost for browser-accessible URLs (Swagger runs in browser)
+            var authServerUrl = configuration["Authentication:SwaggerAuthority"] ?? "https://localhost:5002";
+            
             options.AddSecurityDefinition("oauth2", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
             {
                 Type = Microsoft.OpenApi.Models.SecuritySchemeType.OAuth2,
@@ -186,16 +170,19 @@ public static class DependencyInjection
                 {
                     AuthorizationCode = new Microsoft.OpenApi.Models.OpenApiOAuthFlow
                     {
-                        AuthorizationUrl = new Uri($"https://localhost:5002/connect/authorize"),
-                        TokenUrl = new Uri($"https://localhost:5002/connect/token"),
+                        AuthorizationUrl = new Uri($"{authServerUrl}/connect/authorize"),
+                        TokenUrl = new Uri($"{authServerUrl}/connect/token"),
                         Scopes = new Dictionary<string, string>
                         {
-                            { "api", "ECommerce API Access" }
+                            { "api", "API Access" },
+                            { "openid", "OpenID" },
+                            { "profile", "Profile" },
+                            { "email", "Email" }
                         }
                     }
                 }
             });
-
+            
             options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
             {
                 {

@@ -10,7 +10,7 @@ public sealed class UserTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
-    public void Create_WithInvalidEmail_ShouldThrowNullReferenceException(string? email)
+    public void Create_WithInvalidEmail_ShouldThrowArgumentException(string? email)
     {
         // Act
 #pragma warning disable CS8604 // Possible null reference argument.
@@ -18,7 +18,8 @@ public sealed class UserTests
 #pragma warning restore CS8604 // Possible null reference argument.
 
         // Assert
-        act.Should().Throw<NullReferenceException>();
+        act.Should().Throw<ArgumentException>()
+            .WithMessage("Email cannot be null or empty.*");
     }
 
     [Theory]
@@ -108,7 +109,8 @@ public sealed class UserTests
 #pragma warning restore CS8604 // Possible null reference argument.
 
         // Assert
-        act.Should().Throw<NullReferenceException>();
+        act.Should().Throw<ArgumentException>()
+            .WithMessage("First name cannot be null or empty.*");
     }
 
     [Theory]
@@ -126,6 +128,7 @@ public sealed class UserTests
 #pragma warning restore CS8604 // Possible null reference argument.
 
         // Assert
-        act.Should().Throw<NullReferenceException>();
+        act.Should().Throw<ArgumentException>()
+            .WithMessage("Last name cannot be null or empty.*");
     }
 }
