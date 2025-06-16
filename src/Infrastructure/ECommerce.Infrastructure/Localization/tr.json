@@ -34,5 +34,13 @@
   "Order.ItemNotFound": "Sipariş ürünü bulunamadı.",
   "Order.ShippingAddressRequired": "Teslimat adresi gereklidir.",
   "Order.BillingAddressRequired": "Fatura adresi gereklidir.",
-  "Order.EmptyOrder": "Sipariş boş olamaz. Lütfen en az bir ürün ekleyin."
+  "Order.EmptyOrder": "Sipariş boş olamaz. Lütfen en az bir ürün ekleyin.",
+  "UserAddress.NotFound": "Kullanıcı adresi bulunamadı.",
+  "UserAddress.UserNotFound": "Bu adres için kullanıcı bulunamadı.",
+  "UserAddress.LabelRequired": "Adres etiketi gereklidir.",
+  "UserAddress.LabelMinLength": "Adres etiketi en az {0} karakter olmalıdır.",
+  "UserAddress.LabelMaxLength": "Adres etiketi en fazla {0} karakter olmalıdır.",
+  "UserAddress.AddressRequired": "Adres bilgisi gereklidir.",
+  "UserAddress.DefaultAddressCannotBeDeleted": "Varsayılan adres silinemez.",
+  "UserAddress.AddressAlreadyDefault": "Bu adres zaten varsayılan olarak ayarlanmış."
 }

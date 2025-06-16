@@ -32,6 +32,7 @@ public static class DependencyInjection
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IStockRepository, StockRepository>();
+        services.AddScoped<IUserAddressRepository, UserAddressRepository>();
     }
 
     private static void ConfigureDbContext(IServiceCollection services, IConfiguration configuration)

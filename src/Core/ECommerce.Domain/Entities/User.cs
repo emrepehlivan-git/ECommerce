@@ -6,8 +6,12 @@ namespace ECommerce.Domain.Entities;
 
 public sealed class User : IdentityUser<Guid>
 {
+    private readonly List<UserAddress> _addresses = [];
+
     public FullName FullName { get; private set; } = null!;
     public bool IsActive { get; private set; }
+    
+    public IReadOnlyCollection<UserAddress> Addresses => _addresses.AsReadOnly();
 
     internal User()
     {

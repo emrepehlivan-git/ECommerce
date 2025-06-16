@@ -34,5 +34,13 @@
   "Order.ItemNotFound": "Order item not found.",
   "Order.ShippingAddressRequired": "Shipping address is required.",
   "Order.BillingAddressRequired": "Billing address is required.",
-  "Order.EmptyOrder": "Order cannot be empty. Please add at least one item."
+  "Order.EmptyOrder": "Order cannot be empty. Please add at least one item.",
+  "UserAddress.NotFound": "User address not found.",
+  "UserAddress.UserNotFound": "User not found for this address.",
+  "UserAddress.LabelRequired": "Address label is required.",
+  "UserAddress.LabelMinLength": "Address label must be at least {0} characters long.",
+  "UserAddress.LabelMaxLength": "Address label cannot be longer than {0} characters.",
+  "UserAddress.AddressRequired": "Address information is required.",
+  "UserAddress.DefaultAddressCannotBeDeleted": "Default address cannot be deleted.",
+  "UserAddress.AddressAlreadyDefault": "This address is already set as default."
 }

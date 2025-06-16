@@ -87,17 +87,13 @@ public static class QueryableExtensions
     Expression<Func<T, object>> include)
     where T : class
     {
-        if (condition)
-        {
-            query = query.Include(include);
-        }
-        return query;
+        return condition ? query.Include(include) : query;
     }
 
-    public static IQueryable<T> ApplyOrderBy<T>(this IQueryable<T> query, Filter filter)
+    public static IOrderedQueryable<T> ApplyOrderBy<T>(this IQueryable<T> query, Filter filter)
     {
         if (filter.OrderByFields.Count == 0)
-            return query;
+            return query.OrderBy(x => 1);
 
         IOrderedQueryable<T>? orderedQuery = null;
 
@@ -107,21 +103,19 @@ public static class QueryableExtensions
             
             if (i == 0)
             {
-                // İlk sıralama için OrderBy veya OrderByDescending kullan
                 orderedQuery = orderByField.IsDescending
                     ? ApplyOrder(query, orderByField.PropertyName, "OrderByDescending")
                     : ApplyOrder(query, orderByField.PropertyName, "OrderBy");
             }
             else
             {
-                // Sonraki sıralamalar için ThenBy veya ThenByDescending kullan
                 orderedQuery = orderByField.IsDescending
                     ? ApplyOrder(orderedQuery!, orderByField.PropertyName, "ThenByDescending")
                     : ApplyOrder(orderedQuery!, orderByField.PropertyName, "ThenBy");
             }
         }
 
-        return orderedQuery ?? query;
+        return (IOrderedQueryable<T>)(orderedQuery ?? query);
     }
 
     private static IOrderedQueryable<T> ApplyOrder<T>(IQueryable<T> source, string property, string methodName)
@@ -133,9 +127,7 @@ public static class QueryableExtensions
         
         foreach (string prop in props)
         {
-            PropertyInfo? pi = type.GetProperty(prop, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
-            if (pi == null)
-                throw new ArgumentException($"Property '{prop}' not found on type '{type.Name}'");
+            PropertyInfo? pi = type.GetProperty(prop, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance) ?? throw new ArgumentException($"Property '{prop}' not found on type '{type.Name}'");
             expr = Expression.Property(expr, pi);
             type = pi.PropertyType;
         }

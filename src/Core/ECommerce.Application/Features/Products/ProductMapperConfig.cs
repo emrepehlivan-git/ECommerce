@@ -10,6 +10,7 @@ public class ProductMapperConfig
     {
         config.NewConfig<Product, ProductDto>()
             .Map(dest => dest.Price, src => src.Price != null ? src.Price.Value : 0m)
-            .Map(dest => dest.CategoryName, src => src.Category != null ? src.Category.Name : string.Empty);
+            .Map(dest => dest.CategoryName, src => src.Category != null ? src.Category.Name : string.Empty)
+            .Map(dest => dest.StockQuantity, src => src.Stock != null ? src.Stock.Quantity : 0);
     }
 }

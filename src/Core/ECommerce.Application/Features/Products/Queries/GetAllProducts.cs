@@ -18,11 +18,9 @@ public sealed class GetAllProductsQueryHandler(
 {
     public override async Task<PagedResult<List<ProductDto>>> Handle(GetAllProductsQuery query, CancellationToken cancellationToken)
     {
-        var filter = Filter.FromOrderByString(query.OrderBy);
-        
         return await productRepository.Query(
-             include: x => x.IncludeIf(query.IncludeCategory, y => y.Category))
-            .ApplyOrderBy(filter)
+            orderBy: x => x.ApplyOrderBy(Filter.FromOrderByString(query.OrderBy)),
+            include: x => x.IncludeIf(query.IncludeCategory, y => y.Category))
             .ApplyPagingAsync<Product, ProductDto>(query.PageableRequestParams, cancellationToken: cancellationToken);
     }
 }
