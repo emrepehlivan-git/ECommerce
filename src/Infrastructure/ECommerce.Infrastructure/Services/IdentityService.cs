@@ -1,12 +1,13 @@
 using System.Security.Claims;
 using ECommerce.Application.Interfaces;
 using ECommerce.Domain.Entities;
+using ECommerce.SharedKernel;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Infrastructure.Services;
 
-public sealed class IdentityService : IIdentityService
+public sealed class IdentityService : IIdentityService, IScopedDependency
 {
     private readonly UserManager<User> _userManager;
     private readonly RoleManager<Role> _roleManager;

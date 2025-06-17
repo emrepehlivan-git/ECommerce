@@ -1,10 +1,11 @@
 using ECommerce.Application.Interfaces;
 using ECommerce.Application.Services;
 using ECommerce.Domain.Entities;
+using ECommerce.SharedKernel;
 
 namespace ECommerce.Infrastructure.Services;
 
-public sealed class PermissionService(IIdentityService identityService) : IPermissionService
+public sealed class PermissionService(IIdentityService identityService) : IPermissionService, IScopedDependency
 {
     public async Task<bool> HasPermissionAsync(Guid userId, string permission)
     {

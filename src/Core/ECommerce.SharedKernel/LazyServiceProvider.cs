@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ECommerce.SharedKernel;
 
-public sealed class LazyServiceProvider : ILazyServiceProvider
+public sealed class LazyServiceProvider : ILazyServiceProvider, ITransientDependency
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ConcurrentDictionary<Type, Lazy<object?>> _lazyServices;

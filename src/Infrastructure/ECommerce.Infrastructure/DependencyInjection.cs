@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ECommerce.Infrastructure.Logging;
 using Serilog;
 using ECommerce.SharedKernel.Logging;
+using ECommerce.SharedKernel;
 
 namespace ECommerce.Infrastructure;
 
@@ -15,6 +16,7 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddInfraServices();
+        services.AddDependencies(typeof(DependencyInjection).Assembly);
         services.AddLogging(configuration);
 
         services.AddStackExchangeRedisCache(options =>

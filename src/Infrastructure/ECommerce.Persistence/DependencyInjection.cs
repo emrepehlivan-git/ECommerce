@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Http;
+using ECommerce.SharedKernel;
 
 namespace ECommerce.Persistence;
 
@@ -20,6 +21,7 @@ public static class DependencyInjection
         ConfigureDbContext(services, configuration);
         ConfigureIdentity(services);
         AddRepositories(services);
+        services.AddDependencies(typeof(DependencyInjection).Assembly);
         services.AddDatabaseSeeder();
 
         return services;

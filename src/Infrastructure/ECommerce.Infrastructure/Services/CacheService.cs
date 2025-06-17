@@ -1,10 +1,11 @@
 using System.Text.Json;
 using ECommerce.Application.Interfaces;
+using ECommerce.SharedKernel;
 using Microsoft.Extensions.Caching.Distributed;
 
 namespace ECommerce.Infrastructure.Services;
 
-public sealed class CacheService(IDistributedCache cache) : ICacheService
+public sealed class CacheService(IDistributedCache cache) : ICacheService, ISingletonDependency
 {
     public async Task<T?> GetAsync<T>(string key)
     {
