@@ -12,6 +12,7 @@
     <PackageReference Include="Scrutor" />
     <PackageReference Include="Ardalis.Result" />
     <PackageReference Include="MediatR" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
   </ItemGroup>
 
 </Project>

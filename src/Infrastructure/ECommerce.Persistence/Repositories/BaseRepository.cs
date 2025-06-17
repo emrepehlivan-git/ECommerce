@@ -5,6 +5,7 @@ using ECommerce.Application.Parameters;
 using ECommerce.Domain.Entities;
 using ECommerce.Persistence.Contexts;
 using ECommerce.SharedKernel;
+using ECommerce.SharedKernel.Specifications;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Persistence.Repositories;
@@ -134,5 +135,20 @@ public abstract class BaseRepository<TEntity> : IRepository<TEntity> where TEnti
     public virtual void Update(TEntity entity)
     {
         Table.Update(entity);
+    }
+
+    public IQueryable<TEntity> ApplySpecification(ISpecification<TEntity> specification)
+    {
+        return SpecificationEvaluator<TEntity>.GetQuery(Table.AsQueryable(), specification);
+    }
+
+    public async Task<List<TEntity>> ListAsync(ISpecification<TEntity> specification, CancellationToken cancellationToken = default)
+    {
+        return await ApplySpecification(specification).ToListAsync(cancellationToken);
+    }
+
+    public async Task<TEntity?> FirstOrDefaultAsync(ISpecification<TEntity> specification, CancellationToken cancellationToken = default)
+    {
+        return await ApplySpecification(specification).FirstOrDefaultAsync(cancellationToken);
     }
 }

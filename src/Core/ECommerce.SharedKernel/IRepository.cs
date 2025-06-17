@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using Ardalis.Result;
+using ECommerce.SharedKernel.Specifications;
 namespace ECommerce.SharedKernel;
 
 public interface IRepository<TEntity>
@@ -46,4 +47,10 @@ public interface IRepository<TEntity>
     void Delete(TEntity entity);
 
     void DeleteRange(IEnumerable<TEntity> entities);
+
+    IQueryable<TEntity> ApplySpecification(ISpecification<TEntity> specification);
+
+    Task<List<TEntity>> ListAsync(ISpecification<TEntity> specification, CancellationToken cancellationToken = default);
+
+    Task<TEntity?> FirstOrDefaultAsync(ISpecification<TEntity> specification, CancellationToken cancellationToken = default);
 }
