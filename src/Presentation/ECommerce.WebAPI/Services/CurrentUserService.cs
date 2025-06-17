@@ -1,10 +1,11 @@
 using System.Security.Claims;
 using ECommerce.Application.Interfaces;
+using ECommerce.SharedKernel;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace ECommerce.WebAPI.Services;
 
-public sealed class CurrentUserService(IHttpContextAccessor httpContextAccessor) : ICurrentUserService
+public sealed class CurrentUserService(IHttpContextAccessor httpContextAccessor) : ICurrentUserService, IScopedDependency
 {
     public string? UserId
         => httpContextAccessor.HttpContext?.User.FindFirst(Claims.Subject)?.Value;

@@ -46,6 +46,7 @@ public static class DependencyInjection
         services.AddApplication()
             .AddInfrastructure(configuration)
             .AddPersistence(configuration);
+        services.AddDependencies(typeof(DependencyInjection).Assembly);
 
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddTransient<ILazyServiceProvider, LazyServiceProvider>();

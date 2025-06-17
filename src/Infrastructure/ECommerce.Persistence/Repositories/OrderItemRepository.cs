@@ -1,11 +1,12 @@
 using ECommerce.Application.Repositories;
 using ECommerce.Domain.Entities;
 using ECommerce.Persistence.Contexts;
+using ECommerce.SharedKernel;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Persistence.Repositories;
 
-public sealed class OrderItemRepository(ApplicationDbContext context) : BaseRepository<OrderItem>(context), IOrderItemRepository
+public sealed class OrderItemRepository(ApplicationDbContext context) : BaseRepository<OrderItem>(context), IOrderItemRepository, IScopedDependency
 {
     public async Task<IEnumerable<OrderItem>> GetOrderItemsAsync(Guid orderId, CancellationToken cancellationToken = default)
     {

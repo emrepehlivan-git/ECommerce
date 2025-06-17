@@ -1,11 +1,12 @@
 using ECommerce.Application.Repositories;
 using ECommerce.Domain.Entities;
 using ECommerce.Persistence.Contexts;
+using ECommerce.SharedKernel;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Persistence.Repositories;
 
-public sealed class UserAddressRepository(ApplicationDbContext context) : BaseRepository<UserAddress>(context), IUserAddressRepository
+public sealed class UserAddressRepository(ApplicationDbContext context) : BaseRepository<UserAddress>(context), IUserAddressRepository, IScopedDependency
 {
     public async Task<UserAddress?> GetDefaultAddressAsync(Guid userId, CancellationToken cancellationToken = default)
     {

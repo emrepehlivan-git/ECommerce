@@ -2,13 +2,14 @@ using ECommerce.Application.Exceptions;
 using ECommerce.Application.Repositories;
 using ECommerce.Domain.Entities;
 using ECommerce.Persistence.Contexts;
+using ECommerce.SharedKernel;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Persistence.Repositories;
 
 public sealed class StockRepository(ApplicationDbContext context) :
  BaseRepository<ProductStock>(context),
-  IStockRepository
+  IStockRepository, IScopedDependency
 {
     public async Task ReserveStockAsync(Guid productId, int quantity, CancellationToken cancellationToken = default)
     {
