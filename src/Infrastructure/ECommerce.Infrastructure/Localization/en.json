@@ -10,6 +10,7 @@
   "ErrorMessages.UnexpectedError": "An unexpected error occurred.",
   "ErrorMessages.ValidationError": "Validation error.",
   "ErrorMessages.Unauthorized": "You are not authorized to perform this action.",
+  "ErrorMessages.Forbidden": "You do not have permission to access this resource.",
   "ErrorMessages.InvalidOperation": "Invalid operation.",
   "ErrorMessages.ConcurrencyError": "This record has been modified by another user.",
   "Product.NotFound": "Product not found.",

@@ -10,6 +10,7 @@
   "ErrorMessages.UnexpectedError": "Beklenmeyen bir hata oluştu.",
   "ErrorMessages.ValidationError": "Doğrulama hatası.",
   "ErrorMessages.Unauthorized": "Bu işlem için yetkiniz bulunmamaktadır.",
+  "ErrorMessages.Forbidden": "Bu kaynağa erişim izniniz bulunmamaktadır.",
   "ErrorMessages.InvalidOperation": "Geçersiz işlem.",
   "ErrorMessages.ConcurrencyError": "Bu kayıt başka bir kullanıcı tarafından değiştirilmiş.",
   "Product.NotFound": "Ürün bulunamadı.",

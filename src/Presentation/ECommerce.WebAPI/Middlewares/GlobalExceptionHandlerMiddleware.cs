@@ -23,7 +23,7 @@ public sealed class GlobalExceptionHandlerMiddleware(RequestDelegate next, Appli
         }
     }
 
-    private static async Task HandleExceptionAsync(HttpContext context, Exception exception)
+    private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
         context.Response.ContentType = "application/json";
 
@@ -36,6 +36,9 @@ public sealed class GlobalExceptionHandlerMiddleware(RequestDelegate next, Appli
 
             UnauthorizedAccessException =>
                 Result.Unauthorized(),
+
+            ForbiddenException =>
+                Result.Forbidden(),
 
             NotFoundException =>
                 Result.NotFound(exception.Message),
@@ -50,6 +53,7 @@ public sealed class GlobalExceptionHandlerMiddleware(RequestDelegate next, Appli
         {
             ResultStatus.Invalid => (int)HttpStatusCode.BadRequest,
             ResultStatus.Unauthorized => (int)HttpStatusCode.Unauthorized,
+            ResultStatus.Forbidden => (int)HttpStatusCode.Forbidden,
             ResultStatus.NotFound => (int)HttpStatusCode.NotFound,
             ResultStatus.Error => (int)HttpStatusCode.BadRequest,
             _ => (int)HttpStatusCode.InternalServerError
@@ -62,6 +66,7 @@ public sealed class GlobalExceptionHandlerMiddleware(RequestDelegate next, Appli
     private static bool IsExpectedException(Exception exception) =>
        exception is ValidationException or
               UnauthorizedAccessException or
+              ForbiddenException or
               NotFoundException or
               BusinessException;
 }
