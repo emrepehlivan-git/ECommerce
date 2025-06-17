@@ -1,4 +1,5 @@
 using ECommerce.Application.Behaviors;
+using ECommerce.Application.Extensions;
 using ECommerce.Application.Features.Categories.Commands;
 using ECommerce.Application.Features.Categories;
 using ECommerce.Application.Helpers;
@@ -33,6 +34,8 @@ public static class DependencyInjection
         services.AddSingleton<ILazyServiceProvider, LazyServiceProvider>();
 
         services.AddScoped<CategoryBusinessRules>();
+
+        services.AddIntegrationEventHandlers();
 
         return services;
     }

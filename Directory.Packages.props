@@ -44,6 +44,7 @@
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.2" />
+    <PackageVersion Include="RabbitMQ.Client" Version="6.5.0" />
   </ItemGroup>
   <!-- API & Documentation -->
   <ItemGroup>

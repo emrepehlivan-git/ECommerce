@@ -9,6 +9,8 @@ services:
     environment:
       - ConnectionStrings__DefaultConnection=Host=ecommerce.db;Database=ecommerce;Username=postgres;Password=postgres
       - ConnectionStrings__Redis=ecommerce.redis:6379
+      - RabbitMQ__ConnectionString=amqp://guest:guest@ecommerce.rabbitmq:5672/
+      - EventBus__Provider=RabbitMQ
       - ASPNETCORE_URLS=http://+:8080
       - ASPNETCORE_ENVIRONMENT=Development
       - Serilog__WriteTo__1__Args__serverUrl=http://ecommerce.seq:5341
@@ -23,6 +25,7 @@ services:
       - ecommerce.redis
       - ecommerce.seq
       - ecommerce.authserver
+      - ecommerce.rabbitmq
     ports:
       - 4000:8080
     volumes:
@@ -126,6 +129,15 @@ services:
       - ACCEPT_EULA=Y
     volumes:
       - seqdata:/data
+    networks:
+      - ecommerce-network
+
+  ecommerce.rabbitmq:
+    container_name: ecommerce.rabbitmq
+    image: rabbitmq:3-management
+    ports:
+      - 5672:5672
+      - 15672:15672
     networks:
       - ecommerce-network
 

@@ -1,6 +1,7 @@
 using ECommerce.Application.Interfaces;
 using ECommerce.Application.Services;
 using ECommerce.Infrastructure.Services;
+using ECommerce.Infrastructure.Messaging;
 using ECommerce.Persistence.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +17,7 @@ public static class DependencyInjection
     {
         services.AddInfraServices();
         services.AddLogging(configuration);
+        services.Configure<RabbitMqOptions>(configuration.GetSection("RabbitMQ"));
 
         services.AddStackExchangeRedisCache(options =>
         {
@@ -32,6 +34,9 @@ public static class DependencyInjection
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IPermissionService, PermissionService>();
+        services.AddSingleton<IEventBusFactory, EventBusFactory>();
+        services.AddSingleton<IEventBus>(sp =>
+            sp.GetRequiredService<IEventBusFactory>().Create(sp));
     }
 
     private static void AddLogging(this IServiceCollection services, IConfiguration configuration)
