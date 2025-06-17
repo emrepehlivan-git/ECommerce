@@ -100,7 +100,7 @@ public sealed class AddUserAddressCommandTests : UserAddressesTestBase
         result.IsSuccess.Should().BeTrue();
 
         capturedAddress.Should().NotBeNull();
-        capturedAddress.IsDefault.Should().BeTrue();
+        capturedAddress?.IsDefault.Should().BeTrue();
     }
 
     [Fact]
@@ -163,11 +163,11 @@ public sealed class AddUserAddressCommandTests : UserAddressesTestBase
         result.IsSuccess.Should().BeTrue();
 
         capturedAddress.Should().NotBeNull();
-        capturedAddress.Address.Street.Should().Be(street);
-        capturedAddress.Address.City.Should().Be(city);
-        capturedAddress.Address.State.Should().Be(state);
-        capturedAddress.Address.ZipCode.Should().Be(zipCode);
-        capturedAddress.Address.Country.Should().Be(country);
+        capturedAddress?.Address.Street.Should().Be(street);
+        capturedAddress?.Address.City.Should().Be(city);
+        capturedAddress?.Address.State.Should().Be(state);
+        capturedAddress?.Address.ZipCode.Should().Be(zipCode);
+        capturedAddress?.Address.Country.Should().Be(country);
     }
 
     [Theory]
@@ -195,6 +195,6 @@ public sealed class AddUserAddressCommandTests : UserAddressesTestBase
         result.IsSuccess.Should().BeTrue();
 
         capturedAddress.Should().NotBeNull();
-        capturedAddress.Label.Should().Be(label);
+        capturedAddress?.Label.Should().Be(label);
     }
 } 

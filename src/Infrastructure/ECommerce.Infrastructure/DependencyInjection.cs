@@ -15,7 +15,6 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddInfraServices();
         services.AddDependencies(typeof(DependencyInjection).Assembly);
         services.AddLogging(configuration);
 
@@ -26,16 +25,6 @@ public static class DependencyInjection
 
         return services;
     }
-
-    private static void AddInfraServices(this IServiceCollection services)
-    {
-        services.AddSingleton<ILocalizationService, LocalizationService>();
-        services.AddSingleton<ICacheService, CacheService>();
-        services.AddScoped<IIdentityService, IdentityService>();
-        services.AddScoped<IUnitOfWork, UnitOfWork>();
-        services.AddScoped<IPermissionService, PermissionService>();
-    }
-
     private static void AddLogging(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<LoggingOptions>(configuration.GetSection("LoggingOptions"));

@@ -1,9 +1,6 @@
-using ECommerce.Application.Interfaces;
-using ECommerce.Application.Repositories;
 using ECommerce.Domain.Entities;
 using ECommerce.Persistence.Contexts;
 using ECommerce.Persistence.Interceptors;
-using ECommerce.Persistence.Repositories;
 using ECommerce.Persistence.Seeds;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -20,21 +17,10 @@ public static class DependencyInjection
     {
         ConfigureDbContext(services, configuration);
         ConfigureIdentity(services);
-        AddRepositories(services);
         services.AddDependencies(typeof(DependencyInjection).Assembly);
         services.AddDatabaseSeeder();
 
         return services;
-    }
-
-    private static void AddRepositories(this IServiceCollection services)
-    {
-        services.AddScoped<IOrderRepository, OrderRepository>();
-        services.AddScoped<IOrderItemRepository, OrderItemRepository>();
-        services.AddScoped<IProductRepository, ProductRepository>();
-        services.AddScoped<ICategoryRepository, CategoryRepository>();
-        services.AddScoped<IStockRepository, StockRepository>();
-        services.AddScoped<IUserAddressRepository, UserAddressRepository>();
     }
 
     private static void ConfigureDbContext(IServiceCollection services, IConfiguration configuration)

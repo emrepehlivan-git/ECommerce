@@ -1,7 +1,6 @@
 using ECommerce.WebAPI;
 using ECommerce.Persistence.Seeds;
 
-ECommerce.Application.Common.Logging.ILogger? logger = null;
 
 try
 {
@@ -18,15 +17,14 @@ try
         await app.SeedDatabaseAsync();
     }
 
-    logger = app.Services.GetService<ECommerce.Application.Common.Logging.ILogger>();
-
     app.UsePresentation(app.Environment);
 
     app.Run();
 }
 catch (Exception ex)
 {
-    logger?.LogError(ex, "Application terminated unexpectedly");
+    Console.WriteLine($"Application terminated unexpectedly: {ex}");
+    throw;
 }
 
 public partial class Program { }

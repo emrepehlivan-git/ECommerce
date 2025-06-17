@@ -29,12 +29,6 @@ public static class DependencyInjection
 
         services.AddMapsterConfiguration();
 
-        services.AddScoped<LocalizationHelper>();
-
-        services.AddSingleton<ILazyServiceProvider, LazyServiceProvider>();
-
-        services.AddScoped<CategoryBusinessRules>();
-
         return services;
     }
 }

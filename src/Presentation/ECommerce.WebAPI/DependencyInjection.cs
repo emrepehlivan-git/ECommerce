@@ -22,7 +22,6 @@ public static class DependencyInjection
     {
         ConfigureLocalization(services);
         
-        // Configure CORS first before Swagger
         services.AddCors(options =>
         {
             options.AddPolicy("AllowAllOrigins", builder =>
@@ -48,9 +47,6 @@ public static class DependencyInjection
             .AddPersistence(configuration);
         services.AddDependencies(typeof(DependencyInjection).Assembly);
 
-        services.AddScoped<ICurrentUserService, CurrentUserService>();
-        services.AddTransient<ILazyServiceProvider, LazyServiceProvider>();
-
         services.AddControllers();
         services.AddEndpointsApiExplorer();
         services.AddHttpContextAccessor();
@@ -74,7 +70,6 @@ public static class DependencyInjection
     {
         app.UseRequestLocalization();
         
-        // Apply CORS before other middleware
         app.UseCors("AllowAllOrigins");
 
         if (environment.IsDevelopment())
@@ -167,7 +162,6 @@ public static class DependencyInjection
                 Description = "ECommerce API with OpenIddict Authentication"
             });
             
-            // Use localhost for browser-accessible URLs (Swagger runs in browser)
             var authServerUrl = configuration["Authentication:SwaggerAuthority"] ?? "https://localhost:5002";
             
             options.AddSecurityDefinition("oauth2", new Microsoft.OpenApi.Models.OpenApiSecurityScheme

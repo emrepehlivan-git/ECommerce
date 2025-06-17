@@ -1,6 +1,4 @@
-﻿version: "3.8"
-
-services:
+﻿services:
   ecommerce.webapi:
     container_name: ecommerce.webapi
     build:
