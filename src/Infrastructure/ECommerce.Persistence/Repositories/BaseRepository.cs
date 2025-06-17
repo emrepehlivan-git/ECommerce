@@ -38,9 +38,21 @@ public abstract class BaseRepository<TEntity> : IRepository<TEntity> where TEnti
         return await Table.AnyAsync(predicate, cancellationToken);
     }
 
+    public virtual async Task<bool> AnyAsync(ISpecification<TEntity> specification, CancellationToken cancellationToken = default)
+    {
+        var query = ApplySpecification(specification);
+        return await query.AnyAsync(cancellationToken);
+    }
+
     public virtual async Task<int> CountAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
     {
         return await Table.CountAsync(predicate, cancellationToken);
+    }
+
+    public virtual async Task<int> CountAsync(ISpecification<TEntity> specification, CancellationToken cancellationToken = default)
+    {
+        var query = ApplySpecification(specification);
+        return await query.CountAsync(cancellationToken);
     }
 
     public virtual void Delete(Guid id)
@@ -83,6 +95,14 @@ public abstract class BaseRepository<TEntity> : IRepository<TEntity> where TEnti
         return query.ApplyPaging(new PageableRequestParams(page, pageSize));
     }
 
+    public virtual PagedResult<List<TEntity>> GetPaged(ISpecification<TEntity> specification, 
+        int page = 1, 
+        int pageSize = 10)
+    {
+        var query = ApplySpecification(specification);
+        return query.ApplyPaging(new PageableRequestParams(page, pageSize));
+    }
+
     public virtual Task<PagedResult<List<TEntity>>> GetPagedAsync(
         Expression<Func<TEntity, bool>>? predicate = null,
         Expression<Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>>? orderBy = null,
@@ -96,9 +116,24 @@ public abstract class BaseRepository<TEntity> : IRepository<TEntity> where TEnti
         return query.ApplyPagingAsync<TEntity, TEntity>(new PageableRequestParams(page, pageSize), predicate: predicate, cancellationToken: cancellationToken);
     }
 
+    public virtual async Task<PagedResult<List<TEntity>>> GetPagedAsync(ISpecification<TEntity> specification, 
+        int page = 1, 
+        int pageSize = 10, 
+        CancellationToken cancellationToken = default)
+    {
+        var query = ApplySpecification(specification);
+        return await query.ApplyPagingAsync<TEntity, TEntity>(new PageableRequestParams(page, pageSize), cancellationToken: cancellationToken);
+    }
+
     public virtual Task<long> LongCountAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
     {
         return Table.LongCountAsync(predicate, cancellationToken);
+    }
+
+    public virtual async Task<long> LongCountAsync(ISpecification<TEntity> specification, CancellationToken cancellationToken = default)
+    {
+        var query = ApplySpecification(specification);
+        return await query.LongCountAsync(cancellationToken);
     }
 
     public virtual IQueryable<TEntity> Query(
@@ -140,15 +175,5 @@ public abstract class BaseRepository<TEntity> : IRepository<TEntity> where TEnti
     public IQueryable<TEntity> ApplySpecification(ISpecification<TEntity> specification)
     {
         return SpecificationEvaluator<TEntity>.GetQuery(Table.AsQueryable(), specification);
-    }
-
-    public async Task<List<TEntity>> ListAsync(ISpecification<TEntity> specification, CancellationToken cancellationToken = default)
-    {
-        return await ApplySpecification(specification).ToListAsync(cancellationToken);
-    }
-
-    public async Task<TEntity?> FirstOrDefaultAsync(ISpecification<TEntity> specification, CancellationToken cancellationToken = default)
-    {
-        return await ApplySpecification(specification).FirstOrDefaultAsync(cancellationToken);
     }
 }
