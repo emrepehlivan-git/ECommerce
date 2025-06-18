@@ -95,7 +95,7 @@ public sealed class AuditableEntityTests
         var entity = new TestAuditableEntity();
 
         // Assert
-        entity.Should().BeAssignableTo<ECommerce.SharedKernel.IAuditableEntity>();
+        entity.Should().BeAssignableTo<ECommerce.SharedKernel.Entities.IAuditableEntity>();
     }
 
     [Fact]

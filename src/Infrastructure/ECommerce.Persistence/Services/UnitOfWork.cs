@@ -1,6 +1,6 @@
 using ECommerce.Application.Interfaces;
 using ECommerce.Persistence.Contexts;
-using ECommerce.SharedKernel;
+using ECommerce.SharedKernel.DependencyInjection;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace ECommerce.Persistence.Services;

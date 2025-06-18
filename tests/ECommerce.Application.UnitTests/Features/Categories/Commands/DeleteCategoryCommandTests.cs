@@ -2,7 +2,7 @@ using Ardalis.Result;
 using ECommerce.Application.Features.Categories;
 using ECommerce.Application.Features.Categories.Commands;
 using ECommerce.Domain.Entities;
-using ECommerce.SharedKernel;
+using ECommerce.SharedKernel.DependencyInjection;
 using FluentAssertions;
 using Moq;
 using System.Linq.Expressions;

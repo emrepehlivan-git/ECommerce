@@ -1,5 +1,5 @@
 using ECommerce.Application.Repositories;
-using ECommerce.SharedKernel;
+using ECommerce.SharedKernel.DependencyInjection;
 
 namespace ECommerce.Application.Features.Categories;
 

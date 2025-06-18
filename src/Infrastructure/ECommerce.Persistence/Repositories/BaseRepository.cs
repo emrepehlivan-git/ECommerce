@@ -4,7 +4,7 @@ using ECommerce.Application.Extensions;
 using ECommerce.Application.Parameters;
 using ECommerce.Domain.Entities;
 using ECommerce.Persistence.Contexts;
-using ECommerce.SharedKernel;
+using ECommerce.SharedKernel.Repositories;
 using ECommerce.SharedKernel.Specifications;
 using Microsoft.EntityFrameworkCore;
 

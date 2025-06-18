@@ -1,7 +1,7 @@
 using ECommerce.Application.Interfaces;
 using ECommerce.Application.Services;
 using ECommerce.Domain.Entities;
-using ECommerce.SharedKernel;
+using ECommerce.SharedKernel.DependencyInjection;
 
 namespace ECommerce.Infrastructure.Services;
 

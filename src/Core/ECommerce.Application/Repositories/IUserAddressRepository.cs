@@ -1,5 +1,5 @@
 using ECommerce.Domain.Entities;
-using ECommerce.SharedKernel;
+using ECommerce.SharedKernel.Repositories;
 
 namespace ECommerce.Application.Repositories;
 

@@ -1,7 +1,7 @@
 using ECommerce.Application.Repositories;
 using ECommerce.Domain.Entities;
 using ECommerce.Persistence.Contexts;
-using ECommerce.SharedKernel;
+using ECommerce.SharedKernel.DependencyInjection;
 
 namespace ECommerce.Persistence.Repositories;
 

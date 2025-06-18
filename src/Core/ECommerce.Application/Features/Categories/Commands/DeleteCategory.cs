@@ -2,7 +2,7 @@ using Ardalis.Result;
 using ECommerce.Application.Behaviors;
 using ECommerce.Application.CQRS;
 using ECommerce.Application.Repositories;
-using ECommerce.SharedKernel;
+using ECommerce.SharedKernel.DependencyInjection;
 using MediatR;
 
 namespace ECommerce.Application.Features.Categories.Commands;

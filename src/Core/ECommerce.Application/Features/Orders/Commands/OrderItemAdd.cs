@@ -6,6 +6,7 @@ using ECommerce.Application.Repositories;
 using ECommerce.Domain.Entities;
 using ECommerce.Domain.Enums;
 using ECommerce.SharedKernel;
+using ECommerce.SharedKernel.DependencyInjection;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;

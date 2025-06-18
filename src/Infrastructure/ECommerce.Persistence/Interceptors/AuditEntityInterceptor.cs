@@ -1,5 +1,5 @@
 using ECommerce.Application.Interfaces;
-using ECommerce.SharedKernel;
+using ECommerce.SharedKernel.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;

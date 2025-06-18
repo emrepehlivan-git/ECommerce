@@ -1,5 +1,5 @@
 using ECommerce.Application.Interfaces;
-using ECommerce.SharedKernel;
+using ECommerce.SharedKernel.DependencyInjection;
 
 namespace ECommerce.Application.Helpers;
 

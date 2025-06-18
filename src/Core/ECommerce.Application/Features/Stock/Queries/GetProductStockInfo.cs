@@ -3,6 +3,7 @@ using ECommerce.SharedKernel;
 using MediatR;
 using Ardalis.Result;
 using ECommerce.Application.CQRS;
+using ECommerce.SharedKernel.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 namespace ECommerce.Application.Features.Products.Queries;
 

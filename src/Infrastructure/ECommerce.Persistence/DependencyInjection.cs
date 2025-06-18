@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Http;
-using ECommerce.SharedKernel;
+using ECommerce.SharedKernel.DependencyInjection;
 
 namespace ECommerce.Persistence;
 

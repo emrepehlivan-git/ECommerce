@@ -3,6 +3,7 @@ using ECommerce.Application.Behaviors;
 using ECommerce.Application.CQRS;
 using ECommerce.Application.Interfaces;
 using ECommerce.SharedKernel;
+using ECommerce.SharedKernel.DependencyInjection;
 using MediatR;
 
 namespace ECommerce.Application.Features.Users.Commands;

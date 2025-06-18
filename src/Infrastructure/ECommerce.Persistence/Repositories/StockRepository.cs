@@ -2,7 +2,7 @@ using ECommerce.Application.Exceptions;
 using ECommerce.Application.Repositories;
 using ECommerce.Domain.Entities;
 using ECommerce.Persistence.Contexts;
-using ECommerce.SharedKernel;
+using ECommerce.SharedKernel.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Persistence.Repositories;

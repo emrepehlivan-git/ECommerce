@@ -1,6 +1,6 @@
 using System.Text.Json;
 using ECommerce.Application.Interfaces;
-using ECommerce.SharedKernel;
+using ECommerce.SharedKernel.DependencyInjection;
 using Microsoft.Extensions.Caching.Distributed;
 
 namespace ECommerce.Infrastructure.Services;

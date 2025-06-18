@@ -17,17 +17,5 @@ public class OrSpecification<T> : BaseSpecification<T>
         
         Criteria = Expression.Lambda<Func<T, bool>>(exprBody, paramExpr);
         
-        // Merge includes
-        foreach (var include in left.Includes)
-            Includes.Add(include);
-            
-        foreach (var include in right.Includes)
-            Includes.Add(include);
-            
-        foreach (var includeString in left.IncludeStrings)
-            IncludeStrings.Add(includeString);
-            
-        foreach (var includeString in right.IncludeStrings)
-            IncludeStrings.Add(includeString);
     }
 } 

@@ -2,7 +2,7 @@ using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Scrutor;
 
-namespace ECommerce.SharedKernel;
+namespace ECommerce.SharedKernel.DependencyInjection;
 
 public static class DependencyInjectionExtensions
 {

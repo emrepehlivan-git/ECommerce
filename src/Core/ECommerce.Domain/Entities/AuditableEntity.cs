@@ -1,4 +1,4 @@
-using ECommerce.SharedKernel;
+using ECommerce.SharedKernel.Entities;
 
 namespace ECommerce.Domain.Entities;
 

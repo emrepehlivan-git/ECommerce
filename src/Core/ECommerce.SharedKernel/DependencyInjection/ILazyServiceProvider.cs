@@ -1,4 +1,4 @@
-namespace ECommerce.SharedKernel;
+namespace ECommerce.SharedKernel.DependencyInjection;
 
 public interface ILazyServiceProvider
 {

@@ -1,7 +1,8 @@
 using System.Linq.Expressions;
 using Ardalis.Result;
 using ECommerce.SharedKernel.Specifications;
-namespace ECommerce.SharedKernel;
+
+namespace ECommerce.SharedKernel.Repositories;
 
 public interface IRepository<TEntity>
 {

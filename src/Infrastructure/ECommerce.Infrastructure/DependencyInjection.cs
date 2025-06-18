@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ECommerce.Infrastructure.Logging;
 using Serilog;
 using ECommerce.SharedKernel.Logging;
-using ECommerce.SharedKernel;
+using ECommerce.SharedKernel.DependencyInjection;
 
 namespace ECommerce.Infrastructure;
 

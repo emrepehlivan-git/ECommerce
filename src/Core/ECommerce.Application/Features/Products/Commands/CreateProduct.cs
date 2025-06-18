@@ -5,6 +5,7 @@ using ECommerce.Application.Helpers;
 using ECommerce.Application.Repositories;
 using ECommerce.Domain.Entities;
 using ECommerce.SharedKernel;
+using ECommerce.SharedKernel.DependencyInjection;
 using FluentValidation;
 using MediatR;
 

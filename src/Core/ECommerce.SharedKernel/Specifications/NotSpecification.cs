@@ -15,12 +15,5 @@ public class NotSpecification<T> : BaseSpecification<T>
         );
         
         Criteria = Expression.Lambda<Func<T, bool>>(exprBody, paramExpr);
-        
-        // Copy includes
-        foreach (var include in specification.Includes)
-            Includes.Add(include);
-            
-        foreach (var includeString in specification.IncludeStrings)
-            IncludeStrings.Add(includeString);
     }
 } 

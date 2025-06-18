@@ -5,7 +5,7 @@ using ECommerce.Application.Interfaces;
 using ECommerce.Infrastructure;
 using ECommerce.Persistence;
 using ECommerce.Persistence.Contexts;
-using ECommerce.SharedKernel;
+using ECommerce.SharedKernel.DependencyInjection;
 using ECommerce.WebAPI.Authorization;
 using ECommerce.WebAPI.Middlewares;
 using ECommerce.WebAPI.Services;

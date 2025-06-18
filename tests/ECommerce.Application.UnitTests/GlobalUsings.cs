@@ -19,4 +19,4 @@ global using ECommerce.Application.Features.Products.Commands;
 global using ECommerce.Application.Repositories;
 
 // Shared Kernel
-global using ECommerce.SharedKernel;
+global using ECommerce.SharedKernel.DependencyInjection;

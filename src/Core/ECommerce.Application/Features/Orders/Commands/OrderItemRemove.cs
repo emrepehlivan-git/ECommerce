@@ -1,13 +1,11 @@
 using Ardalis.Result;
 using ECommerce.Application.Behaviors;
-using ECommerce.Application.Common.Logging;
 using ECommerce.Application.CQRS;
-using ECommerce.Application.Exceptions;
 using ECommerce.Application.Helpers;
-using ECommerce.Application.Interfaces;
 using ECommerce.Application.Repositories;
 using ECommerce.Domain.Enums;
 using ECommerce.SharedKernel;
+using ECommerce.SharedKernel.DependencyInjection;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;

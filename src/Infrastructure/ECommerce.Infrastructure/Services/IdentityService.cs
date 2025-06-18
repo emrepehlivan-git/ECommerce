@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using ECommerce.Application.Interfaces;
 using ECommerce.Domain.Entities;
-using ECommerce.SharedKernel;
+using ECommerce.SharedKernel.DependencyInjection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 

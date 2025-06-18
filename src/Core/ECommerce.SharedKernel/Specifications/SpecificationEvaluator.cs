@@ -13,12 +13,12 @@ public static class SpecificationEvaluator<T> where T : class
             query = query.Where(specification.Criteria);
         }
 
-        foreach (var include in specification.Includes)
+        foreach (var include in specification.Includes ?? [])
         {
             query = query.Include(include);
         }
 
-        foreach (var includeString in specification.IncludeStrings)
+        foreach (var includeString in specification.IncludeStrings ?? [])
         {
             query = query.Include(includeString);
         }

@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using ECommerce.Application.Interfaces;
-using ECommerce.SharedKernel;
+using ECommerce.SharedKernel.DependencyInjection;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace ECommerce.WebAPI.Services;

@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace ECommerce.SharedKernel;
+namespace ECommerce.SharedKernel.DependencyInjection;
 
 public sealed class LazyServiceProvider : ILazyServiceProvider, ITransientDependency
 {

@@ -1,5 +1,5 @@
 using ECommerce.Application.Helpers;
-using ECommerce.SharedKernel;
+using ECommerce.SharedKernel.DependencyInjection;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 

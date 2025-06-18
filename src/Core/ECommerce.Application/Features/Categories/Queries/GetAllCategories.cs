@@ -3,7 +3,7 @@ using ECommerce.Application.CQRS;
 using ECommerce.Application.Extensions;
 using ECommerce.Application.Repositories;
 using ECommerce.Application.Features.Categories.DTOs;
-using ECommerce.SharedKernel;
+using ECommerce.SharedKernel.DependencyInjection;
 using MediatR;
 using ECommerce.Application.Parameters;
 using ECommerce.Domain.Entities;
