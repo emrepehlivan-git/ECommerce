@@ -43,7 +43,7 @@ public abstract class UserAddressesTestBase
 
     private void ConfigureMapster()
     {
-        TypeAdapterConfig<UserAddress, UserAddressDto>.NewConfig()
+        TypeAdapterConfig.GlobalSettings.ForType<UserAddress, UserAddressDto>()
             .Map(dest => dest.Id, src => src.Id)
             .Map(dest => dest.UserId, src => src.UserId)
             .Map(dest => dest.Label, src => src.Label)

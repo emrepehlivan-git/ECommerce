@@ -18,6 +18,8 @@ public static class DependencyInjection
         services.AddDependencies(typeof(DependencyInjection).Assembly);
         services.AddLogging(configuration);
 
+        // Add caching services
+        services.AddMemoryCache();
         services.AddStackExchangeRedisCache(options =>
         {
             options.Configuration = configuration.GetConnectionString("Redis");
