@@ -1,4 +1,5 @@
 using Ardalis.Result;
+using ECommerce.Application.Behaviors;
 using ECommerce.Application.CQRS;
 using ECommerce.SharedKernel.DependencyInjection;
 using ECommerce.Application.Features.Products.DTOs;
@@ -10,7 +11,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Application.Features.Products.Queries;
 
-public sealed record GetProductByIdQuery(Guid Id) : IRequest<Result<ProductDto>>;
+public sealed record GetProductByIdQuery(Guid Id) : IRequest<Result<ProductDto>>, ICacheableRequest
+{
+    public string CacheKey => $"product:{Id}";
+    public TimeSpan CacheDuration => TimeSpan.FromMinutes(15);
+}
 
 public sealed class GetProductByIdQueryHandler(
     IProductRepository productRepository,

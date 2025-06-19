@@ -2,6 +2,7 @@ using Ardalis.Result;
 using ECommerce.Application.Behaviors;
 using ECommerce.Application.CQRS;
 using ECommerce.Application.Helpers;
+using ECommerce.Application.Interfaces;
 using ECommerce.Application.Repositories;
 using ECommerce.Domain.Entities;
 using ECommerce.SharedKernel;
@@ -48,9 +49,10 @@ public sealed class CreateProductCommandValidator : AbstractValidator<CreateProd
 public sealed class CreateProductCommandHandler(
     IProductRepository productRepository,
     IStockRepository stockRepository,
+    ICacheManager cacheManager,
     ILazyServiceProvider lazyServiceProvider) : BaseHandler<CreateProductCommand, Result<Guid>>(lazyServiceProvider)
 {
-    public override Task<Result<Guid>> Handle(CreateProductCommand command, CancellationToken cancellationToken)
+    public override async Task<Result<Guid>> Handle(CreateProductCommand command, CancellationToken cancellationToken)
     {
         var product = Product.Create(
             command.Name,
@@ -62,6 +64,9 @@ public sealed class CreateProductCommandHandler(
         productRepository.Add(product);
         stockRepository.Add(ProductStock.Create(product.Id, command.StockQuantity));
 
-        return Task.FromResult(Result.Success(product.Id));
+        // Cache invalidation - clear products list cache
+        await cacheManager.RemoveByPatternAsync("products:*", cancellationToken);
+
+        return Result.Success(product.Id);
     }
 }

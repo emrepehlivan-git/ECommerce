@@ -1,4 +1,5 @@
 using Ardalis.Result;
+using ECommerce.Application.Behaviors;
 using ECommerce.Application.CQRS;
 using ECommerce.Application.Features.Categories.DTOs;
 using ECommerce.Application.Repositories;
@@ -8,7 +9,11 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 namespace ECommerce.Application.Features.Categories.Queries;
 
-public sealed record GetCategoryByIdQuery(Guid Id) : IRequest<Result<CategoryDto>>;
+public sealed record GetCategoryByIdQuery(Guid Id) : IRequest<Result<CategoryDto>>, ICacheableRequest
+{
+    public string CacheKey => $"category:{Id}";
+    public TimeSpan CacheDuration => TimeSpan.FromHours(2);
+}
 
 public sealed class GetCategoryByIdQueryHandler(
     ICategoryRepository categoryRepository,

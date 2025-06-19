@@ -2,6 +2,7 @@ using Ardalis.Result;
 using ECommerce.Application.Behaviors;
 using ECommerce.Application.CQRS;
 using ECommerce.Application.Helpers;
+using ECommerce.Application.Interfaces;
 using ECommerce.Application.Repositories;
 using ECommerce.Domain.Entities;
 using ECommerce.SharedKernel.DependencyInjection;
@@ -32,15 +33,19 @@ public sealed class CreateCategoryCommandValidator : AbstractValidator<CreateCat
 
 public sealed class CreateCategoryCommandHandler(
     ICategoryRepository categoryRepository,
+    ICacheManager cacheManager,
     ILazyServiceProvider lazyServiceProvider) :
     BaseHandler<CreateCategoryCommand, Result<Guid>>(lazyServiceProvider)
 {
-    public override Task<Result<Guid>> Handle(CreateCategoryCommand command, CancellationToken cancellationToken)
+    public override async Task<Result<Guid>> Handle(CreateCategoryCommand command, CancellationToken cancellationToken)
     {
         var category = Category.Create(command.Name);
 
         categoryRepository.Add(category);
 
-        return Task.FromResult(Result.Success(category.Id));
+        // Cache invalidation - clear categories list cache
+        await cacheManager.RemoveByPatternAsync("categories:*", cancellationToken);
+
+        return Result.Success(category.Id);
     }
 }

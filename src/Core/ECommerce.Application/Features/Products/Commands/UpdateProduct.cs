@@ -3,6 +3,7 @@ using ECommerce.Application.Behaviors;
 using ECommerce.Application.CQRS;
 using ECommerce.SharedKernel.DependencyInjection;
 using ECommerce.Application.Helpers;
+using ECommerce.Application.Interfaces;
 using ECommerce.Application.Repositories;
 using ECommerce.SharedKernel;
 using FluentValidation;
@@ -52,6 +53,7 @@ public sealed class UpdateProductCommandValidator : AbstractValidator<UpdateProd
 
 public sealed class UpdateProductCommandHandler(
     IProductRepository productRepository,
+    ICacheManager cacheManager,
     ILazyServiceProvider lazyServiceProvider) : BaseHandler<UpdateProductCommand, Result>(lazyServiceProvider)
 {
     public override async Task<Result> Handle(UpdateProductCommand command, CancellationToken cancellationToken)
@@ -64,6 +66,10 @@ public sealed class UpdateProductCommandHandler(
         product!.Update(command.Name, command.Price, command.CategoryId, command.Description);
 
         productRepository.Update(product);
+
+        // Cache invalidation
+        await cacheManager.RemoveAsync($"product:{command.Id}", cancellationToken);
+        await cacheManager.RemoveByPatternAsync("products:*", cancellationToken);
 
         return Result.Success();
     }

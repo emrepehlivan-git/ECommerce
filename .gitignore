@@ -76,6 +76,8 @@ artifacts/
 *.svclog
 *.scc
 
+rfcs/*
+
 # NuGet Packages
 *.nupkg
 # NuGet Symbol Packages

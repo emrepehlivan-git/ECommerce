@@ -1,3 +1,4 @@
+using ECommerce.Application.Behaviors;
 using ECommerce.Application.Features.Categories;
 using ECommerce.Application.Features.Categories.Queries;
 using ECommerce.Application.Parameters;
@@ -91,5 +92,30 @@ public sealed class GetAllCategoriesQueryTests : CategoryQueriesTestBase
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeInDescendingOrder(x => x.Name);
+    }
+
+    [Fact]
+    public void Query_ShouldImplementICacheableRequest()
+    {
+        // Arrange
+        var pageableParams = new PageableRequestParams(Page: 1, PageSize: 10);
+        var orderBy = "Name asc";
+        var query = new GetAllCategoriesQuery(pageableParams, orderBy);
+
+        // Act & Assert
+        query.Should().BeAssignableTo<ICacheableRequest>();
+        query.CacheKey.Should().Be("categories:page-1:size-10:order-Name asc");
+        query.CacheDuration.Should().Be(TimeSpan.FromMinutes(30));
+    }
+
+    [Fact]
+    public void Query_WithNullOrderBy_ShouldHaveDefaultCacheKey()
+    {
+        // Arrange
+        var pageableParams = new PageableRequestParams(Page: 2, PageSize: 5);
+        var query = new GetAllCategoriesQuery(pageableParams, null);
+
+        // Act & Assert
+        query.CacheKey.Should().Be("categories:page-2:size-5:order-default");
     }
 }

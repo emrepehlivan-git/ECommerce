@@ -1,6 +1,7 @@
 using Ardalis.Result;
 using ECommerce.Application.Behaviors;
 using ECommerce.Application.CQRS;
+using ECommerce.Application.Interfaces;
 using ECommerce.Application.Repositories;
 using ECommerce.SharedKernel.DependencyInjection;
 using MediatR;
@@ -11,6 +12,7 @@ public sealed record DeleteCategoryCommand(Guid Id) : IRequest<Result>, ITransac
 
 public sealed class DeleteCategoryCommandHandler(
     ICategoryRepository categoryRepository,
+    ICacheManager cacheManager,
     ILazyServiceProvider lazyServiceProvider) : BaseHandler<DeleteCategoryCommand, Result>(lazyServiceProvider)
 {
     public override async Task<Result> Handle(DeleteCategoryCommand command, CancellationToken cancellationToken)
@@ -24,6 +26,12 @@ public sealed class DeleteCategoryCommandHandler(
             return Result.Conflict(Localizer[CategoryConsts.CannotDeleteWithProducts]);
 
         categoryRepository.Delete(category);
+
+        // Cache invalidation
+        await cacheManager.RemoveAsync($"category:{command.Id}", cancellationToken);
+        await cacheManager.RemoveByPatternAsync("categories:*", cancellationToken);
+        // Also clear products cache as they might include category info
+        await cacheManager.RemoveByPatternAsync("products:*", cancellationToken);
 
         return Result.Success();
     }

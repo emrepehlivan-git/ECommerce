@@ -2,6 +2,7 @@ using Ardalis.Result;
 using ECommerce.Application.Behaviors;
 using ECommerce.Application.CQRS;
 using ECommerce.Application.Helpers;
+using ECommerce.Application.Interfaces;
 using ECommerce.Application.Repositories;
 using ECommerce.SharedKernel.DependencyInjection;
 using FluentValidation;
@@ -34,6 +35,7 @@ public sealed class UpdateCategoryCommandValidator : AbstractValidator<UpdateCat
 
 public sealed class UpdateCategoryCommandHandler(
     ICategoryRepository categoryRepository,
+    ICacheManager cacheManager,
     ILazyServiceProvider lazyServiceProvider) : BaseHandler<UpdateCategoryCommand, Result>(lazyServiceProvider)
 {
     public override async Task<Result> Handle(UpdateCategoryCommand command, CancellationToken cancellationToken)
@@ -43,6 +45,12 @@ public sealed class UpdateCategoryCommandHandler(
         category!.UpdateName(command.Name);
 
         categoryRepository.Update(category);
+
+        // Cache invalidation
+        await cacheManager.RemoveAsync($"category:{command.Id}", cancellationToken);
+        await cacheManager.RemoveByPatternAsync("categories:*", cancellationToken);
+        // Also clear products cache as they might include category info
+        await cacheManager.RemoveByPatternAsync("products:*", cancellationToken);
 
         return Result.Success();
     }

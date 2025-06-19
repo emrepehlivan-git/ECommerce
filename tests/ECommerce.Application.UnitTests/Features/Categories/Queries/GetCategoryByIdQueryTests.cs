@@ -1,3 +1,4 @@
+using ECommerce.Application.Behaviors;
 using ECommerce.Application.Features.Categories;
 using ECommerce.Application.Features.Categories.Queries;
 
@@ -69,5 +70,18 @@ public sealed class GetCategoryByIdQueryTests : CategoryQueriesTestBase
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void Query_ShouldImplementICacheableRequest()
+    {
+        // Arrange
+        var categoryId = Guid.NewGuid();
+        var query = new GetCategoryByIdQuery(categoryId);
+
+        // Act & Assert
+        query.Should().BeAssignableTo<ICacheableRequest>();
+        query.CacheKey.Should().Be($"category:{categoryId}");
+        query.CacheDuration.Should().Be(TimeSpan.FromHours(2));
     }
 }

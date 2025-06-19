@@ -1,4 +1,5 @@
 using Ardalis.Result;
+using ECommerce.Application.Behaviors;
 using ECommerce.Application.CQRS;
 using ECommerce.Application.Extensions;
 using ECommerce.Application.Repositories;
@@ -10,7 +11,11 @@ using ECommerce.Domain.Entities;
 
 namespace ECommerce.Application.Features.Categories.Queries;
 
-public sealed record GetAllCategoriesQuery(PageableRequestParams PageableRequestParams, string? OrderBy = null) : IRequest<PagedResult<List<CategoryDto>>>;
+public sealed record GetAllCategoriesQuery(PageableRequestParams PageableRequestParams, string? OrderBy = null) : IRequest<PagedResult<List<CategoryDto>>>, ICacheableRequest
+{
+    public string CacheKey => $"categories:page-{PageableRequestParams.Page}:size-{PageableRequestParams.PageSize}:order-{OrderBy ?? "default"}";
+    public TimeSpan CacheDuration => TimeSpan.FromMinutes(30);
+}
 
 public sealed class GetAllCategoriesQueryHandler(
     ICategoryRepository categoryRepository,

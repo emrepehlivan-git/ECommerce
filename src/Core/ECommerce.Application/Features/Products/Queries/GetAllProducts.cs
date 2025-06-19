@@ -1,4 +1,5 @@
 using Ardalis.Result;
+using ECommerce.Application.Behaviors;
 using ECommerce.Application.CQRS;
 using ECommerce.SharedKernel.DependencyInjection;
 using ECommerce.Application.Extensions;
@@ -11,7 +12,11 @@ using ECommerce.Domain.Entities;
 
 namespace ECommerce.Application.Features.Products.Queries;
 
-public sealed record GetAllProductsQuery(PageableRequestParams PageableRequestParams, bool IncludeCategory = false, string? OrderBy = null) : IRequest<PagedResult<List<ProductDto>>>;
+public sealed record GetAllProductsQuery(PageableRequestParams PageableRequestParams, bool IncludeCategory = false, string? OrderBy = null) : IRequest<PagedResult<List<ProductDto>>>, ICacheableRequest
+{
+    public string CacheKey => $"products:page-{PageableRequestParams.Page}:size-{PageableRequestParams.PageSize}:category-{IncludeCategory}:order-{OrderBy ?? "default"}";
+    public TimeSpan CacheDuration => TimeSpan.FromMinutes(10);
+}
 
 public sealed class GetAllProductsQueryHandler(
     IProductRepository productRepository,
