@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using System.Diagnostics;
 using Ardalis.Result;
 using ECommerce.Application.Extensions;
 using ECommerce.Application.Parameters;
@@ -12,6 +13,7 @@ namespace ECommerce.Persistence.Repositories;
 
 public abstract class BaseRepository<TEntity> : IRepository<TEntity> where TEntity : BaseEntity
 {
+    private static readonly ActivitySource ActivitySource = new("ECommerce.Repository");
     protected readonly ApplicationDbContext Context;
     private readonly DbSet<TEntity> Table;
 
@@ -29,8 +31,22 @@ public abstract class BaseRepository<TEntity> : IRepository<TEntity> where TEnti
 
     public virtual async Task<TEntity> AddAsync(TEntity entity, CancellationToken cancellationToken = default)
     {
-        await Table.AddAsync(entity, cancellationToken);
-        return entity;
+        using var activity = ActivitySource.StartActivity($"{typeof(TEntity).Name}.Add");
+        activity?.SetTag("repository.operation", "Add");
+
+        try
+        {
+            await Table.AddAsync(entity, cancellationToken);
+            activity?.SetTag("entity.id", entity.Id.ToString());
+            return entity;
+        }
+        catch (Exception ex)
+        {
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            activity?.SetTag("exception.type", ex.GetType().FullName);
+            activity?.SetTag("exception.message", ex.Message);
+            throw;
+        }
     }
 
     public virtual async Task<bool> AnyAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
@@ -79,8 +95,24 @@ public abstract class BaseRepository<TEntity> : IRepository<TEntity> where TEnti
          bool isTracking = false,
           CancellationToken cancellationToken = default)
     {
-        var query = Query(x => x.Id == id, isTracking: isTracking, include: include);
-        return await query.FirstOrDefaultAsync(cancellationToken);
+        using var activity = ActivitySource.StartActivity($"{typeof(TEntity).Name}.GetById");
+        activity?.SetTag("entity.id", id.ToString());
+        activity?.SetTag("repository.operation", "GetById");
+
+        try
+        {
+            var query = Query(x => x.Id == id, isTracking: isTracking, include: include);
+            var entity = await query.FirstOrDefaultAsync(cancellationToken);
+            activity?.SetTag("entity.found", entity != null);
+            return entity;
+        }
+        catch (Exception ex)
+        {
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            activity?.SetTag("exception.type", ex.GetType().FullName);
+            activity?.SetTag("exception.message", ex.Message);
+            throw;
+        }
     }
 
     public virtual PagedResult<List<TEntity>> GetPaged(

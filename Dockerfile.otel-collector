@@ -1,0 +1,7 @@
+FROM otel/opentelemetry-collector-contrib:latest
+
+# Copy configuration file
+COPY otel-collector-config.yml /etc/otel-collector-config.yml
+
+# Set the default command
+CMD ["--config=/etc/otel-collector-config.yml"] 

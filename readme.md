@@ -21,7 +21,8 @@ A modular and scalable e-commerce application built with modern .NET technologie
 - **CQRS**: MediatR
 - **Validation**: FluentValidation
 - **Authentication**: OpenIddict + ASP.NET Identity (Token & Cookie based)
-- **Logging**: Serilog
+- **Logging**: Serilog with structured logging
+- **Observability**: OpenTelemetry with Jaeger, Prometheus, Grafana
 - **Testing**: xUnit, Testcontainers
 - **Dependency Injection**: ILazyServiceProvider pattern
 - **API**: RESTful services using Controllers
@@ -61,18 +62,47 @@ A modular and scalable e-commerce application built with modern .NET technologie
 ```bash
 git clone https://github.com/emrepehlivan-git/ECommerce-App.git
 cd ECommerce-App
-docker-compose up -d # Optional for PostgreSQL
 ```
 
-### Apply Database Migrations
+### Quick Start with Observability
 
 ```bash
+# Option 1: Use the quick start script
+./start-observability.sh
+
+# Option 2: Direct Docker Compose
+docker-compose up -d
+```
+
+### Access URLs
+
+**Application:**
+- **API**: http://localhost:4000
+- **Auth Server**: https://localhost:5002
+- **Swagger Documentation**: http://localhost:4000/swagger
+- **API Metrics**: http://localhost:4000/metrics
+
+**Observability Stack:**
+- **Jaeger (Distributed Tracing)**: http://localhost:16686
+- **Prometheus (Metrics)**: http://localhost:9090
+- **Grafana (Dashboards)**: http://localhost:3000 (admin/admin)
+- **Seq (Structured Logs)**: http://localhost:5341
+
+**Database & Tools:**
+- **PostgreSQL**: localhost:5432 (postgres/postgres)
+- **PgAdmin**: http://localhost:8082 (admin@example.com/admin)
+- **Redis**: localhost:6379
+
+### Local Development
+
+```bash
+# Apply Database Migrations
 dotnet ef database update --project src/Infrastructure/ECommerce.Persistence
-```
 
-### Run the API
+# Run Auth Server
+dotnet run --project src/Infrastructure/ECommerce.AuthServer
 
-```bash
+# Run API
 dotnet run --project src/Presentation/ECommerce.WebAPI
 ```
 

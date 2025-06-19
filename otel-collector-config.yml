@@ -1,0 +1,47 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 1s
+    send_batch_size: 1024
+  memory_limiter:
+    limit_mib: 512
+    check_interval: 1s
+  resource:
+    attributes:
+      - key: service.namespace
+        value: ecommerce
+        action: insert
+
+exporters:
+  otlp/jaeger:
+    endpoint: ecommerce.jaeger:4317
+    tls:
+      insecure: true
+  
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+    namespace: ecommerce
+    
+  debug:
+    verbosity: detailed
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, resource, batch]
+      exporters: [otlp/jaeger, debug]
+    
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, resource, batch]
+      exporters: [prometheus, debug]
+  
+  extensions: [] 

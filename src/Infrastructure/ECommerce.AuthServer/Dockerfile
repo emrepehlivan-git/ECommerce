@@ -6,6 +6,10 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
+
+# Copy central package management files first
+COPY ["Directory.Packages.props", "./"]
+COPY ["src/Core/ECommerce.SharedKernel/ECommerce.SharedKernel.csproj", "src/Core/ECommerce.SharedKernel/"]
 COPY ["src/Infrastructure/ECommerce.AuthServer/ECommerce.AuthServer.csproj", "src/Infrastructure/ECommerce.AuthServer/"]
 COPY ["src/Infrastructure/ECommerce.Persistence/ECommerce.Persistence.csproj", "src/Infrastructure/ECommerce.Persistence/"]
 COPY ["src/Core/ECommerce.Application/ECommerce.Application.csproj", "src/Core/ECommerce.Application/"]

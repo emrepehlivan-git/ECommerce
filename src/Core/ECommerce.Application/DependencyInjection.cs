@@ -22,6 +22,7 @@ public static class DependencyInjection
         services.AddMediatR(config =>
         {
             config.RegisterServicesFromAssembly(assembly);
+            config.AddBehavior(typeof(IPipelineBehavior<,>), typeof(TracingBehavior<,>));
             config.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
             config.AddBehavior(typeof(IPipelineBehavior<,>), typeof(CacheBehavior<,>));
             config.AddBehavior(typeof(IPipelineBehavior<,>), typeof(TransactionalRequestBehavior<,>));

@@ -1,0 +1,39 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "prometheus-alerts.yml"
+
+scrape_configs:
+  # ECommerce WebAPI metrics
+  - job_name: 'ecommerce-webapi'
+    static_configs:
+      - targets: ['ecommerce.webapi:8080']
+    metrics_path: '/metrics'
+    scrape_interval: 5s
+    scrape_timeout: 5s
+
+  # ECommerce AuthServer metrics
+  - job_name: 'ecommerce-authserver'
+    static_configs:
+      - targets: ['ecommerce.authserver:8080']
+    metrics_path: '/metrics'
+    scrape_interval: 5s
+    scrape_timeout: 5s
+
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # OpenTelemetry Collector metrics
+  - job_name: 'otel-collector'
+    static_configs:
+      - targets: ['ecommerce.otel-collector:8888']
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - alertmanager:9093 
