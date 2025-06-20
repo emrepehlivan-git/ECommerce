@@ -15,6 +15,7 @@ public sealed class CreateCategoryCommandTests : CategoryCommandsTestBase
 
         Handler = new CreateCategoryCommandHandler(
             CategoryRepositoryMock.Object,
+            CacheManagerMock.Object,
             LazyServiceProviderMock.Object);
 
         Validator = new CreateCategoryCommandValidator(

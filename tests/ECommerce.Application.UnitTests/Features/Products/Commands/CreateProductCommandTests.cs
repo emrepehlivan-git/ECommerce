@@ -19,6 +19,7 @@ public sealed class CreateProductCommandTests : ProductCommandsTestBase
         Handler = new CreateProductCommandHandler(
             ProductRepositoryMock.Object,
             StockRepositoryMock.Object,
+            CacheManagerMock.Object,
             LazyServiceProviderMock.Object);
 
         Validator = new CreateProductCommandValidator(

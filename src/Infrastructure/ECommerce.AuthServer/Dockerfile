@@ -7,7 +7,10 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
-# Copy central package management files first
+RUN apt-get update && apt-get install -y unzip && rm -rf /var/lib/apt/lists/*
+RUN curl -fsSL https://bun.sh/install | bash
+ENV PATH="/root/.bun/bin:$PATH"
+
 COPY ["Directory.Packages.props", "./"]
 COPY ["src/Core/ECommerce.SharedKernel/ECommerce.SharedKernel.csproj", "src/Core/ECommerce.SharedKernel/"]
 COPY ["src/Infrastructure/ECommerce.AuthServer/ECommerce.AuthServer.csproj", "src/Infrastructure/ECommerce.AuthServer/"]
@@ -18,6 +21,10 @@ COPY ["src/Infrastructure/ECommerce.Infrastructure/ECommerce.Infrastructure.cspr
 RUN dotnet restore "src/Infrastructure/ECommerce.AuthServer/ECommerce.AuthServer.csproj"
 COPY . .
 WORKDIR "/src/src/Infrastructure/ECommerce.AuthServer"
+
+RUN bun install
+RUN bun run build-css-prod
+
 RUN dotnet build "ECommerce.AuthServer.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
@@ -28,11 +35,9 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
-# Install OpenSSL
 RUN apt-get update && \
     apt-get install -y openssl ca-certificates
 
-# Create a script to generate the certificate
 RUN echo '#!/bin/bash\n\
 if [ ! -f /app/auth.pfx ]; then\n\
     # Create a config file for the certificate with SAN\n\

@@ -10,6 +10,7 @@ public sealed class DeleteProductCommandTests : ProductCommandsTestBase
         Command = new DeleteProductCommand(Id: Guid.NewGuid());
         Handler = new DeleteProductCommandHandler(
             ProductRepositoryMock.Object,
+            CacheManagerMock.Object,
             LazyServiceProviderMock.Object);
         SetupDefaultLocalizationMessages();
     }

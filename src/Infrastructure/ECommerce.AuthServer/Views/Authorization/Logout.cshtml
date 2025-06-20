@@ -6,19 +6,28 @@
     Layout = "_AuthLayout";
 }
 
-<div class="jumbotron">
-    <h3>Authorization</h3>
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="text-center mb-8">
+            <h3 class="text-3xl font-bold text-gray-900">Logout</h3>
+        </div>
 
-    <p class="lead text-left">Do you want to grant <strong>@Model.ApplicationName</strong> access to your data? (scopes requested: @Model.Scope)</p>
+        <p class="text-lg text-gray-700 mb-8">
+            Are you sure you want to logout from <strong class="text-blue-600">@Model.ApplicationName</strong>?
+        </p>
 
-    <form asp-controller="Authorization" asp-action="Authorize" method="post">
-        @foreach (var parameter in Context.Request.HasFormContentType ?
-                          (IEnumerable<KeyValuePair<string, StringValues>>) Context.Request.Form : Context.Request.Query)
-        {
-            <input type="hidden" name="@parameter.Key" value="@parameter.Value" />
-        }
+        <form asp-controller="Authorization" asp-action="Logout" method="post" class="space-y-4">
+            @foreach (var parameter in Context.Request.HasFormContentType ?
+                              (IEnumerable<KeyValuePair<string, StringValues>>) Context.Request.Form : Context.Request.Query)
+            {
+                <input type="hidden" name="@parameter.Key" value="@parameter.Value" />
+            }
 
-        <input class="btn btn-lg btn-success" name="submit.Accept" type="submit" value="Yes" />
-        <input class="btn btn-lg btn-danger" name="submit.Deny" type="submit" value="No" />
-    </form>
+            <div class="flex space-x-4">
+                <input class="btn-primary flex-1" name="submit.Accept" type="submit" value="Yes" />
+                <input class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex-1" 
+                       name="submit.Deny" type="submit" value="No" />
+            </div>
+        </form>
+    </div>
 </div>

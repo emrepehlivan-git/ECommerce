@@ -22,6 +22,7 @@ public sealed class UpdateProductCommandTests : ProductCommandsTestBase
 
         Handler = new UpdateProductCommandHandler(
             ProductRepositoryMock.Object,
+            CacheManagerMock.Object,
             LazyServiceProviderMock.Object);
 
         Validator = new UpdateProductCommandValidator(

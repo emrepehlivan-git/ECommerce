@@ -11,9 +11,9 @@ public class ProductCommandsTestBase
 
     protected Mock<IProductRepository> ProductRepositoryMock;
     protected Mock<ICategoryRepository> CategoryRepositoryMock;
-    protected Mock<ILazyServiceProvider> LazyServiceProviderMock;
+        protected Mock<ILazyServiceProvider> LazyServiceProviderMock;
     protected Mock<ILocalizationService> LocalizationServiceMock;
-
+    protected Mock<ICacheManager> CacheManagerMock;
 
     protected LocalizationHelper Localizer;
 
@@ -23,6 +23,7 @@ public class ProductCommandsTestBase
         CategoryRepositoryMock = new Mock<ICategoryRepository>();
         LazyServiceProviderMock = new Mock<ILazyServiceProvider>();
         LocalizationServiceMock = new Mock<ILocalizationService>();
+        CacheManagerMock = new Mock<ICacheManager>();
         Localizer = new LocalizationHelper(LocalizationServiceMock.Object);
 
         LazyServiceProviderMock

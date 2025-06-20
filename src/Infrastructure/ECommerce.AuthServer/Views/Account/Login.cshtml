@@ -5,40 +5,52 @@
     Layout = "_AuthLayout";
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-body">
-                <h2 class="card-title text-center">@ViewData["Title"]</h2>
-                <form asp-controller="Account" asp-action="Login" method="post" asp-route-returnurl="@ViewData["ReturnUrl"]">
-                    <input type="hidden" name="scope" value="openid email profile roles" />
-                    <div asp-validation-summary="All" class="text-danger"></div>
-                    <div class="form-group mb-3">
-                        <label asp-for="Email" class="form-label"></label>
-                        <input asp-for="Email" class="form-control" />
-                        <span asp-validation-for="Email" class="text-danger"></span>
-                    </div>
-                    <div class="form-group mb-3">
-                        <label asp-for="Password" class="form-label"></label>
-                        <input asp-for="Password" class="form-control" />
-                        <span asp-validation-for="Password" class="text-danger"></span>
-                    </div>
-                    <div class="form-group mb-3">
-                        <div class="form-check">
-                            <input asp-for="RememberMe" class="form-check-input" />
-                            <label asp-for="RememberMe" class="form-check-label"></label>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <button type="submit" class="btn btn-primary w-100">Log in</button>
-                    </div>
-                </form>
-                <div class="mt-3 text-center">
-                    <p>
-                        Don't have an account? <a asp-action="Register" asp-route-returnurl="@ViewData["ReturnUrl"]">Register</a>
-                    </p>
-                </div>
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold text-gray-900">@ViewData["Title"]</h2>
+            <p class="mt-2 text-sm text-gray-600">Log in to your account</p>
+        </div>
+        
+        <form asp-controller="Account" asp-action="Login" method="post" asp-route-returnurl="@ViewData["ReturnUrl"]" class="space-y-6">
+            <input type="hidden" name="scope" value="openid email profile roles" />
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div asp-validation-summary="All" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg"></div>
+            }
+            
+            <div>
+                <label asp-for="Email" class="block text-sm font-medium text-gray-700 mb-2"></label>
+                <input asp-for="Email" class="input-field" placeholder="example@example.com" />
+                <span asp-validation-for="Email" class="text-red-500 text-sm mt-1 block"></span>
             </div>
+            
+            <div>
+                <label asp-for="Password" class="block text-sm font-medium text-gray-700 mb-2"></label>
+                <input asp-for="Password" class="input-field" placeholder="**************" />
+                <span asp-validation-for="Password" class="text-red-500 text-sm mt-1 block"></span>
+            </div>
+            
+            <div class="flex items-center">
+                <input asp-for="RememberMe" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
+                <label asp-for="RememberMe" class="ml-2 block text-sm text-gray-900"></label>
+            </div>
+            
+            <div>
+                <button type="submit" class="btn-primary w-full">
+                    Log in
+                </button>
+            </div>
+        </form>
+        
+        <div class="mt-6 text-center">
+            <p class="text-sm text-gray-600">
+                Don&apos;t have an account? 
+                <a asp-action="Register" asp-route-returnurl="@ViewData["ReturnUrl"]" 
+                   class="font-medium text-blue-600 hover:text-blue-500 transition-colors">
+                    Register
+                </a>
+            </p>
         </div>
     </div>
 </div> 

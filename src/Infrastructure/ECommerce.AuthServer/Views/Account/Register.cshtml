@@ -5,50 +5,65 @@
     Layout = "_AuthLayout";
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-body">
-                <h2 class="card-title text-center">@ViewData["Title"]</h2>
-                <form asp-controller="Account" asp-action="Register" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post">
-                    <div asp-validation-summary="All" class="text-danger"></div>
-                    <div class="form-group mb-3">
-                        <label asp-for="Email" class="form-label"></label>
-                        <input asp-for="Email" class="form-control" />
-                        <span asp-validation-for="Email" class="text-danger"></span>
-                    </div>
-                    <div class="form-group row">
-                        <div class="col-md-6">
-                            <label asp-for="FirstName" class="form-label"></label>
-                            <input asp-for="FirstName" class="form-control" />
-                            <span asp-validation-for="FirstName" class="text-danger"></span>
-                        </div>
-                        <div class="col-md-6">
-                            <label asp-for="LastName" class="form-label"></label>
-                            <input asp-for="LastName" class="form-control" />
-                            <span asp-validation-for="LastName" class="text-danger"></span>
-                        </div>
-                    </div>
-                    <div class="form-group mb-3">
-                        <label asp-for="Password" class="form-label"></label>
-                        <input asp-for="Password" class="form-control" />
-                        <span asp-validation-for="Password" class="text-danger"></span>
-                    </div>
-                    <div class="form-group mb-3">
-                        <label asp-for="ConfirmPassword" class="form-label"></label>
-                        <input asp-for="ConfirmPassword" class="form-control" />
-                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
-                    </div>
-                    <div class="form-group">
-                        <button type="submit" class="btn btn-primary w-100">Register</button>
-                    </div>
-                </form>
-                <div class="mt-3 text-center">
-                    <p>
-                        Already have an account? <a asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]">Log in</a>
-                    </p>
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold text-gray-900">@ViewData["Title"]</h2>
+            <p class="mt-2 text-sm text-gray-600">Create a new account</p>
+        </div>
+        
+        <form asp-controller="Account" asp-action="Register" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post" class="space-y-6">
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div asp-validation-summary="All" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg"></div>
+            }
+            
+            <div>
+                <label asp-for="Email" class="block text-sm font-medium text-gray-700 mb-2"></label>
+                <input asp-for="Email" class="input-field" placeholder="example@example.com" />
+                <span asp-validation-for="Email" class="text-red-500 text-sm mt-1 block"></span>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label asp-for="FirstName" class="block text-sm font-medium text-gray-700 mb-2"></label>
+                    <input asp-for="FirstName" class="input-field" placeholder="First Name" />
+                    <span asp-validation-for="FirstName" class="text-red-500 text-sm mt-1 block"></span>
+                </div>
+                <div>
+                    <label asp-for="LastName" class="block text-sm font-medium text-gray-700 mb-2"></label>
+                    <input asp-for="LastName" class="input-field" placeholder="Last Name" />
+                    <span asp-validation-for="LastName" class="text-red-500 text-sm mt-1 block"></span>
                 </div>
             </div>
+            
+            <div>
+                <label asp-for="Password" class="block text-sm font-medium text-gray-700 mb-2"></label>
+                <input asp-for="Password" class="input-field" placeholder="**************" />
+                <span asp-validation-for="Password" class="text-red-500 text-sm mt-1 block"></span>
+            </div>
+            
+            <div>
+                <label asp-for="ConfirmPassword" class="block text-sm font-medium text-gray-700 mb-2"></label>
+                <input asp-for="ConfirmPassword" class="input-field" placeholder="**************" />
+                <span asp-validation-for="ConfirmPassword" class="text-red-500 text-sm mt-1 block"></span>
+            </div>
+            
+            <div>
+                <button type="submit" class="btn-primary w-full">
+                    Register
+                </button>
+            </div>
+        </form>
+        
+        <div class="mt-6 text-center">
+            <p class="text-sm text-gray-600">
+                Already have an account? 
+                <a asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" 
+                   class="font-medium text-blue-600 hover:text-blue-500 transition-colors">
+                    Log in
+                </a>
+            </p>
         </div>
     </div>
 </div>

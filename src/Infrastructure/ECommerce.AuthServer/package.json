@@ -1,0 +1,14 @@
+{
+  "name": "ecommerce-authserver",
+  "version": "1.0.0",
+  "description": "ECommerce AuthServer with Tailwind CSS",
+  "scripts": {
+    "build-css": "bunx tailwindcss -i ./wwwroot/css/input.css -o ./wwwroot/css/tailwind.css --watch",
+    "build-css-prod": "bunx tailwindcss -i ./wwwroot/css/input.css -o ./wwwroot/css/tailwind.css --minify"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.0",
+    "@tailwindcss/forms": "^0.5.7",
+    "@tailwindcss/typography": "^0.5.10"
+  }
+} 

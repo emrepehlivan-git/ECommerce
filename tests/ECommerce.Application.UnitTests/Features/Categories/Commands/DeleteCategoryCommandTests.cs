@@ -21,6 +21,7 @@ public sealed class DeleteCategoryCommandTests : CategoryCommandsTestBase
 
         Handler = new DeleteCategoryCommandHandler(
             CategoryRepositoryMock.Object,
+            CacheManagerMock.Object,
             LazyServiceProviderMock.Object);
     }
 
