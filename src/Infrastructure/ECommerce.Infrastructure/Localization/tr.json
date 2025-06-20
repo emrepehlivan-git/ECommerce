@@ -1,47 +1,71 @@
 {
-  "User.NotFound": "Kullanıcı bulunamadı.",
-  "AuthMessages.LoginSuccess": "Giriş başarılı.",
-  "AuthMessages.LoginFailed": "Giriş başarısız.",
-  "AuthMessages.LogoutSuccess": "Çıkış başarılı.",
-  "AuthMessages.EmailConfirmationSent": "Email doğrulama linki gnderildi.",
-  "AuthMessages.EmailConfirmed": "Email başarıyla doğrulandı.",
-  "AuthMessages.PasswordResetLinkSent": "Şifre sıfırlama linki gnderildi.",
-  "AuthMessages.PasswordChanged": "Şifre başarıyla değiştirildi.",
-  "ErrorMessages.UnexpectedError": "Beklenmeyen bir hata oluştu.",
-  "ErrorMessages.ValidationError": "Doğrulama hatası.",
-  "ErrorMessages.Unauthorized": "Bu işlem için yetkiniz bulunmamaktadır.",
-  "ErrorMessages.Forbidden": "Bu kaynağa erişim izniniz bulunmamaktadır.",
-  "ErrorMessages.InvalidOperation": "Geçersiz işlem.",
-  "ErrorMessages.ConcurrencyError": "Bu kayıt başka bir kullanıcı tarafından değiştirilmiş.",
-  "Product.NotFound": "Ürün bulunamadı.",
-  "Product.Name.IsRequired": "Ürün adı gereklidir.",
-  "Product.Name.MustBeAtLeastCharacters": "Ürün adı en az 3 karakter olmalıdır.",
-  "Product.Name.MustBeLessThanCharacters": "Ürün adı en fazla 100 karakter olmalıdır.",
-  "Product.Price.MustBeGreaterThanZero": "Ürün fiyatı sıfırdan büyük olmalıdır.",
-  "Product.Category.NotFound": "Ürün kategorisi bulunamadı.",
-  "Product.StockQuantity.MustBeGreaterThanZero": "Ürün stok miktarı sıfırdan büyük olmalıdır.",
-  "Category.NotFound": "Kategori bulunamadı.",
-  "Category.Name.Exists": "Kategori adı zaten mevcut.",
-  "Category.Name.IsRequired": "Kategori adı gereklidir.",
-  "Category.Name.MustBeAtLeastCharacters": "Kategori adı en az 3 karakter olmalıdır.",
-  "Category.Name.MustBeLessThanCharacters": "Kategori adı en fazla 100 karakter olmalıdır.",
-  "Category.CannotDeleteWithProducts": "Kategori içinde ürün bulunduğu için silinemez.",
-  "Order.NotFound": "Sipariş bulunamadı.",
-  "Order.UserNotFound": "Bu sipariş için kullanıcı bulunamadı.",
-  "Order.ProductNotFound": "Bu sipariş için ürün bulunamadı.",
-  "Order.QuantityMustBeGreaterThanZero": "Sipariş ürün miktarı sıfırdan büyük olmalıdır.",
-  "Order.CannotBeModified": "Sipariş mevcut durumunda değiştirilemez.",
-  "Order.CannotBeCancelled": "Sipariş mevcut durumunda iptal edilemez.",
-  "Order.ItemNotFound": "Sipariş ürünü bulunamadı.",
-  "Order.ShippingAddressRequired": "Teslimat adresi gereklidir.",
-  "Order.BillingAddressRequired": "Fatura adresi gereklidir.",
-  "Order.EmptyOrder": "Sipariş boş olamaz. Lütfen en az bir ürün ekleyin.",
-  "UserAddress.NotFound": "Kullanıcı adresi bulunamadı.",
-  "UserAddress.UserNotFound": "Bu adres için kullanıcı bulunamadı.",
-  "UserAddress.LabelRequired": "Adres etiketi gereklidir.",
-  "UserAddress.LabelMinLength": "Adres etiketi en az {0} karakter olmalıdır.",
-  "UserAddress.LabelMaxLength": "Adres etiketi en fazla {0} karakter olmalıdır.",
-  "UserAddress.AddressRequired": "Adres bilgisi gereklidir.",
-  "UserAddress.DefaultAddressCannotBeDeleted": "Varsayılan adres silinemez.",
-  "UserAddress.AddressAlreadyDefault": "Bu adres zaten varsayılan olarak ayarlanmış."
+  "User": {
+    "NotFound": "Kullanıcı bulunamadı."
+  },
+  "AuthMessages": {
+    "LoginSuccess": "Giriş başarılı.",
+    "LoginFailed": "Giriş başarısız.",
+    "LogoutSuccess": "Çıkış başarılı.",
+    "EmailConfirmationSent": "Email doğrulama linki gnderildi.",
+    "EmailConfirmed": "Email başarıyla doğrulandı.",
+    "PasswordResetLinkSent": "Şifre sıfırlama linki gnderildi.",
+    "PasswordChanged": "Şifre başarıyla değiştirildi."
+  },
+  "ErrorMessages": {
+    "UnexpectedError": "Beklenmeyen bir hata oluştu.",
+    "ValidationError": "Doğrulama hatası.",
+    "Unauthorized": "Bu işlem için yetkiniz bulunmamaktadır.",
+    "Forbidden": "Bu kaynağa erişim izniniz bulunmamaktadır.",
+    "InvalidOperation": "Geçersiz işlem.",
+    "ConcurrencyError": "Bu kayıt başka bir kullanıcı tarafından değiştirilmiş."
+  },
+  "Product": {
+    "NotFound": "Ürün bulunamadı.",
+    "Name": {
+      "IsRequired": "Ürün adı gereklidir.",
+      "MustBeAtLeastCharacters": "Ürün adı en az 3 karakter olmalıdır.",
+      "MustBeLessThanCharacters": "Ürün adı en fazla 100 karakter olmalıdır."
+    },
+    "Price": {
+      "MustBeGreaterThanZero": "Ürün fiyatı sıfırdan büyük olmalıdır."
+    },
+    "Category": {
+      "NotFound": "Ürün kategorisi bulunamadı."
+    },
+    "StockQuantity": {
+      "MustBeGreaterThanZero": "Ürün stok miktarı sıfırdan büyük olmalıdır."
+    }
+  },
+  "Category": {
+    "NotFound": "Kategori bulunamadı.",
+    "Name": {
+      "Exists": "Kategori adı zaten mevcut.",
+      "IsRequired": "Kategori adı gereklidir.",
+      "MustBeAtLeastCharacters": "Kategori adı en az 3 karakter olmalıdır.",
+      "MustBeLessThanCharacters": "Kategori adı en fazla 100 karakter olmalıdır."
+    },
+    "CannotDeleteWithProducts": "Kategori içinde ürün bulunduğu için silinemez."
+  },
+  "Order": {
+    "NotFound": "Sipariş bulunamadı.",
+    "UserNotFound": "Bu sipariş için kullanıcı bulunamadı.",
+    "ProductNotFound": "Bu sipariş için ürün bulunamadı.",
+    "QuantityMustBeGreaterThanZero": "Sipariş ürün miktarı sıfırdan büyük olmalıdır.",
+    "CannotBeModified": "Sipariş mevcut durumunda değiştirilemez.",
+    "CannotBeCancelled": "Sipariş mevcut durumunda iptal edilemez.",
+    "ItemNotFound": "Sipariş ürünü bulunamadı.",
+    "ShippingAddressRequired": "Teslimat adresi gereklidir.",
+    "BillingAddressRequired": "Fatura adresi gereklidir.",
+    "EmptyOrder": "Sipariş boş olamaz. Lütfen en az bir ürün ekleyin."
+  },
+  "UserAddress": {
+    "NotFound": "Kullanıcı adresi bulunamadı.",
+    "UserNotFound": "Bu adres için kullanıcı bulunamadı.",
+    "LabelRequired": "Adres etiketi gereklidir.",
+    "LabelMinLength": "Adres etiketi en az {0} karakter olmalıdır.",
+    "LabelMaxLength": "Adres etiketi en fazla {0} karakter olmalıdır.",
+    "AddressRequired": "Adres bilgisi gereklidir.",
+    "DefaultAddressCannotBeDeleted": "Varsayılan adres silinemez.",
+    "AddressAlreadyDefault": "Bu adres zaten varsayılan olarak ayarlanmış."
+  }
 }
