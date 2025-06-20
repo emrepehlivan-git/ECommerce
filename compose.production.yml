@@ -1,0 +1,203 @@
+﻿services:
+  ecommerce.webapi:
+    container_name: ecommerce.webapi
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: src/Presentation/ECommerce.WebAPI/Dockerfile.production
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=ecommerce.db;Database=ecommerce;Username=postgres;Password=postgres
+      - ConnectionStrings__Redis=ecommerce.redis:6379
+      - ASPNETCORE_URLS=http://+:8080;https://+:8081
+      - ASPNETCORE_HTTPS_PORT=8081
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/api.pfx
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=YourSecurePassword
+      - ASPNETCORE_ENVIRONMENT=Production
+      - Serilog__WriteTo__1__Args__serverUrl=http://ecommerce.seq:5341
+      - Authentication__Authority=https://ecommerce.authserver:8081
+      - Authentication__SwaggerAuthority=https://ecommerce.authserver:8081
+      - Authentication__Audience=api
+      - Authentication__ClientId=api
+      - Authentication__ClientSecret=api-secret
+      - DOTNET_RUNNING_IN_CONTAINER=true
+      - OpenTelemetry__ServiceName=ECommerce.WebAPI
+      - OpenTelemetry__ServiceVersion=1.0.0
+      - OpenTelemetry__Jaeger__AgentHost=ecommerce.jaeger
+      - OpenTelemetry__Jaeger__AgentPort=6831
+      - OpenTelemetry__Jaeger__Endpoint=http://ecommerce.jaeger:14268/api/traces
+      - OpenTelemetry__OTLP__Endpoint=http://ecommerce.jaeger:4317
+    depends_on:
+      - ecommerce.db
+      - ecommerce.redis
+      - ecommerce.seq
+      - ecommerce.authserver
+      - ecommerce.jaeger
+      - ecommerce.otel-collector
+    ports:
+      - 4000:8080
+      - 4001:8081
+    volumes:
+      - keys:/root/.aspnet/DataProtection-Keys
+    networks:
+      - ecommerce-network
+
+  ecommerce.authserver:
+    container_name: ecommerce.authserver
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: src/Infrastructure/ECommerce.AuthServer/Dockerfile.production
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=ecommerce.db;Database=ecommerce;Username=postgres;Password=postgres
+      - ASPNETCORE_URLS=http://+:8080;https://+:8081
+      - ASPNETCORE_HTTPS_PORT=8081
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/auth.pfx
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=YourSecurePassword
+      - Authentication__UseHttps=true
+      - Authentication__Authority=https://ecommerce.authserver:8081
+      - Authentication__RequireHttpsMetadata=true
+      - DOTNET_RUNNING_IN_CONTAINER=true
+      - OpenTelemetry__ServiceName=ECommerce.AuthServer
+      - OpenTelemetry__ServiceVersion=1.0.0
+      - OpenTelemetry__Jaeger__AgentHost=ecommerce.jaeger
+      - OpenTelemetry__Jaeger__AgentPort=6831
+      - OpenTelemetry__Jaeger__Endpoint=http://ecommerce.jaeger:14268/api/traces
+      - OpenTelemetry__OTLP__Endpoint=http://ecommerce.jaeger:4317
+    depends_on:
+      - ecommerce.db
+    ports:
+      - 5001:8080
+      - 5002:8081
+    volumes:
+      - keys:/root/.aspnet/DataProtection-Keys
+    networks:
+      - ecommerce-network
+
+  ecommerce.db:
+    container_name: ecommerce.db
+    restart: unless-stopped
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: ecommerce
+    ports:
+      - 5432:5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - ecommerce-network
+
+  ecommerce.pgadmin:
+    container_name: ecommerce.pgadmin
+    restart: unless-stopped
+    image: dpage/pgadmin4
+    ports:
+      - 8082:80
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@example.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    depends_on:
+      - ecommerce.db
+    networks:
+      - ecommerce-network
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+
+  ecommerce.redis:
+    container_name: ecommerce.redis
+    restart: unless-stopped
+    image: redis
+    ports:
+      - 6379:6379
+    volumes:
+      - redisdata:/data
+    networks:
+      - ecommerce-network
+
+  ecommerce.seq:
+    container_name: ecommerce.seq
+    restart: unless-stopped
+    image: datalust/seq
+    ports:
+      - 5341:80
+    environment:
+      - ACCEPT_EULA=Y
+    volumes:
+      - seqdata:/data
+    networks:
+      - ecommerce-network
+
+  ecommerce.jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: ecommerce.jaeger
+    restart: unless-stopped
+    ports:
+      - "16686:16686"  
+      - "14268:14268"
+      - "6831:6831/udp"
+      - "4317:4317"
+      - "4318:4318"
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - ecommerce-network
+
+  ecommerce.prometheus:
+    build:
+      context: .
+      dockerfile: Dockerfile.prometheus
+    container_name: ecommerce.prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - prometheus-data:/prometheus
+    networks:
+      - ecommerce-network
+
+  ecommerce.grafana:
+    image: grafana/grafana:latest
+    container_name: ecommerce.grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    networks:
+      - ecommerce-network
+
+  ecommerce.otel-collector:
+    build:
+      context: .
+      dockerfile: Dockerfile.otel-collector
+    container_name: ecommerce.otel-collector
+    restart: unless-stopped
+    ports:
+      - "4319:4317"
+      - "4320:4318"
+      - "8888:8888"
+      - "8889:8889"
+    depends_on:
+      - ecommerce.jaeger
+      - ecommerce.prometheus
+    networks:
+      - ecommerce-network
+
+volumes:
+  pgdata:
+  redisdata:
+  seqdata:
+  keys:
+  pgadmin:
+  prometheus-data:
+  grafana-storage:
+  
+networks:
+  ecommerce-network:
+    driver: bridge
+  
