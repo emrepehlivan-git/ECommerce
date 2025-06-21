@@ -1,7 +1,13 @@
 using ECommerce.Application.Features.Orders;
 using ECommerce.Application.Helpers;
 using ECommerce.Application.Interfaces;
+using ECommerce.Application.Repositories;
+using ECommerce.Domain.Entities;
 using ECommerce.Domain.ValueObjects;
+using ECommerce.SharedKernel.DependencyInjection;
+using ECommerce.SharedKernel.Specifications;
+using Moq;
+using System.Linq.Expressions;
 
 namespace ECommerce.Application.UnitTests.Features.Orders.Commands;
 
@@ -11,6 +17,7 @@ public abstract class OrderCommandsTestBase
     protected readonly Mock<IProductRepository> ProductRepositoryMock;
     protected readonly Mock<IOrderItemRepository> OrderItemRepositoryMock;
     protected readonly Mock<IStockRepository> StockRepositoryMock;
+    protected readonly Mock<IUserAddressRepository> UserAddressRepositoryMock;
     protected readonly Mock<IIdentityService> IdentityServiceMock;
     protected readonly Mock<ILazyServiceProvider> LazyServiceProviderMock;
     protected readonly Mock<ILocalizationService> LocalizationServiceMock;
@@ -18,6 +25,8 @@ public abstract class OrderCommandsTestBase
 
     protected readonly Guid UserId = Guid.Parse("e64db34c-7455-41da-b255-a9a7a46ace54");
     protected readonly Order DefaultOrder;
+    protected readonly Product DefaultProduct;
+    protected readonly Category DefaultCategory;
 
     protected OrderCommandsTestBase()
     {
@@ -25,6 +34,7 @@ public abstract class OrderCommandsTestBase
         ProductRepositoryMock = new Mock<IProductRepository>();
         OrderItemRepositoryMock = new Mock<IOrderItemRepository>();
         StockRepositoryMock = new Mock<IStockRepository>();
+        UserAddressRepositoryMock = new Mock<IUserAddressRepository>();
         IdentityServiceMock = new Mock<IIdentityService>();
         LazyServiceProviderMock = new Mock<ILazyServiceProvider>();
         LocalizationServiceMock = new Mock<ILocalizationService>();
@@ -35,6 +45,10 @@ public abstract class OrderCommandsTestBase
             .Returns(Localizer);
 
         SetupDefaultLocalizationMessages();
+
+        DefaultCategory = Category.Create("Test Category");
+        DefaultProduct = Product.Create("Test Product", "Test Description", 100m, DefaultCategory.Id, 10);
+        DefaultProduct.Category = DefaultCategory;
 
         DefaultOrder = Order.Create(UserId, new Address("Test Shipping", "Istanbul", "Marmara", "34000", "Turkey"), new Address("Test Billing", "Istanbul", "Marmara", "34000", "Turkey"));
     }
@@ -62,5 +76,9 @@ public abstract class OrderCommandsTestBase
         LocalizationServiceMock.Setup(x => x.GetLocalizedString(OrderConsts.ShippingAddressRequired)).Returns("Shipping address is required");
         LocalizationServiceMock.Setup(x => x.GetLocalizedString(OrderConsts.BillingAddressRequired)).Returns("Billing address is required");
         LocalizationServiceMock.Setup(x => x.GetLocalizedString(OrderConsts.EmptyOrder)).Returns("Order cannot be empty");
+        LocalizationServiceMock.Setup(x => x.GetLocalizedString(OrderConsts.InsufficientStock)).Returns("Insufficient stock");
+        LocalizationServiceMock.Setup(x => x.GetLocalizedString(OrderConsts.ProductNotActive)).Returns("Product not active");
+        LocalizationServiceMock.Setup(x => x.GetLocalizedString(OrderConsts.ShippingAddressNotFound)).Returns("Shipping address not found");
+        LocalizationServiceMock.Setup(x => x.GetLocalizedString(OrderConsts.BillingAddressNotFound)).Returns("Billing address not found");
     }
 }

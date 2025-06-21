@@ -60,18 +60,6 @@ public sealed class OrderController() : BaseApiController
         return result.ToActionResult(this);
     }
 
-    [HttpPost("with-user-addresses")]
-    [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<Guid>> PlaceOrderWithUserAddresses([FromBody] OrderPlaceWithUserAddressesCommand command, CancellationToken cancellationToken)
-    {
-        var result = await Mediator.Send(command, cancellationToken);
-        return result.ToActionResult(this);
-    }
-
     [HttpPost("{orderId:guid}/items")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]

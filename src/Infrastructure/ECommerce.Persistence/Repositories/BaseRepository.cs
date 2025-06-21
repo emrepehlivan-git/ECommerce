@@ -168,6 +168,27 @@ public abstract class BaseRepository<TEntity> : IRepository<TEntity> where TEnti
         return await query.LongCountAsync(cancellationToken);
     }
 
+    public virtual async Task<List<TEntity>> ListAsync(ISpecification<TEntity> specification, CancellationToken cancellationToken = default)
+    {
+        using var activity = ActivitySource.StartActivity($"{typeof(TEntity).Name}.List");
+        activity?.SetTag("repository.operation", "List");
+
+        try
+        {
+            var query = ApplySpecification(specification);
+            var entities = await query.ToListAsync(cancellationToken);
+            activity?.SetTag("entities.count", entities.Count);
+            return entities;
+        }
+        catch (Exception ex)
+        {
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            activity?.SetTag("exception.type", ex.GetType().FullName);
+            activity?.SetTag("exception.message", ex.Message);
+            throw;
+        }
+    }
+
     public virtual IQueryable<TEntity> Query(
         Expression<Func<TEntity, bool>>? predicate = null,
         Expression<Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>>? orderBy = null,

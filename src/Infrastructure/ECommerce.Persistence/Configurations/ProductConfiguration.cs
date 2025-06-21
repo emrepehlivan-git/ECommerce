@@ -27,6 +27,10 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
             .IsRequired()
             .HasColumnType("decimal(18,2)");
 
+        builder.Property(p => p.IsActive)
+            .IsRequired()
+            .HasDefaultValue(true);
+
         builder.HasOne(p => p.Category)
             .WithMany(c => c.Products)
             .HasForeignKey(p => p.CategoryId)
@@ -38,5 +42,6 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(p => p.CategoryId);
+        builder.HasIndex(p => p.IsActive);
     }
 }

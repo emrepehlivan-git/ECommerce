@@ -27,6 +27,7 @@ public sealed class Order : AuditableEntity
 
     private Order(Guid userId, Address shippingAddress, Address billingAddress)
     {
+        Id = Guid.NewGuid();
         UserId = userId;
         OrderDate = DateTime.UtcNow;
         Status = OrderStatus.Pending;

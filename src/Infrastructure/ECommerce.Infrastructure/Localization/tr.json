@@ -55,8 +55,12 @@
     "CannotBeCancelled": "Sipariş mevcut durumunda iptal edilemez.",
     "ItemNotFound": "Sipariş ürünü bulunamadı.",
     "ShippingAddressRequired": "Teslimat adresi gereklidir.",
+    "ShippingAddressNotFound": "Teslimat adresi bulunamadı.",
     "BillingAddressRequired": "Fatura adresi gereklidir.",
-    "EmptyOrder": "Sipariş boş olamaz. Lütfen en az bir ürün ekleyin."
+    "BillingAddressNotFound": "Fatura adresi bulunamadı.",
+    "EmptyOrder": "Sipariş boş olamaz. Lütfen en az bir ürün ekleyin.",
+    "InsufficientStock": "Ürün için yeterli stok bulunmamaktadır.",
+    "ProductNotActive": "Ürün aktif değil, sipariş verilemez."
   },
   "UserAddress": {
     "NotFound": "Kullanıcı adresi bulunamadı.",

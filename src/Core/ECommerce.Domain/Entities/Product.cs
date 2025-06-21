@@ -7,6 +7,7 @@ public sealed class Product : AuditableEntity
     public string Name { get; private set; } = string.Empty;
     public string? Description { get; set; }
     public Price Price { get; private set; } = Price.Zero;
+    public bool IsActive { get; private set; }
     public ProductStock Stock { get; set; } = null!;
 
     public Guid CategoryId { get; private set; }
@@ -22,6 +23,7 @@ public sealed class Product : AuditableEntity
         SetDescription(description);
         Price = Price.Create(price);
         CategoryId = categoryId;
+        IsActive = true;
         Stock = ProductStock.Create(Id, initialStock);
     }
 
@@ -38,6 +40,10 @@ public sealed class Product : AuditableEntity
         CategoryId = categoryId;
     }
 
+    public void Activate() => IsActive = true;
+
+    public void Deactivate() => IsActive = false;
+
     public void UpdateStock(int quantity)
     {
         if (quantity < 0)
@@ -49,6 +55,11 @@ public sealed class Product : AuditableEntity
     public bool HasSufficientStock(int requestedQuantity)
     {
         return Stock.Quantity >= requestedQuantity;
+    }
+
+    public bool IsOrderable(int requestedQuantity)
+    {
+        return IsActive && HasSufficientStock(requestedQuantity);
     }
 
     private void SetName(string name)

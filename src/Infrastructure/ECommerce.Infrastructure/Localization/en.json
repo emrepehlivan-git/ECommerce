@@ -55,8 +55,12 @@
     "CannotBeCancelled": "Order cannot be cancelled in its current state.",
     "ItemNotFound": "Order item not found.",
     "ShippingAddressRequired": "Shipping address is required.",
+    "ShippingAddressNotFound": "Shipping address not found.",
     "BillingAddressRequired": "Billing address is required.",
-    "EmptyOrder": "Order cannot be empty. Please add at least one item."
+    "BillingAddressNotFound": "Billing address not found.",
+    "EmptyOrder": "Order cannot be empty. Please add at least one item.",
+    "InsufficientStock": "Insufficient stock available for the product.",
+    "ProductNotActive": "Product is not active and cannot be ordered."
   },
   "UserAddress": {
     "NotFound": "User address not found.",

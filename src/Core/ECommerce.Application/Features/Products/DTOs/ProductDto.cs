@@ -6,4 +6,5 @@ public sealed record ProductDto(
     string? Description,
     decimal Price,
     string? CategoryName,
-    int StockQuantity);
+    int StockQuantity,
+    bool IsActive);
