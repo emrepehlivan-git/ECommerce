@@ -21,8 +21,10 @@ public sealed class LocalizationService : ILocalizationService, ISingletonDepend
             if (File.Exists(filePath))
             {
                 var json = File.ReadAllText(filePath);
-                var data = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
-                _localizedData[lang] = data ?? [];
+                using var doc = JsonDocument.Parse(json);
+                var data = new Dictionary<string, string>();
+                FlattenJson(doc.RootElement, string.Empty, data);
+                _localizedData[lang] = data;
             }
             else
             {
@@ -57,5 +59,21 @@ public sealed class LocalizationService : ILocalizationService, ISingletonDepend
                 return value;
         }
         return key;
+    }
+
+    private static void FlattenJson(JsonElement element, string prefix, Dictionary<string, string> result)
+    {
+        if (element.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var property in element.EnumerateObject())
+            {
+                var newPrefix = string.IsNullOrEmpty(prefix) ? property.Name : $"{prefix}:{property.Name}";
+                FlattenJson(property.Value, newPrefix, result);
+            }
+        }
+        else if (element.ValueKind == JsonValueKind.String)
+        {
+            result[prefix] = element.GetString() ?? string.Empty;
+        }
     }
 }

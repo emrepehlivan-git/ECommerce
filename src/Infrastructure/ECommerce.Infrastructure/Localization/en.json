@@ -1,47 +1,71 @@
 {
-  "User.NotFound": "User not found",
-  "AuthMessages.LoginSuccess": "Login successful.",
-  "AuthMessages.LoginFailed": "Login failed.",
-  "AuthMessages.LogoutSuccess": "Logout successful.",
-  "AuthMessages.EmailConfirmationSent": "Email confirmation link has been sent.",
-  "AuthMessages.EmailConfirmed": "Email has been successfully confirmed.",
-  "AuthMessages.PasswordResetLinkSent": "Password reset link has been sent.",
-  "AuthMessages.PasswordChanged": "Password changed successfully.",
-  "ErrorMessages.UnexpectedError": "An unexpected error occurred.",
-  "ErrorMessages.ValidationError": "Validation error.",
-  "ErrorMessages.Unauthorized": "You are not authorized to perform this action.",
-  "ErrorMessages.Forbidden": "You do not have permission to access this resource.",
-  "ErrorMessages.InvalidOperation": "Invalid operation.",
-  "ErrorMessages.ConcurrencyError": "This record has been modified by another user.",
-  "Product.NotFound": "Product not found.",
-  "Product.Name.IsRequired": "Product name is required.",
-  "Product.Name.MustBeAtLeastCharacters": "Product name must be at least 3 characters long.",
-  "Product.Name.MustBeLessThanCharacters": "Product name must be less than 100 characters long.",
-  "Product.Price.MustBeGreaterThanZero": "Product price must be greater than 0.",
-  "Product.Category.NotFound": "Product category not found.",
-  "Product.StockQuantity.MustBeGreaterThanZero": "Product stock quantity must be greater than 0.",
-  "Category.NotFound": "Category not found.",
-  "Category.Name.Exists": "Category name already exists.",
-  "Category.Name.IsRequired": "Category name is required.",
-  "Category.Name.MustBeAtLeastCharacters": "Category name must be at least 3 characters long.",
-  "Category.Name.MustBeLessThanCharacters": "Category name must be less than 100 characters long.",
-  "Category.CannotDeleteWithProducts": "Category cannot be deleted because it contains products.",
-  "Order.NotFound": "Order not found.",
-  "Order.UserNotFound": "User not found for this order.",
-  "Order.ProductNotFound": "Product not found for this order.",
-  "Order.QuantityMustBeGreaterThanZero": "Order item quantity must be greater than zero.",
-  "Order.CannotBeModified": "Order cannot be modified in its current state.",
-  "Order.CannotBeCancelled": "Order cannot be cancelled in its current state.",
-  "Order.ItemNotFound": "Order item not found.",
-  "Order.ShippingAddressRequired": "Shipping address is required.",
-  "Order.BillingAddressRequired": "Billing address is required.",
-  "Order.EmptyOrder": "Order cannot be empty. Please add at least one item.",
-  "UserAddress.NotFound": "User address not found.",
-  "UserAddress.UserNotFound": "User not found for this address.",
-  "UserAddress.LabelRequired": "Address label is required.",
-  "UserAddress.LabelMinLength": "Address label must be at least {0} characters long.",
-  "UserAddress.LabelMaxLength": "Address label cannot be longer than {0} characters.",
-  "UserAddress.AddressRequired": "Address information is required.",
-  "UserAddress.DefaultAddressCannotBeDeleted": "Default address cannot be deleted.",
-  "UserAddress.AddressAlreadyDefault": "This address is already set as default."
+  "User": {
+    "NotFound": "User not found"
+  },
+  "AuthMessages": {
+    "LoginSuccess": "Login successful.",
+    "LoginFailed": "Login failed.",
+    "LogoutSuccess": "Logout successful.",
+    "EmailConfirmationSent": "Email confirmation link has been sent.",
+    "EmailConfirmed": "Email has been successfully confirmed.",
+    "PasswordResetLinkSent": "Password reset link has been sent.",
+    "PasswordChanged": "Password changed successfully."
+  },
+  "ErrorMessages": {
+    "UnexpectedError": "An unexpected error occurred.",
+    "ValidationError": "Validation error.",
+    "Unauthorized": "You are not authorized to perform this action.",
+    "Forbidden": "You do not have permission to access this resource.",
+    "InvalidOperation": "Invalid operation.",
+    "ConcurrencyError": "This record has been modified by another user."
+  },
+  "Product": {
+    "NotFound": "Product not found.",
+    "Name": {
+      "IsRequired": "Product name is required.",
+      "MustBeAtLeastCharacters": "Product name must be at least 3 characters long.",
+      "MustBeLessThanCharacters": "Product name must be less than 100 characters long."
+    },
+    "Price": {
+      "MustBeGreaterThanZero": "Product price must be greater than 0."
+    },
+    "Category": {
+      "NotFound": "Product category not found."
+    },
+    "StockQuantity": {
+      "MustBeGreaterThanZero": "Product stock quantity must be greater than 0."
+    }
+  },
+  "Category": {
+    "NotFound": "Category not found.",
+    "Name": {
+      "Exists": "Category name already exists.",
+      "IsRequired": "Category name is required.",
+      "MustBeAtLeastCharacters": "Category name must be at least 3 characters long.",
+      "MustBeLessThanCharacters": "Category name must be less than 100 characters long."
+    },
+    "CannotDeleteWithProducts": "Category cannot be deleted because it contains products."
+  },
+  "Order": {
+    "NotFound": "Order not found.",
+    "UserNotFound": "User not found for this order.",
+    "ProductNotFound": "Product not found for this order.",
+    "QuantityMustBeGreaterThanZero": "Order item quantity must be greater than zero.",
+    "CannotBeModified": "Order cannot be modified in its current state.",
+    "CannotBeCancelled": "Order cannot be cancelled in its current state.",
+    "ItemNotFound": "Order item not found.",
+    "ShippingAddressRequired": "Shipping address is required.",
+    "BillingAddressRequired": "Billing address is required.",
+    "EmptyOrder": "Order cannot be empty. Please add at least one item."
+  },
+  "UserAddress": {
+    "NotFound": "User address not found.",
+    "UserNotFound": "User not found for this address.",
+    "LabelRequired": "Address label is required.",
+    "LabelMinLength": "Address label must be at least {0} characters long.",
+    "LabelMaxLength": "Address label cannot be longer than {0} characters.",
+    "AddressRequired": "Address information is required.",
+    "DefaultAddressCannotBeDeleted": "Default address cannot be deleted.",
+    "AddressAlreadyDefault": "This address is already set as default."
+  }
 }
