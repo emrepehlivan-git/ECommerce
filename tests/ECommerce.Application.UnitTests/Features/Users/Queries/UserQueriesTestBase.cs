@@ -1,18 +1,18 @@
 using ECommerce.Application.Helpers;
-using ECommerce.Application.Interfaces;
+using ECommerce.Application.Services;
 
 namespace ECommerce.Application.UnitTests.Features.Users.Queries;
 
 public abstract class UserQueriesTestBase
 {
-    protected readonly Mock<IIdentityService> IdentityServiceMock;
+    protected readonly Mock<IUserService> UserServiceMock;
     protected readonly Mock<ILazyServiceProvider> LazyServiceProviderMock;
     protected readonly Mock<ILocalizationService> LocalizationServiceMock;
     protected readonly User DefaultUser;
     protected readonly LocalizationHelper Localizer;
     protected UserQueriesTestBase()
     {
-        IdentityServiceMock = new Mock<IIdentityService>();
+        UserServiceMock = new Mock<IUserService>();
         LazyServiceProviderMock = new Mock<ILazyServiceProvider>();
         LocalizationServiceMock = new Mock<ILocalizationService>();
 
@@ -27,7 +27,7 @@ public abstract class UserQueriesTestBase
 
     protected void SetupUserExists(bool exists = true)
     {
-        IdentityServiceMock
+        UserServiceMock
             .Setup(x => x.FindByIdAsync(It.IsAny<Guid>()))
             .ReturnsAsync(exists ? DefaultUser : null);
     }
@@ -35,7 +35,7 @@ public abstract class UserQueriesTestBase
     protected void SetupUsersQuery(IEnumerable<User> users)
     {
         var queryable = users.AsQueryable();
-        IdentityServiceMock
+        UserServiceMock
             .Setup(x => x.Users)
             .Returns(queryable);
     }

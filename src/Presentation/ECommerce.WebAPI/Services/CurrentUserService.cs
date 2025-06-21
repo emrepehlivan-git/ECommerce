@@ -1,5 +1,4 @@
-using System.Security.Claims;
-using ECommerce.Application.Interfaces;
+using ECommerce.Application.Services;
 using ECommerce.SharedKernel.DependencyInjection;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 

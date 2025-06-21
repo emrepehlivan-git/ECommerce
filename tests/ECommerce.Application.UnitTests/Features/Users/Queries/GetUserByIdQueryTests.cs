@@ -8,11 +8,11 @@ public sealed class GetUserByIdQueryTests : UserQueriesTestBase
     private readonly GetUserByIdQuery Query;
 
     public GetUserByIdQueryTests()
-    {
+    {   
         Query = new GetUserByIdQuery(Guid.NewGuid());
 
         Handler = new GetUserByIdQueryHandler(
-            IdentityServiceMock.Object,
+            UserServiceMock.Object,
             LazyServiceProviderMock.Object);
     }
 

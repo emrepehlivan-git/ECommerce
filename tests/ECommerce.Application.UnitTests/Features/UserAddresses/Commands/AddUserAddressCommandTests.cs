@@ -21,9 +21,9 @@ public sealed class AddUserAddressCommandTests : UserAddressesTestBase
 
         Handler = new AddUserAddressCommandHandler(
             UserAddressRepositoryMock.Object,
-            IdentityServiceMock.Object,
+            UserServiceMock.Object,
             LazyServiceProviderMock.Object);
-    }
+    }   
 
     [Fact]
     public async Task Handle_WithValidCommand_ShouldAddUserAddress()

@@ -13,7 +13,7 @@ public sealed class GetUsersQueryTests : UserQueriesTestBase
         Query = new GetUsersQuery(new PageableRequestParams());
 
         Handler = new GetUsersQueryHandler(
-            IdentityServiceMock.Object,
+            UserServiceMock.Object,
             LazyServiceProviderMock.Object);
     }
 

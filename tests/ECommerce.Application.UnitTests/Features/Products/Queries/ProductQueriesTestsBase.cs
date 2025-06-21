@@ -1,6 +1,6 @@
 using System;
 using ECommerce.Application.Helpers;
-using ECommerce.Application.Interfaces;
+using ECommerce.Application.Services;
 
 namespace ECommerce.Application.UnitTests.Features.Products.Queries;
 

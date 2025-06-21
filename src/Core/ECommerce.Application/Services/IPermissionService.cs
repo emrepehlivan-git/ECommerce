@@ -1,6 +1,6 @@
 namespace ECommerce.Application.Services;
 
-public interface IPermissionService
+    public interface IPermissionService
 {
     Task<bool> HasPermissionAsync(Guid userId, string permission);
     Task<IEnumerable<string>> GetUserPermissionsAsync(Guid userId);

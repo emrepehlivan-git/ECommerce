@@ -1,6 +1,6 @@
 using ECommerce.Application.Features.Users;
 using ECommerce.Application.Helpers;
-using ECommerce.Application.Interfaces;
+using ECommerce.Application.Services;
 
 namespace ECommerce.Application.UnitTests.Features.Users.Commands;
 
@@ -9,7 +9,7 @@ public class UserCommandsTestBase
     protected Guid UserId = Guid.Parse("e64db34c-7455-41da-b255-a9a7a46ace54");
     protected User DefaultUser => User.Create("test@example.com", "Test User", "Password123!");
 
-    protected Mock<IIdentityService> IdentityServiceMock;
+    protected Mock<IUserService> UserServiceMock;
     protected Mock<ILazyServiceProvider> LazyServiceProviderMock;
     protected Mock<ILocalizationService> LocalizationServiceMock;
 
@@ -17,7 +17,7 @@ public class UserCommandsTestBase
 
     protected UserCommandsTestBase()
     {
-        IdentityServiceMock = new Mock<IIdentityService>();
+        UserServiceMock = new Mock<IUserService>();
         LazyServiceProviderMock = new Mock<ILazyServiceProvider>();
         LocalizationServiceMock = new Mock<ILocalizationService>();
 
@@ -39,7 +39,7 @@ public class UserCommandsTestBase
 
     protected void SetupUserExists(bool exists = true)
     {
-        IdentityServiceMock
+        UserServiceMock
             .Setup(x => x.FindByIdAsync(It.IsAny<Guid>()))
             .ReturnsAsync(exists ? DefaultUser : null);
     }

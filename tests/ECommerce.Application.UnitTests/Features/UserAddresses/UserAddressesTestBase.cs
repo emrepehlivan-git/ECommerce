@@ -1,12 +1,9 @@
 using ECommerce.Application.Features.UserAddresses;
 using ECommerce.Application.Features.UserAddresses.DTOs;
 using ECommerce.Application.Helpers;
-using ECommerce.Application.Interfaces;
-using ECommerce.Application.Repositories;
-using ECommerce.Domain.Entities;
+using ECommerce.Application.Services;
 using ECommerce.Domain.ValueObjects;
 using Mapster;
-using System.Linq.Expressions;
 
 namespace ECommerce.Application.UnitTests.Features.UserAddresses;
 
@@ -18,7 +15,7 @@ public abstract class UserAddressesTestBase
     protected UserAddress DefaultUserAddress => UserAddress.Create(UserId, "Home", DefaultAddress);
 
     protected Mock<IUserAddressRepository> UserAddressRepositoryMock;
-    protected Mock<IIdentityService> IdentityServiceMock;
+    protected Mock<IUserService> UserServiceMock;
     protected Mock<ILazyServiceProvider> LazyServiceProviderMock;
     protected Mock<ILocalizationService> LocalizationServiceMock;
 
@@ -27,7 +24,7 @@ public abstract class UserAddressesTestBase
     protected UserAddressesTestBase()
     {
         UserAddressRepositoryMock = new Mock<IUserAddressRepository>();
-        IdentityServiceMock = new Mock<IIdentityService>();
+        UserServiceMock = new Mock<IUserService>();
         LazyServiceProviderMock = new Mock<ILazyServiceProvider>();
         LocalizationServiceMock = new Mock<ILocalizationService>();
 
@@ -87,7 +84,7 @@ public abstract class UserAddressesTestBase
     protected void SetupUserExists(bool exists = true)
     {
         var user = exists ? User.Create("test@example.com", "Test", "User") : null;
-        IdentityServiceMock
+        UserServiceMock
             .Setup(x => x.FindByIdAsync(It.IsAny<Guid>()))
             .ReturnsAsync(user);
     }

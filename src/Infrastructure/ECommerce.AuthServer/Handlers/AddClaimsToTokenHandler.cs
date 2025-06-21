@@ -9,7 +9,7 @@ using OpenIddict.Server;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 using static OpenIddict.Server.OpenIddictServerEvents;
 
-public class AddClaimsToTokenHandler(IIdentityService identityService, IPermissionService permissionService, IOpenIddictScopeManager scopeManager)
+public class AddClaimsToTokenHandler(IUserService userService, IRoleService roleService, IPermissionService permissionService, IOpenIddictScopeManager scopeManager)
 : IOpenIddictServerHandler<ProcessSignInContext>
 {
     public async ValueTask HandleAsync(ProcessSignInContext context)
@@ -21,7 +21,7 @@ public class AddClaimsToTokenHandler(IIdentityService identityService, IPermissi
 
         if (!Guid.TryParse(principal?.GetClaim(Claims.Subject), out var userId)) return;
 
-        var user = await identityService.FindByIdAsync(userId);
+        var user = await userService.FindByIdAsync(userId);
         if (user is null) return;
 
         var identity = principal?.Identity as ClaimsIdentity;
@@ -31,7 +31,7 @@ public class AddClaimsToTokenHandler(IIdentityService identityService, IPermissi
         identity?.SetClaim(Claims.Audience, "api");
         identity?.SetClaim(Claims.Email, user.Email);
         identity?.SetClaim("fullName", user.FullName.ToString());
-        identity?.SetClaims(Claims.Role, [.. await identityService.GetUserRolesAsync(user)]);
+        identity?.SetClaims(Claims.Role, [.. await roleService.GetUserRolesAsync(user)]);
         identity?.SetClaims("permissions", [.. permissions]);
         identity?.SetScopes(context.Request.GetScopes());
         identity?.SetResources(await scopeManager.ListResourcesAsync(identity.GetScopes()).ToListAsync());

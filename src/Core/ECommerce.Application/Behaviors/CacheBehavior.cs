@@ -1,7 +1,7 @@
-using ECommerce.Application.Interfaces;
+using ECommerce.Application.Services;
 using MediatR;
 
-namespace ECommerce.Application.Behaviors;
+namespace ECommerce.Application.Behaviors;  
 
 public sealed class CacheBehavior<TRequest, TResponse>(ICacheManager cacheManager) : IPipelineBehavior<TRequest, TResponse>
 where TRequest : ICacheableRequest

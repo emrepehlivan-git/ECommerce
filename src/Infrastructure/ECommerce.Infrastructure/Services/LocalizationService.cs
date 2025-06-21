@@ -1,6 +1,6 @@
 using System.Text.Json;
 using System.Globalization;
-using ECommerce.Application.Interfaces;
+using ECommerce.Application.Services;
 using ECommerce.SharedKernel.DependencyInjection;
 
 namespace ECommerce.Infrastructure.Services;

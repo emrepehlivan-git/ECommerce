@@ -1,6 +1,6 @@
 using ECommerce.Application.Features.Categories;
 using ECommerce.Application.Helpers;
-using ECommerce.Application.Interfaces;
+using ECommerce.Application.Services;
 
 namespace ECommerce.Application.UnitTests.Features.Categories.Commands;
 

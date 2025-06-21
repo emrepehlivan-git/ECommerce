@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using ECommerce.Application.Interfaces;
+using ECommerce.Application.Services;
 using ECommerce.AuthServer.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -9,9 +9,10 @@ using UserEntity = ECommerce.Domain.Entities.User;
 namespace ECommerce.AuthServer.Controllers;
 
 public class AccountController(
-    IIdentityService identityService) : Controller
+    Application.Services.IAuthenticationService authenticationService,
+    IUserService userService) : Controller
 {
-    [HttpGet]
+    [HttpGet]   
     public IActionResult Login(string? returnUrl = null)
     {
         ViewData["ReturnUrl"] = returnUrl;
@@ -25,7 +26,7 @@ public class AccountController(
         if (!ModelState.IsValid)
             return View(model);
 
-        var result = await identityService.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, false);
+        var result = await authenticationService.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, false);
 
         if (!result.Succeeded)
         {
@@ -33,7 +34,7 @@ public class AccountController(
             return View(model);
         }
 
-        var user = await identityService.FindByEmailAsync(model.Email);
+        var user = await userService.FindByEmailAsync(model.Email);
 
         if (user is null)
         {
@@ -77,7 +78,7 @@ public class AccountController(
 
         var user = UserEntity.Create(model.Email, model.FirstName, model.LastName);
 
-        var result = await identityService.CreateAsync(user, model.Password);
+        var result = await userService.CreateAsync(user, model.Password);
 
         if (!result.Succeeded)
         {
@@ -87,7 +88,7 @@ public class AccountController(
             return View(model);
         }
 
-        await identityService.PasswordSignInAsync(model.Email, model.Password, false, false);
+        await authenticationService.PasswordSignInAsync(model.Email, model.Password, false, false);
         return Url.IsLocalUrl(returnUrl) ? Redirect(returnUrl) : Redirect("/");
     }
 }

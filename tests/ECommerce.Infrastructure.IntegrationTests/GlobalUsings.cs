@@ -6,7 +6,7 @@ global using Moq;
 global using Xunit;
 global using FluentAssertions;
 global using ECommerce.Infrastructure.Services;
-global using ECommerce.Application.Interfaces;
+global using ECommerce.Application.Services;
 global using ECommerce.Domain.Entities;
 global using ECommerce.Domain.ValueObjects;
 global using ECommerce.Application.Exceptions;

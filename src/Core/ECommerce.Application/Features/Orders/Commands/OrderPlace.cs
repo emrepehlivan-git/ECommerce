@@ -12,6 +12,7 @@ using MediatR;
 using ECommerce.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using ECommerce.Application.Features.Orders.Specifications;
+using ECommerce.Application.Services;
 
 namespace ECommerce.Application.Features.Orders.Commands;
 
@@ -32,13 +33,13 @@ public sealed class OrderPlaceCommandValidator : AbstractValidator<OrderPlaceCom
 {
     public OrderPlaceCommandValidator(
         IProductRepository productRepository,
-        IIdentityService identityService,
+        IUserService userService,
         IUserAddressRepository userAddressRepository,
         LocalizationHelper localizer)
     {
         RuleFor(x => x.UserId)
             .MustAsync(async (id, ct) =>
-                await identityService.FindByIdAsync(id) != null)
+                await userService.FindByIdAsync(id) != null)
             .WithMessage(localizer[OrderConsts.UserNotFound]);
 
         RuleFor(x => x)

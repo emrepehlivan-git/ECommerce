@@ -10,10 +10,10 @@ public sealed class DeactivateUserCommandTests : UserCommandsTestBase
     private DeactivateUserCommand Command;
 
     public DeactivateUserCommandTests()
-    {
+    {   
         Command = new DeactivateUserCommand(UserId);
         Handler = new DeactivateUserCommandHandler(
-            IdentityServiceMock.Object,
+            UserServiceMock.Object,
             LazyServiceProviderMock.Object);
     }
 
@@ -23,11 +23,11 @@ public sealed class DeactivateUserCommandTests : UserCommandsTestBase
         var activeUser = User.Create("test@example.com", "Test User", "Password123!");
         activeUser.Activate();
 
-        IdentityServiceMock
+        UserServiceMock
             .Setup(x => x.FindByIdAsync(It.IsAny<Guid>()))
             .ReturnsAsync(activeUser);
 
-        IdentityServiceMock
+        UserServiceMock
             .Setup(x => x.UpdateAsync(It.IsAny<User>()))
             .ReturnsAsync(IdentityResult.Success);
 
@@ -44,7 +44,7 @@ public sealed class DeactivateUserCommandTests : UserCommandsTestBase
         var inactiveUser = User.Create("test@example.com", "Test User", "Password123!");
         inactiveUser.Deactivate();
 
-        IdentityServiceMock
+        UserServiceMock
             .Setup(x => x.FindByIdAsync(It.IsAny<Guid>()))
             .ReturnsAsync(inactiveUser);
 
@@ -76,11 +76,11 @@ public sealed class DeactivateUserCommandTests : UserCommandsTestBase
         var activeUser = User.Create("test@example.com", "Test User", "Password123!");
         activeUser.Activate();
 
-        IdentityServiceMock
+        UserServiceMock
             .Setup(x => x.FindByIdAsync(It.IsAny<Guid>()))
             .ReturnsAsync(activeUser);
 
-        IdentityServiceMock
+        UserServiceMock
             .Setup(x => x.UpdateAsync(It.IsAny<User>()))
             .ReturnsAsync(IdentityResult.Failed());
 

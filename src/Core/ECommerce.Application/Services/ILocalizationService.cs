@@ -1,4 +1,4 @@
-namespace ECommerce.Application.Interfaces;
+namespace ECommerce.Application.Services;
 
 public interface ILocalizationService
 {

@@ -1,4 +1,4 @@
-using ECommerce.Application.Interfaces;
+using ECommerce.Application.Services;
 using ECommerce.SharedKernel.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;

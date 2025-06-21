@@ -1,4 +1,4 @@
-using ECommerce.Application.Interfaces;
+using ECommerce.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 
 namespace ECommerce.WebAPI.Authorization;

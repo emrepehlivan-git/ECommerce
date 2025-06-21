@@ -1,13 +1,12 @@
 using Ardalis.Result;
 using ECommerce.Application.Behaviors;
 using ECommerce.Application.CQRS;
-using ECommerce.SharedKernel.DependencyInjection;
 using ECommerce.Application.Helpers;
-using ECommerce.Application.Interfaces;
 using ECommerce.Application.Repositories;
+using ECommerce.Application.Services;
 using ECommerce.Domain.Entities;
 using ECommerce.Domain.ValueObjects;
-using ECommerce.SharedKernel;
+using ECommerce.SharedKernel.DependencyInjection;
 using FluentValidation;
 using MediatR;
 
@@ -26,12 +25,12 @@ public sealed record AddUserAddressCommand(
 public sealed class AddUserAddressCommandValidator : AbstractValidator<AddUserAddressCommand>
 {
     public AddUserAddressCommandValidator(
-        IIdentityService identityService,
+        IUserService userService,
         LocalizationHelper localizer)
     {
         RuleFor(x => x.UserId)
             .MustAsync(async (id, ct) =>
-                await identityService.FindByIdAsync(id) != null)
+                await userService.FindByIdAsync(id) != null)
             .WithMessage(localizer[UserAddressConsts.UserNotFound]);
 
         RuleFor(x => x.Label)
@@ -76,12 +75,12 @@ public sealed class AddUserAddressCommandValidator : AbstractValidator<AddUserAd
 
 public sealed class AddUserAddressCommandHandler(
     IUserAddressRepository userAddressRepository,
-    IIdentityService identityService,
+    IUserService userService,
     ILazyServiceProvider lazyServiceProvider) : BaseHandler<AddUserAddressCommand, Result<Guid>>(lazyServiceProvider)
 {
     public override async Task<Result<Guid>> Handle(AddUserAddressCommand command, CancellationToken cancellationToken)
     {
-        if (await identityService.FindByIdAsync(command.UserId) is null)
+        if (await userService.FindByIdAsync(command.UserId) is null)
             return Result.Error(Localizer[UserAddressConsts.UserNotFound]);
 
         var address = new Address(

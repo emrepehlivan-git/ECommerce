@@ -18,7 +18,9 @@ namespace ECommerce.AuthServer.Controllers;
 public class AuthorizationController(
     IOpenIddictApplicationManager applicationManager,
     IOpenIddictAuthorizationManager authorizationManager,
-    IIdentityService identityService,
+    IUserService userService,
+    IRoleService roleService,
+    Application.Services.IAuthenticationService authenticationService,
     IOpenIddictScopeManager scopeManager,
     IPermissionService permissionService)
     : Controller
@@ -61,7 +63,7 @@ public class AuthorizationController(
             });
         }
 
-        var user = await identityService.GetUserByPrincipalAsync(result.Principal) ??
+        var user = await userService.GetUserByPrincipalAsync(result.Principal) ??
             throw new InvalidOperationException("The user details cannot be retrieved.");
         var clientId = request.ClientId ?? throw new InvalidOperationException("The client ID cannot be retrieved.");
 
@@ -99,7 +101,7 @@ public class AuthorizationController(
                 identity.SetClaim(Claims.Audience, "api");
                 identity.SetClaim(Claims.Email, user.Email);
                 identity.SetClaim("fullName", user.FullName.ToString());
-                identity.SetClaims(Claims.Role, [.. await identityService.GetUserRolesAsync(user)]);
+                identity.SetClaims(Claims.Role, [.. await roleService.GetUserRolesAsync(user)]);
                 identity.SetClaims("permissions", [.. await permissionService.GetUserPermissionsAsync(user.Id)]);
                 identity.SetScopes(request.GetScopes());
                 identity.SetResources(await scopeManager.ListResourcesAsync(identity.GetScopes()).ToListAsync());
@@ -144,7 +146,7 @@ public class AuthorizationController(
         var request = HttpContext.GetOpenIddictServerRequest() ??
             throw new InvalidOperationException("The OpenID Connect request cannot be retrieved.");
 
-        var user = await identityService.GetUserByPrincipalAsync(User) ??
+        var user = await userService.GetUserByPrincipalAsync(User) ??
             throw new InvalidOperationException("The user details cannot be retrieved.");
 
         var application = await applicationManager.FindByClientIdAsync(request.ClientId!) ??
@@ -178,7 +180,7 @@ public class AuthorizationController(
         identity.SetClaim(Claims.Audience, "api");
         identity.SetClaim(Claims.Email, user.Email);
         identity.SetClaim("fullName", user.FullName.ToString());
-        identity.SetClaims(Claims.Role, [.. await identityService.GetUserRolesAsync(user)]);
+        identity.SetClaims(Claims.Role, [.. await roleService.GetUserRolesAsync(user)]);
         identity.SetClaims("permissions", [.. await permissionService.GetUserPermissionsAsync(user.Id)]);
         identity.SetScopes(request.GetScopes());
         identity.SetResources(await scopeManager.ListResourcesAsync(identity.GetScopes()).ToListAsync());
@@ -207,7 +209,7 @@ public class AuthorizationController(
     [ActionName(nameof(Logout)), HttpPost("~/connect/logout"), ValidateAntiForgeryToken]
     public async Task<IActionResult> LogoutPost()
     {
-        await identityService.SignOutAsync();
+        await authenticationService.SignOutAsync();
 
         return SignOut(
             authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
@@ -227,7 +229,7 @@ public class AuthorizationController(
             var result = await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme) ??
                 throw new InvalidOperationException("The user details cannot be retrieved.");
 
-            var user = await identityService.FindByIdAsync(Guid.Parse(result.Principal?.GetClaim(Claims.Subject) ?? string.Empty));
+            var user = await userService.FindByIdAsync(Guid.Parse(result.Principal?.GetClaim(Claims.Subject) ?? string.Empty));
             if (user is null)
             {
                 return Forbid(
@@ -239,7 +241,7 @@ public class AuthorizationController(
                     }!));
             }
 
-            if (!await identityService.CanSignInAsync(user))
+            if (!await userService.CanSignInAsync(user))
             {
                 return Forbid(
                     authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
@@ -250,17 +252,16 @@ public class AuthorizationController(
                     }!));
             }
 
-            var identity = new ClaimsIdentity(result.Principal?.Claims,
+            var identity = new ClaimsIdentity(
                 authenticationType: TokenValidationParameters.DefaultAuthenticationType,
                 nameType: Claims.Name,
                 roleType: Claims.Role);
 
             identity.SetClaim(Claims.Subject, user.Id.ToString());
-            identity.SetClaim(Claims.Subject, user.Id.ToString());
             identity.SetClaim(Claims.Audience, "api");
             identity.SetClaim(Claims.Email, user.Email);
             identity.SetClaim("fullName", user.FullName.ToString());
-            identity.SetClaims(Claims.Role, [.. await identityService.GetUserRolesAsync(user)]);
+            identity.SetClaims(Claims.Role, [.. await roleService.GetUserRolesAsync(user)]);
             identity.SetClaims("permissions", [.. await permissionService.GetUserPermissionsAsync(user.Id)]);
             identity.SetScopes(request.GetScopes());
             identity.SetResources(await scopeManager.ListResourcesAsync(identity.GetScopes()).ToListAsync());
@@ -276,7 +277,7 @@ public class AuthorizationController(
     {
         switch (claim.Type)
         {
-            case Claims.Name or Claims.PreferredUsername:
+            case Claims.Name or "fullName":
                 yield return Destinations.AccessToken;
 
                 if (claim.Subject?.HasScope(Scopes.Profile) == true)
@@ -302,7 +303,9 @@ public class AuthorizationController(
 
             case "permissions":
                 yield return Destinations.AccessToken;
-                yield return Destinations.IdentityToken;
+                yield break;
+
+            case "AspNet.Identity.SecurityStamp":
                 yield break;
 
             default:

@@ -1,6 +1,6 @@
 using ECommerce.Application.Features.Products;
 using ECommerce.Application.Helpers;
-using ECommerce.Application.Interfaces;
+using ECommerce.Application.Services;
 
 namespace ECommerce.Application.UnitTests.Features.Products.Commands;
 
@@ -11,7 +11,7 @@ public class ProductCommandsTestBase
 
     protected Mock<IProductRepository> ProductRepositoryMock;
     protected Mock<ICategoryRepository> CategoryRepositoryMock;
-        protected Mock<ILazyServiceProvider> LazyServiceProviderMock;
+        protected Mock<ILazyServiceProvider> LazyServiceProviderMock;   
     protected Mock<ILocalizationService> LocalizationServiceMock;
     protected Mock<ICacheManager> CacheManagerMock;
 

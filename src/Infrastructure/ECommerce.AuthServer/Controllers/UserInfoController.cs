@@ -9,14 +9,14 @@ using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace ECommerce.AuthServer.Controllers;
 
-public sealed class UserInfoController(IIdentityService identityService, IPermissionService permissionService) : Controller
+public sealed class UserInfoController(IUserService userService, IRoleService roleService, IPermissionService permissionService) : Controller
 {
     [Authorize(AuthenticationSchemes = OpenIddictServerAspNetCoreDefaults.AuthenticationScheme)]
     [HttpGet("~/connect/userinfo"), HttpPost("~/connect/userinfo"), Produces("application/json")]
     public async Task<IActionResult> UserInfo()
     {
 
-        var user = await identityService.FindByIdAsync(Guid.Parse(User.GetClaim(Claims.Subject) ?? string.Empty));
+        var user = await userService.FindByIdAsync(Guid.Parse(User.GetClaim(Claims.Subject) ?? string.Empty));
         if (user is null)
 
         {
@@ -34,7 +34,7 @@ public sealed class UserInfoController(IIdentityService identityService, IPermis
         {
             [Claims.Subject] = user.Id,
             [Claims.Email] = user.Email!,
-            [Claims.Role] = await identityService.GetUserRolesAsync(user),
+            [Claims.Role] = await roleService.GetUserRolesAsync(user),
             [Claims.Audience] = "api",
             ["fullName"] = user.FullName.ToString(),
             ["permissions"] = await permissionService.GetUserPermissionsAsync(user.Id),

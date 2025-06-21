@@ -1,6 +1,6 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using ECommerce.Application.Interfaces;
+using ECommerce.Application.Services;
 using ECommerce.SharedKernel.DependencyInjection;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;

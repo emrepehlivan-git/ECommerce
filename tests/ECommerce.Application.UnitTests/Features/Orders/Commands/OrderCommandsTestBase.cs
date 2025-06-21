@@ -1,13 +1,7 @@
 using ECommerce.Application.Features.Orders;
 using ECommerce.Application.Helpers;
-using ECommerce.Application.Interfaces;
-using ECommerce.Application.Repositories;
-using ECommerce.Domain.Entities;
+using ECommerce.Application.Services;
 using ECommerce.Domain.ValueObjects;
-using ECommerce.SharedKernel.DependencyInjection;
-using ECommerce.SharedKernel.Specifications;
-using Moq;
-using System.Linq.Expressions;
 
 namespace ECommerce.Application.UnitTests.Features.Orders.Commands;
 
@@ -18,7 +12,7 @@ public abstract class OrderCommandsTestBase
     protected readonly Mock<IOrderItemRepository> OrderItemRepositoryMock;
     protected readonly Mock<IStockRepository> StockRepositoryMock;
     protected readonly Mock<IUserAddressRepository> UserAddressRepositoryMock;
-    protected readonly Mock<IIdentityService> IdentityServiceMock;
+    protected readonly Mock<IUserService> UserServiceMock;
     protected readonly Mock<ILazyServiceProvider> LazyServiceProviderMock;
     protected readonly Mock<ILocalizationService> LocalizationServiceMock;
     protected readonly LocalizationHelper Localizer;
@@ -35,7 +29,7 @@ public abstract class OrderCommandsTestBase
         OrderItemRepositoryMock = new Mock<IOrderItemRepository>();
         StockRepositoryMock = new Mock<IStockRepository>();
         UserAddressRepositoryMock = new Mock<IUserAddressRepository>();
-        IdentityServiceMock = new Mock<IIdentityService>();
+        UserServiceMock = new Mock<IUserService>();
         LazyServiceProviderMock = new Mock<ILazyServiceProvider>();
         LocalizationServiceMock = new Mock<ILocalizationService>();
         Localizer = new LocalizationHelper(LocalizationServiceMock.Object);

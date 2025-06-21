@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using ECommerce.Application.Interfaces;
+using ECommerce.Application.Services;
 
 namespace ECommerce.AuthServer.Services;
 
