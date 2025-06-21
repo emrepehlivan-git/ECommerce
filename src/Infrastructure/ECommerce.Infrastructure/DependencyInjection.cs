@@ -40,7 +40,8 @@ public static class DependencyInjection
         var loggingOptions = configuration.GetSection("LoggingOptions").Get<LoggingOptions>() ?? new LoggingOptions();
 
         var loggerConfig = new LoggerConfiguration()
-            .MinimumLevel.Is(Enum.Parse<Serilog.Events.LogEventLevel>(loggingOptions.MinimumLevel, true));
+            .MinimumLevel.Is(Enum.Parse<Serilog.Events.LogEventLevel>(loggingOptions.MinimumLevel, true))
+            .Enrich.FromLogContext();
 
         if (loggingOptions.EnableConsole)
             loggerConfig = loggerConfig.WriteTo.Console(outputTemplate: loggingOptions.OutputTemplate);
@@ -48,10 +49,11 @@ public static class DependencyInjection
         if (loggingOptions.EnableFile)
             loggerConfig = loggerConfig.WriteTo.File(loggingOptions.FilePath, rollingInterval: RollingInterval.Day, outputTemplate: loggingOptions.OutputTemplate);
 
-        Log.Logger = loggerConfig
-        .WriteTo.Seq(loggingOptions.SeqUrl)
-        .Enrich.FromLogContext()
-        .CreateLogger();
+        // Seq sink'ini ekle
+        loggerConfig = loggerConfig.WriteTo.Seq(loggingOptions.SeqUrl);
+
+        Log.Logger = loggerConfig.CreateLogger();
+        
         services.AddSingleton<Application.Common.Logging.ILogger>(provider =>
                   new SerilogLogger(Log.Logger));
     }
