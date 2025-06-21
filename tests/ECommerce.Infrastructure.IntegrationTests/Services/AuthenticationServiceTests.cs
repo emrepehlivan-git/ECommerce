@@ -12,11 +12,14 @@ public sealed class AuthenticationServiceTests
     public AuthenticationServiceTests()
     {
         var store = new Mock<IUserStore<User>>();
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
         _userManagerMock = new Mock<UserManager<User>>(
             store.Object, null, null, null, null, null, null, null, null);
-        
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+
         var contextAccessor = new Mock<IHttpContextAccessor>();
         var claimsFactory = new Mock<IUserClaimsPrincipalFactory<User>>();
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
         _signInManagerMock = new Mock<SignInManager<User>>(
             _userManagerMock.Object, contextAccessor.Object, 
             claimsFactory.Object, null, null, null, null);

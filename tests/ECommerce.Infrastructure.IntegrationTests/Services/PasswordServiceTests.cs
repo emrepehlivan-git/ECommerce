@@ -10,8 +10,10 @@ public sealed class PasswordServiceTests
     public PasswordServiceTests()
     {
         var store = new Mock<IUserStore<User>>();
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
         _userManagerMock = new Mock<UserManager<User>>(
             store.Object, null, null, null, null, null, null, null, null);
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
         
         _passwordService = new PasswordService(_userManagerMock.Object);
     }

@@ -12,12 +12,15 @@ public sealed class RoleServiceTests
     public RoleServiceTests()
     {
         var userStore = new Mock<IUserStore<User>>();
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
         _userManagerMock = new Mock<UserManager<User>>(
             userStore.Object, null, null, null, null, null, null, null, null);
-        
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
         var roleStore = new Mock<IRoleStore<Role>>();
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
         _roleManagerMock = new Mock<RoleManager<Role>>(
             roleStore.Object, null, null, null, null);
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 
         _roleService = new RoleService(_userManagerMock.Object, _roleManagerMock.Object);
     }

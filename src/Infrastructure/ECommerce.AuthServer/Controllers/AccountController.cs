@@ -10,7 +10,9 @@ namespace ECommerce.AuthServer.Controllers;
 
 public class AccountController(
     Application.Services.IAuthenticationService authenticationService,
-    IUserService userService) : Controller
+    IUserService userService,
+    IPasswordService passwordService,
+    IEmailService emailService) : Controller
 {
     [HttpGet]   
     public IActionResult Login(string? returnUrl = null)
@@ -90,5 +92,91 @@ public class AccountController(
 
         await authenticationService.PasswordSignInAsync(model.Email, model.Password, false, false);
         return Url.IsLocalUrl(returnUrl) ? Redirect(returnUrl) : Redirect("/");
+    }
+
+    [HttpGet]
+    public IActionResult ForgotPassword()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+    {
+        if (!ModelState.IsValid)
+            return View(model);
+
+        var user = await userService.FindByEmailAsync(model.Email);
+        if (user == null)
+        {
+            return RedirectToAction(nameof(ForgotPasswordConfirmation));
+        }
+
+        var token = await passwordService.GeneratePasswordResetTokenAsync(user);
+        var resetLink = Url.Action(nameof(ResetPassword), "Account", 
+            new { token, email = user.Email }, Request.Scheme);
+
+        if (resetLink != null)
+        {
+            await emailService.SendPasswordResetEmailAsync(user.Email, resetLink);
+        }
+
+        return RedirectToAction(nameof(ForgotPasswordConfirmation));
+    }
+
+    [HttpGet]
+    public IActionResult ForgotPasswordConfirmation()
+    {
+        return View();
+    }
+
+    [HttpGet]
+    public IActionResult ResetPassword(string? token, string? email)
+    {
+        if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(email))
+        {
+            return BadRequest("Geçersiz şifre sıfırlama bağlantısı.");
+        }
+
+        var model = new ResetPasswordViewModel 
+        { 
+            Token = token, 
+            Email = email 
+        };
+        
+        return View(model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+    {
+        if (!ModelState.IsValid)
+            return View(model);
+
+        var user = await userService.FindByEmailAsync(model.Email);
+        if (user == null)
+        {
+            return RedirectToAction(nameof(ResetPasswordConfirmation));
+        }
+
+        var result = await passwordService.ResetPasswordAsync(user, model.Token, model.Password);
+        if (!result.Succeeded)
+        {
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+            return View(model);
+        }
+
+        return RedirectToAction(nameof(ResetPasswordConfirmation));
+    }
+
+    [HttpGet]
+    public IActionResult ResetPasswordConfirmation()
+    {
+        return View();
     }
 }

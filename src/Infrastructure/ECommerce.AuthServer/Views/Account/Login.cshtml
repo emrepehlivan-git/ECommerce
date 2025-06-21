@@ -31,9 +31,16 @@
                 <span asp-validation-for="Password" class="text-red-500 text-sm mt-1 block"></span>
             </div>
             
-            <div class="flex items-center">
-                <input asp-for="RememberMe" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
-                <label asp-for="RememberMe" class="ml-2 block text-sm text-gray-900"></label>
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <input asp-for="RememberMe" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
+                    <label asp-for="RememberMe" class="ml-2 block text-sm text-gray-900"></label>
+                </div>
+                <div class="text-sm">
+                    <a asp-action="ForgotPassword" class="font-medium text-blue-600 hover:text-blue-500 transition-colors">
+                        Şifremi Unuttum?
+                    </a>
+                </div>
             </div>
             
             <div>

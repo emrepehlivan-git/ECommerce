@@ -42,3 +42,28 @@ public sealed class RegisterViewModel
     [Display(Name = "Last Name")]
     public string LastName { get; set; } = null!;
 }
+
+public sealed class ForgotPasswordViewModel
+{
+    [Required(ErrorMessage = "E-posta adresi gereklidir.")]
+    [EmailAddress(ErrorMessage = "Geçerli bir e-posta adresi giriniz.")]
+    [Display(Name = "E-posta")]
+    public string Email { get; set; } = null!;
+}
+
+public sealed class ResetPasswordViewModel
+{
+    [Required(ErrorMessage = "Şifre gereklidir.")]
+    [StringLength(100, ErrorMessage = "{0} en az {2} ve en fazla {1} karakter uzunluğunda olmalıdır.", MinimumLength = 6)]
+    [DataType(DataType.Password)]
+    [Display(Name = "Yeni Şifre")]
+    public string Password { get; set; } = null!;
+
+    [DataType(DataType.Password)]
+    [Display(Name = "Şifre Onayı")]
+    [Compare("Password", ErrorMessage = "Şifre ve şifre onayı uyuşmuyor.")]
+    public string ConfirmPassword { get; set; } = null!;
+
+    public string Email { get; set; } = null!;
+    public string Token { get; set; } = null!;
+}

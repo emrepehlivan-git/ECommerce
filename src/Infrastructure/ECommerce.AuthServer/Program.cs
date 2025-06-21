@@ -1,4 +1,4 @@
-using ECommerce.Application.Interfaces;
+using ECommerce.Application.Services;
 using ECommerce.Persistence.Contexts;
 using ECommerce.Persistence;
 using static OpenIddict.Abstractions.OpenIddictConstants;
@@ -6,8 +6,9 @@ using ECommerce.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using ECommerce.AuthServer;
 using ECommerce.AuthServer.Services;
-using ECommerce.Application.Services;
+using ECommerce.AuthServer.Jobs;
 using ECommerce.Infrastructure;
+using Quartz;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +26,7 @@ builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IPasswordService, PasswordService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<IPermissionService, PermissionService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 builder.Services.AddCors(options =>
 {
@@ -45,11 +47,21 @@ builder.Services.AddCors(options =>
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options => options.LoginPath = "/Account/Login");
 
+builder.Services.AddQuartz(options =>
+{
+    options.UseSimpleTypeLoader();
+    options.UseInMemoryStore();
+});
+
+builder.Services.AddQuartzHostedService(options => options.WaitForJobsToComplete = true);
+
 builder.Services.AddOpenIddict()
     .AddCore(options =>
     {
         options.UseEntityFrameworkCore()
                .UseDbContext<ApplicationDbContext>();
+        
+        options.UseQuartz();
     })
     .AddServer(options =>
     {
@@ -113,7 +125,6 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-// Apply CORS before other middleware
 app.UseCors("AllowAllOrigins");
 
 app.UseRouting();
