@@ -16,13 +16,13 @@ public sealed class OrderController() : BaseApiController
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<List<OrderDto>>> GetOrders(
+    public async Task<IActionResult> GetOrders(
         [FromQuery] PageableRequestParams requestParams,
         [FromQuery] OrderStatus? status = null,
         CancellationToken cancellationToken = default)
     {
         var result = await Mediator.Send(new OrderGetAllQuery(requestParams, status), cancellationToken);
-        return result.ToActionResult(this);
+        return Ok(result);
     }
 
     [HttpGet("{id:guid}")]

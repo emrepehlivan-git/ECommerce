@@ -1,6 +1,5 @@
 using Ardalis.Result.AspNetCore;
 using ECommerce.Application.Features.UserAddresses.Commands;
-using ECommerce.Application.Features.UserAddresses.DTOs;
 using ECommerce.Application.Features.UserAddresses.Queries;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,10 +9,10 @@ namespace ECommerce.WebAPI.Controllers;
 public sealed class UserAddressesController : BaseApiController
 {
     [HttpGet("user/{userId:guid}")]
-    public async Task<ActionResult<List<UserAddressDto>>> GetUserAddresses(Guid userId, bool activeOnly = true)
+    public async Task<IActionResult> GetUserAddresses(Guid userId, bool activeOnly = true)
     {
         var result = await Mediator.Send(new GetUserAddressesQuery(userId, activeOnly));
-        return result.ToActionResult(this);
+        return Ok(result);
     }
 
     [HttpPost]

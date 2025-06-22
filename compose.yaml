@@ -171,7 +171,7 @@
     image: grafana/grafana:latest
     container_name: ecommerce.grafana
     ports:
-      - "3000:3000"
+      - "5005:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_USERS_ALLOW_SIGN_UP=false

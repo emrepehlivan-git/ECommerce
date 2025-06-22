@@ -17,10 +17,10 @@ public sealed class RoleController : BaseApiController
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<List<RoleDto>>> GetRoles(CancellationToken cancellationToken = default)
+    public async Task<IActionResult> GetRoles(CancellationToken cancellationToken = default)
     {
         var result = await Mediator.Send(new GetAllRolesQuery(), cancellationToken);
-        return result.ToActionResult(this);
+        return Ok(result);
     }
 
     [HttpGet("{id}")]

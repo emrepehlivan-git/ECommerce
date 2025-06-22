@@ -15,10 +15,10 @@ public sealed class UsersController : BaseApiController
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<List<UserDto>>> GetUsers([FromQuery] PageableRequestParams pageableRequestParams, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetUsers([FromQuery] PageableRequestParams pageableRequestParams, CancellationToken cancellationToken)
     {
         var result = await Mediator.Send(new GetUsersQuery(pageableRequestParams), cancellationToken);
-        return result.ToActionResult(this);
+        return Ok(result);
     }
 
     [HttpGet("{id}")]

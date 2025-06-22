@@ -6,10 +6,6 @@ using ECommerce.Application.Parameters;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Ardalis.Result.AspNetCore;
-using ECommerce.Persistence.Contexts;
-using ECommerce.Domain.Entities;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.WebAPI.Controllers;
 
@@ -21,10 +17,10 @@ public sealed class CategoryController : BaseApiController
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<List<CategoryDto>>> GetCategories([FromQuery] PageableRequestParams requestParams, [FromQuery] string? orderBy = null, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> GetCategories([FromQuery] PageableRequestParams requestParams, [FromQuery] string? orderBy = null, CancellationToken cancellationToken = default)
     {
         var result = await Mediator.Send(new GetAllCategoriesQuery(requestParams, orderBy), cancellationToken);
-        return result.ToActionResult(this);
+        return Ok(result);
     }
 
     [HttpGet("{id}")]
