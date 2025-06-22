@@ -1,6 +1,7 @@
 using ECommerce.WebAPI;
-using ECommerce.Persistence.Seeds;
+using ECommerce.Application.Common.Logging;
 
+IECommerLogger<Program>? logger = null;
 
 try
 {
@@ -10,20 +11,24 @@ try
 
     var app = builder.Build();
 
+    logger = app.Services.GetRequiredService<IECommerLogger<Program>>();
+    
     await app.ApplyMigrations();
-
-    if (app.Environment.IsDevelopment())
-    {
-        await app.SeedDatabaseAsync();
-    }
-
-    app.UsePresentation(app.Environment);
+    await app.UsePresentation(app.Environment);
 
     app.Run();
 }
 catch (Exception ex)
 {
-    Console.WriteLine($"Application terminated unexpectedly: {ex}");
+    if (logger != null)
+    {
+        logger.LogError(ex, "Application terminated unexpectedly: {Message}", ex.Message);
+    }
+    else
+    {
+        Console.WriteLine($"Application terminated unexpectedly: {ex.Message}");
+        Console.WriteLine(ex.ToString());
+    }
     throw;
 }
 

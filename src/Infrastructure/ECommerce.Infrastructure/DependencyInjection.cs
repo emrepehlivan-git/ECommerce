@@ -25,7 +25,6 @@ public static class DependencyInjection
         services.AddLogging(configuration);
         services.AddObservability(configuration);
 
-        // Add caching services
         services.AddMemoryCache();
         services.AddStackExchangeRedisCache(options =>
         {
@@ -49,10 +48,11 @@ public static class DependencyInjection
         if (loggingOptions.EnableFile)
             loggerConfig = loggerConfig.WriteTo.File(loggingOptions.FilePath, rollingInterval: RollingInterval.Day, outputTemplate: loggingOptions.OutputTemplate);
 
-        // Seq sink'ini ekle
         loggerConfig = loggerConfig.WriteTo.Seq(loggingOptions.SeqUrl);
 
         Log.Logger = loggerConfig.CreateLogger();
+        
+        services.AddSingleton<Serilog.ILogger>(Log.Logger);
         
         services.AddSingleton(typeof(Application.Common.Logging.IECommerLogger<>),
                   typeof(SerilogLogger<>));

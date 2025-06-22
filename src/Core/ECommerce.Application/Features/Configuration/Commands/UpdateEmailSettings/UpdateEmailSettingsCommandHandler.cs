@@ -8,7 +8,7 @@ namespace ECommerce.Application.Features.Configuration.Commands.UpdateEmailSetti
 public sealed class UpdateEmailSettingsCommandHandler(ILazyServiceProvider lazyServiceProvider) 
     : BaseHandler<UpdateEmailSettingsCommand, UpdateEmailSettingsResponse>(lazyServiceProvider)
 {
-    public override async Task<UpdateEmailSettingsResponse> Handle(UpdateEmailSettingsCommand request, CancellationToken cancellationToken)
+    public override Task<UpdateEmailSettingsResponse> Handle(UpdateEmailSettingsCommand request, CancellationToken cancellationToken)
     {
         try
         {
@@ -17,7 +17,6 @@ public sealed class UpdateEmailSettingsCommandHandler(ILazyServiceProvider lazyS
             logger.LogInformation("Email ayarları güncelleniyor - SMTP Host: {SmtpHost}, Port: {SmtpPort}, User: {SmtpUser}", 
                 request.SmtpHost, request.SmtpPort, request.SmtpUser);
 
-            // Environment variables ile configuration güncelle
             Environment.SetEnvironmentVariable("EmailSettings__SmtpHost", request.SmtpHost);
             Environment.SetEnvironmentVariable("EmailSettings__SmtpPort", request.SmtpPort.ToString());
             Environment.SetEnvironmentVariable("EmailSettings__SmtpUser", request.SmtpUser);
@@ -25,33 +24,20 @@ public sealed class UpdateEmailSettingsCommandHandler(ILazyServiceProvider lazyS
             Environment.SetEnvironmentVariable("EmailSettings__FromEmail", request.FromEmail);
             Environment.SetEnvironmentVariable("EmailSettings__FromName", request.FromName);
 
-            logger.LogDebug("Environment variables ayarlandı");
-
-            // Configuration reload
             var configuration = LazyServiceProvider.LazyGetRequiredService<IConfiguration>();
             if (configuration is IConfigurationRoot configRoot)
             {
                 configRoot.Reload();
-                logger.LogDebug("Configuration reload edildi");
             }
 
-            // Test için SMTP ayarlarını logla
-            var currentSmtpHost = configuration["EmailSettings:SmtpHost"];
-            var currentSmtpUser = configuration["EmailSettings:SmtpUser"];
-            
-            logger.LogInformation("Configuration güncellendi - Current SMTP Host: {CurrentSmtpHost}, User: {CurrentSmtpUser}", 
-                currentSmtpHost, currentSmtpUser);
-
-            logger.LogInformation("Email ayarları environment variables ile güncellendi");
-            
-            return new UpdateEmailSettingsResponse(true, 
-                "Email ayarları başarıyla güncellendi. Değişikliklerin tam olarak aktif olması için uygulamayı yeniden başlatmanızı öneririz.");
+            return Task.FromResult(new UpdateEmailSettingsResponse(true, 
+                "Email ayarları başarıyla güncellendi. Değişikliklerin tam olarak aktif olması için uygulamayı yeniden başlatmanızı öneririz."));
         }
         catch (Exception ex)
         {
             var logger = LazyServiceProvider.LazyGetRequiredService<IECommerLogger<UpdateEmailSettingsCommandHandler>>();
             logger.LogError(ex, "Email ayarları güncellenirken hata oluştu: {Message}", ex.Message);
-            return new UpdateEmailSettingsResponse(false, $"Hata: {ex.Message}");
+            return Task.FromResult(new UpdateEmailSettingsResponse(false, $"Hata: {ex.Message}"));
         }
     }
 } 

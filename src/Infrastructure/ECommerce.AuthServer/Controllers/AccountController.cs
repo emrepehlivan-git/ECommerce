@@ -58,7 +58,7 @@ public class AccountController(
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal,
             new AuthenticationProperties
             {
-                IsPersistent = model.RememberMe,
+                IsPersistent = model.RememberMe, 
             });
 
         return Url.IsLocalUrl(returnUrl) ? Redirect(returnUrl) : Redirect("/");
@@ -119,7 +119,7 @@ public class AccountController(
 
         if (resetLink != null)
         {
-            await emailService.SendPasswordResetEmailAsync(user.Email, resetLink);
+            await emailService.SendPasswordResetEmailAsync(user.Email!, resetLink);
         }
 
         return RedirectToAction(nameof(ForgotPasswordConfirmation));

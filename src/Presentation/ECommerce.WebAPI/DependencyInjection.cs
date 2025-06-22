@@ -1,10 +1,12 @@
-using System.Globalization; 
+using System.Globalization;
+using System.Threading.Tasks;
 using ECommerce.Application;
 using ECommerce.Application.Constants;
 using ECommerce.Application.Interfaces;
 using ECommerce.Infrastructure;
 using ECommerce.Persistence;
 using ECommerce.Persistence.Contexts;
+using ECommerce.Persistence.Seeds;
 using ECommerce.SharedKernel.DependencyInjection;
 using ECommerce.WebAPI.Authorization;
 using ECommerce.WebAPI.Middlewares;
@@ -66,7 +68,7 @@ public static class DependencyInjection
         return services;
     }
 
-    public static WebApplication UsePresentation(this WebApplication app, IWebHostEnvironment environment)
+    public static async Task<WebApplication> UsePresentation(this WebApplication app, IWebHostEnvironment environment)
     {
         app.UseRequestLocalization();
         
@@ -74,6 +76,7 @@ public static class DependencyInjection
 
         if (environment.IsDevelopment())
         {
+            await app.SeedDatabaseAsync();
             app.UseSwagger(c => {
                 c.RouteTemplate = "swagger/{documentName}/swagger.json";
             });

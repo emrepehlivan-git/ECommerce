@@ -19,10 +19,7 @@ public class AuthorizationController(
     IOpenIddictApplicationManager applicationManager,
     IOpenIddictAuthorizationManager authorizationManager,
     IUserService userService,
-    IRoleService roleService,
-    Application.Services.IAuthenticationService authenticationService,
-    IOpenIddictScopeManager scopeManager,
-    IPermissionService permissionService)
+    Application.Services.IAuthenticationService authenticationService)
     : Controller
 {
     [HttpGet("~/connect/authorize")]
@@ -98,14 +95,7 @@ public class AuthorizationController(
                     roleType: Claims.Role);
 
                 identity.SetClaim(Claims.Subject, user.Id.ToString());
-                identity.SetClaim(Claims.Audience, "api");
-                identity.SetClaim(Claims.Email, user.Email);
-                identity.SetClaim("fullName", user.FullName.ToString());
-                identity.SetClaims(Claims.Role, [.. await roleService.GetUserRolesAsync(user)]);
-                identity.SetClaims("permissions", [.. await permissionService.GetUserPermissionsAsync(user.Id)]);
-                identity.SetScopes(request.GetScopes());
-                identity.SetResources(await scopeManager.ListResourcesAsync(identity.GetScopes()).ToListAsync());
-                identity.SetDestinations(GetDestinations);
+                
 
                 var authorization = authorizations.LastOrDefault();
                 authorization ??= await authorizationManager.CreateAsync(
@@ -177,15 +167,7 @@ public class AuthorizationController(
             roleType: Claims.Role);
 
         identity.SetClaim(Claims.Subject, user.Id.ToString());
-        identity.SetClaim(Claims.Audience, "api");
-        identity.SetClaim(Claims.Email, user.Email);
-        identity.SetClaim("fullName", user.FullName.ToString());
-        identity.SetClaims(Claims.Role, [.. await roleService.GetUserRolesAsync(user)]);
-        identity.SetClaims("permissions", [.. await permissionService.GetUserPermissionsAsync(user.Id)]);
-        identity.SetScopes(request.GetScopes());
-        identity.SetResources(await scopeManager.ListResourcesAsync(identity.GetScopes()).ToListAsync());
-        identity.SetDestinations(GetDestinations);
-
+        
         var authorization = authorizations.LastOrDefault();
         authorization ??= await authorizationManager.CreateAsync(
             identity: identity,
@@ -258,14 +240,7 @@ public class AuthorizationController(
                 roleType: Claims.Role);
 
             identity.SetClaim(Claims.Subject, user.Id.ToString());
-            identity.SetClaim(Claims.Audience, "api");
-            identity.SetClaim(Claims.Email, user.Email);
-            identity.SetClaim("fullName", user.FullName.ToString());
-            identity.SetClaims(Claims.Role, [.. await roleService.GetUserRolesAsync(user)]);
-            identity.SetClaims("permissions", [.. await permissionService.GetUserPermissionsAsync(user.Id)]);
-            identity.SetScopes(request.GetScopes());
-            identity.SetResources(await scopeManager.ListResourcesAsync(identity.GetScopes()).ToListAsync());
-            identity.SetDestinations(GetDestinations);
+            
 
             return SignIn(new ClaimsPrincipal(identity), OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
