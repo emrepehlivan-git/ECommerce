@@ -20,19 +20,24 @@ public sealed class DatabaseSeeder(
     private readonly RoleManager<Role> _roleManager = roleManager;
     private readonly Application.Common.Logging.IECommerLogger<DatabaseSeeder> _logger = logger;
 
+    private static readonly Lazy<List<(string PermissionName, string Module, string Action)>> _cachedPermissions = 
+        new(() => GetAllPermissionsFromConstants());
+
+    private static List<(string PermissionName, string Module, string Action)> CachedPermissions => 
+        _cachedPermissions.Value;
+
     public async Task SeedAsync()
     {
         try
         {
             _logger.LogInformation("Starting database seeding...");
 
-            // Ensure database is created
             await _context.Database.EnsureCreatedAsync();
 
-            // Seed in order due to dependencies
             await SeedPermissionsAsync();
-            await SeedRolesAsync();
-            await SeedUsersAsync();
+        await SeedRolesAsync();
+        await EnsureAdminHasAllPermissionsAsync(); 
+        await SeedUsersAsync();
             await SeedCategoriesAsync();
             await SeedProductsAsync();
 
@@ -48,72 +53,128 @@ public sealed class DatabaseSeeder(
 
     private async Task SeedPermissionsAsync()
     {
-        if (await _context.Permissions.AnyAsync())
+        _logger.LogInformation("Seeding permissions...");
+
+        var permissionDefinitions = CachedPermissions;
+        var existingPermissions = await _context.Permissions
+            .Select(p => p.Name)
+            .ToListAsync();
+
+        var permissionsToAdd = new List<Permission>();
+
+        foreach (var (permissionName, module, action) in permissionDefinitions)
         {
-            _logger.LogInformation("Permissions already exist. Skipping permissions seeding.");
+            if (!existingPermissions.Contains(permissionName))
+            {
+                var description = GeneratePermissionDescription(action, module);
+                var permission = Permission.Create(permissionName, description, module, action);
+                permissionsToAdd.Add(permission);
+                _logger.LogInformation("Adding new permission: {PermissionName}", permissionName);
+            }
+        }
+
+        if (permissionsToAdd.Count > 0)
+        {
+            await _context.Permissions.AddRangeAsync(permissionsToAdd);
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Added {Count} new permissions", permissionsToAdd.Count);
+        }
+        else
+        {
+            _logger.LogInformation("No new permissions to add");
+        }
+    }
+
+    private static List<(string PermissionName, string Module, string Action)> GetAllPermissionsFromConstants()
+    {
+        var permissions = new List<(string, string, string)>();
+        var permissionTypes = typeof(PermissionConstants).GetNestedTypes();
+
+        foreach (var type in permissionTypes)
+        {
+            var moduleName = type.Name; 
+            var fields = type.GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+            
+            foreach (var field in fields)
+            {
+                if (field.FieldType == typeof(string))
+                {
+                    var permissionValue = (string)field.GetValue(null)!;
+                    var actionName = field.Name; 
+                    permissions.Add((permissionValue, moduleName, actionName));
+                }
+            }
+        }
+
+        return permissions;
+    }
+
+    private static string GeneratePermissionDescription(string action, string module)
+    {
+        return action.ToLower() switch
+        {
+            "read" => $"Read {module.ToLower()}",
+            "view" => $"View {module.ToLower()}",
+            "create" => $"Create {module.ToLower()}",
+            "update" => $"Update {module.ToLower()}",
+            "delete" => $"Delete {module.ToLower()}",
+            "manage" => $"Manage {module.ToLower()}",
+            _ => $"{action} {module.ToLower()}"
+        };
+    }
+
+    private async Task EnsureAdminHasAllPermissionsAsync()
+    {
+        _logger.LogInformation("Ensuring Admin has all permissions...");
+
+        var adminRole = await _roleManager.FindByNameAsync("Admin");
+
+        if (adminRole == null)
+        {
+            _logger.LogWarning("Admin role not found. Skipping admin permission assignment.");
             return;
         }
 
-        _logger.LogInformation("Seeding permissions...");
+        var allPermissions = await _context.Permissions.ToListAsync();
+        
+        var existingAdminPermissionIdsList = await _context.RolePermissions
+            .Where(rp => rp.RoleId == adminRole.Id && rp.IsActive)
+            .Select(rp => rp.PermissionId)
+            .ToListAsync();
+        
+        var existingAdminPermissionIds = existingAdminPermissionIdsList.ToHashSet(); 
 
-        var permissions = new List<Permission>
+        var missingPermissions = allPermissions
+            .Where(p => !existingAdminPermissionIds.Contains(p.Id))
+            .ToList();
+
+        if (missingPermissions.Count == 0)
         {
-            // User permissions
-            Permission.Create(PermissionConstants.Users.View, "View users", "Users", "View"),
-            Permission.Create(PermissionConstants.Users.Create, "Create users", "Users", "Create"),
-            Permission.Create(PermissionConstants.Users.Update, "Update users", "Users", "Update"),
-            Permission.Create(PermissionConstants.Users.Delete, "Delete users", "Users", "Delete"),
-            Permission.Create(PermissionConstants.Users.Manage, "Manage users", "Users", "Manage"),
+            _logger.LogInformation("Admin already has all permissions");
+            return;
+        }
 
-            // Product permissions
-            Permission.Create(PermissionConstants.Products.Create, "Create products", "Products", "Create"),
-            Permission.Create(PermissionConstants.Products.Update, "Update products", "Products", "Update"),
-            Permission.Create(PermissionConstants.Products.Delete, "Delete products", "Products", "Delete"),
-            Permission.Create(PermissionConstants.Products.Manage, "Manage products", "Products", "Manage"),
+        var newRolePermissions = missingPermissions
+            .Select(permission => RolePermission.Create(adminRole, permission))
+            .ToList();
 
-            // Category permissions
-            Permission.Create(PermissionConstants.Categories.Create, "Create categories", "Categories", "Create"),
-            Permission.Create(PermissionConstants.Categories.Update, "Update categories", "Categories", "Update"),
-            Permission.Create(PermissionConstants.Categories.Delete, "Delete categories", "Categories", "Delete"),
-            Permission.Create(PermissionConstants.Categories.Manage, "Manage categories", "Categories", "Manage"),
-
-            // Order permissions
-            Permission.Create(PermissionConstants.Orders.View, "View orders", "Orders", "View"),
-            Permission.Create(PermissionConstants.Orders.Create, "Create orders", "Orders", "Create"),
-            Permission.Create(PermissionConstants.Orders.Update, "Update orders", "Orders", "Update"),
-            Permission.Create(PermissionConstants.Orders.Delete, "Delete orders", "Orders", "Delete"),
-            Permission.Create(PermissionConstants.Orders.Manage, "Manage orders", "Orders", "Manage"),
-
-            // Role permissions
-            Permission.Create(PermissionConstants.Roles.View, "View roles", "Roles", "View"),
-            Permission.Create(PermissionConstants.Roles.Create, "Create roles", "Roles", "Create"),
-            Permission.Create(PermissionConstants.Roles.Update, "Update roles", "Roles", "Update"),
-            Permission.Create(PermissionConstants.Roles.Delete, "Delete roles", "Roles", "Delete"),
-            Permission.Create(PermissionConstants.Roles.Manage, "Manage roles", "Roles", "Manage"),
-        };
-
-        await _context.Permissions.AddRangeAsync(permissions);
+        await _context.RolePermissions.AddRangeAsync(newRolePermissions);
         await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Added {Count} missing permissions to Admin role", missingPermissions.Count);
+        
+        foreach (var permission in missingPermissions)
+        {
+            _logger.LogDebug("Added permission {PermissionName} to Admin role", permission.Name);
+        }
     }
 
     private async Task SeedRolesAsync()
     {
-        // Check if custom roles already exist (excluding default Identity roles)
-        var customRoles = await _roleManager.Roles
-            .Where(r => r.NormalizedName == "ADMIN" || r.NormalizedName == "CUSTOMER" || r.NormalizedName == "MANAGER")
-            .AnyAsync();
-
-        if (customRoles)
-        {
-            _logger.LogInformation("Custom roles already exist. Skipping roles seeding.");
-            return;
-        }
-
         _logger.LogInformation("Seeding roles...");
 
         var permissions = await _context.Permissions.ToListAsync();
 
-        // Admin role with all permissions - check if ADMIN role already exists
         var existingAdminRole = await _roleManager.FindByNameAsync("ADMIN");
         Role adminRole;
         if (existingAdminRole != null)
@@ -124,40 +185,58 @@ public sealed class DatabaseSeeder(
         {
             adminRole = Role.Create("Admin");
             await _roleManager.CreateAsync(adminRole);
+            _logger.LogInformation("Created Admin role");
         }
 
-        // Add permissions to admin role if not already added
-        var existingAdminPermissions = await _context.RolePermissions
-            .Where(rp => rp.RoleId == adminRole.Id)
+        var existingCustomerRole = await _roleManager.FindByNameAsync("CUSTOMER");
+        Role customerRole;
+        if (existingCustomerRole != null)
+        {
+            customerRole = existingCustomerRole;
+        }
+        else
+        {
+            customerRole = Role.Create("Customer");
+            await _roleManager.CreateAsync(customerRole);
+            _logger.LogInformation("Created Customer role");
+        }
+
+        var customerPermissionNames = new[] { PermissionConstants.Orders.View, PermissionConstants.Orders.Create };
+        var customerPermissions = permissions.Where(p => customerPermissionNames.Contains(p.Name)).ToList();
+
+        var existingCustomerPermissions = await _context.RolePermissions
+            .Where(rp => rp.RoleId == customerRole.Id)
             .Select(rp => rp.PermissionId)
             .ToListAsync();
 
-        foreach (var permission in permissions)
+        var newCustomerPermissions = new List<RolePermission>();
+        foreach (var permission in customerPermissions)
         {
-            if (!existingAdminPermissions.Contains(permission.Id))
+            if (!existingCustomerPermissions.Contains(permission.Id))
             {
-                var rolePermission = RolePermission.Create(adminRole, permission);
-                await _context.RolePermissions.AddAsync(rolePermission);
+                var rolePermission = RolePermission.Create(customerRole, permission);
+                newCustomerPermissions.Add(rolePermission);
+                _logger.LogInformation("Adding permission {PermissionName} to Customer role", permission.Name);
             }
         }
 
-        // Customer role with limited permissions
-        var customerRole = Role.Create("Customer");
-        await _roleManager.CreateAsync(customerRole);
-
-        var customerPermissions = permissions.Where(p => 
-            p.Name == PermissionConstants.Orders.View ||
-            p.Name == PermissionConstants.Orders.Create).ToList();
-
-        foreach (var permission in customerPermissions)
+        if (newCustomerPermissions.Count > 0)
         {
-            var rolePermission = RolePermission.Create(customerRole, permission);
-            await _context.RolePermissions.AddAsync(rolePermission);
+            await _context.RolePermissions.AddRangeAsync(newCustomerPermissions);
         }
 
-        // Manager role with product and stock permissions
-        var managerRole = Role.Create("Manager");
-        await _roleManager.CreateAsync(managerRole);
+        var existingManagerRole = await _roleManager.FindByNameAsync("MANAGER");
+        Role managerRole;
+        if (existingManagerRole != null)
+        {
+            managerRole = existingManagerRole;
+        }
+        else
+        {
+            managerRole = Role.Create("Manager");
+            await _roleManager.CreateAsync(managerRole);
+            _logger.LogInformation("Created Manager role");
+        }
 
         var managerPermissions = permissions.Where(p => 
             p.Module == "Products" || 
@@ -165,10 +244,25 @@ public sealed class DatabaseSeeder(
             p.Name == PermissionConstants.Orders.View ||
             p.Name == PermissionConstants.Orders.Manage).ToList();
 
+        var existingManagerPermissions = await _context.RolePermissions
+            .Where(rp => rp.RoleId == managerRole.Id)
+            .Select(rp => rp.PermissionId)
+            .ToListAsync();
+
+        var newManagerPermissions = new List<RolePermission>();
         foreach (var permission in managerPermissions)
         {
-            var rolePermission = RolePermission.Create(managerRole, permission);
-            await _context.RolePermissions.AddAsync(rolePermission);
+            if (!existingManagerPermissions.Contains(permission.Id))
+            {
+                var rolePermission = RolePermission.Create(managerRole, permission);
+                newManagerPermissions.Add(rolePermission);
+                _logger.LogInformation("Adding permission {PermissionName} to Manager role", permission.Name);
+            }
+        }
+
+        if (newManagerPermissions.Count > 0)
+        {
+            await _context.RolePermissions.AddRangeAsync(newManagerPermissions);
         }
 
         await _context.SaveChangesAsync();
@@ -176,7 +270,6 @@ public sealed class DatabaseSeeder(
 
     private async Task SeedUsersAsync()
     {
-        // Check if seed users already exist
         var seedUsers = await _userManager.Users
             .Where(u => u.Email == "admin@ecommerce.com" || 
                        u.Email == "manager@ecommerce.com")
@@ -192,11 +285,9 @@ public sealed class DatabaseSeeder(
 
         var roles = await _roleManager.Roles.ToListAsync();
         
-        // Find admin role (could be "Admin" or "ADMIN")
         var adminRole = roles.FirstOrDefault(r => r.NormalizedName == "ADMIN") ?? 
                        roles.FirstOrDefault(r => r.Name == "Admin");
         
-        // Find or create customer role
         var customerRole = roles.FirstOrDefault(r => r.NormalizedName == "CUSTOMER") ?? 
                           roles.FirstOrDefault(r => r.Name == "Customer");
         
@@ -205,10 +296,8 @@ public sealed class DatabaseSeeder(
             customerRole = Role.Create("Customer");
             await _roleManager.CreateAsync(customerRole);
         }
-        
-        // Find or create manager role
-        var managerRole = roles.FirstOrDefault(r => r.NormalizedName == "MANAGER") ?? 
-                         roles.FirstOrDefault(r => r.Name == "Manager");
+
+        var managerRole = roles.FirstOrDefault(r => r.Name == "Manager");
         
         if (managerRole == null)
         {
@@ -216,7 +305,6 @@ public sealed class DatabaseSeeder(
             await _roleManager.CreateAsync(managerRole);
         }
 
-        // Create admin user if admin role exists
         if (adminRole != null)
         {
             var adminUser = User.Create("admin@ecommerce.com", "Admin", "User");
@@ -227,7 +315,6 @@ public sealed class DatabaseSeeder(
             }
         }
 
-        // Create manager user
         var managerUser = User.Create("manager@ecommerce.com", "Manager", "User");
         var managerResult = await _userManager.CreateAsync(managerUser, "Manager123!");
         if (managerResult.Succeeded)
@@ -235,7 +322,6 @@ public sealed class DatabaseSeeder(
             await _userManager.AddToRoleAsync(managerUser, managerRole.Name!);
         }
 
-        // Create fake customer users using Bogus
         var userFaker = new Faker<User>()
             .CustomInstantiator(f => User.Create(
                 f.Internet.Email(),
@@ -309,4 +395,12 @@ public sealed class DatabaseSeeder(
         await _context.Products.AddRangeAsync(products);
         await _context.SaveChangesAsync();
     }
+
+    public async Task EnsureAdminHasAllPermissionsPublicAsync()
+    {
+        await EnsureAdminHasAllPermissionsAsync();
+    }
+
+    public static List<(string PermissionName, string Module, string Action)> GetAllPermissionConstants()
+        => CachedPermissions;
 } 

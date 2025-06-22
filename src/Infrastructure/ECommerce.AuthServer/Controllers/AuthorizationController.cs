@@ -95,6 +95,7 @@ public class AuthorizationController(
                     roleType: Claims.Role);
 
                 identity.SetClaim(Claims.Subject, user.Id.ToString());
+                identity.SetClaim(Claims.Audience, "api");
                 
 
                 var authorization = authorizations.LastOrDefault();
@@ -167,7 +168,9 @@ public class AuthorizationController(
             roleType: Claims.Role);
 
         identity.SetClaim(Claims.Subject, user.Id.ToString());
+        identity.SetClaim(Claims.Audience, "api");
         
+
         var authorization = authorizations.LastOrDefault();
         authorization ??= await authorizationManager.CreateAsync(
             identity: identity,
@@ -240,6 +243,8 @@ public class AuthorizationController(
                 roleType: Claims.Role);
 
             identity.SetClaim(Claims.Subject, user.Id.ToString());
+            identity.SetClaim(Claims.Audience, "api");
+
             
 
             return SignIn(new ClaimsPrincipal(identity), OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);

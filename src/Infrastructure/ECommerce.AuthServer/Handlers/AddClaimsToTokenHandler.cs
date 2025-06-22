@@ -9,6 +9,8 @@ using OpenIddict.Server;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 using static OpenIddict.Server.OpenIddictServerEvents;
 
+namespace ECommerce.AuthServer.Handlers;
+
 public class AddClaimsToTokenHandler(IUserService userService, IRoleService roleService, IPermissionService permissionService, IOpenIddictScopeManager scopeManager)
 : IOpenIddictServerHandler<ProcessSignInContext>
 {
@@ -28,7 +30,6 @@ public class AddClaimsToTokenHandler(IUserService userService, IRoleService role
         var permissions = await permissionService.GetUserPermissionsAsync(user.Id);
 
         identity?.SetClaim(Claims.Subject, user.Id.ToString());
-        identity?.SetClaim(Claims.Audience, "api");
         identity?.SetClaim(Claims.Email, user.Email);
         identity?.SetClaim("fullName", user.FullName.ToString());
         identity?.SetClaims(Claims.Role, [.. await roleService.GetUserRolesAsync(user)]);

@@ -9,6 +9,7 @@ using ECommerce.AuthServer.Services;
 using ECommerce.AuthServer.Jobs;
 using ECommerce.Infrastructure;
 using Quartz;
+using ECommerce.AuthServer.Handlers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -102,6 +103,8 @@ builder.Services.AddOpenIddict()
                .EnableEndSessionEndpointPassthrough();
 
         options.IgnoreGrantTypePermissions();
+
+        options.AddEventHandler(AddClaimsToTokenHandler.Descriptor);
 
     })
     .AddValidation(options =>
