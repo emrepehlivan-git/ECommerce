@@ -1,7 +1,7 @@
 namespace ECommerce.Application.Common.Logging;
 using System;
 
-public interface ILogger
+public interface IECommerLogger
 {
     void LogInformation(string message, params object[] args);
     void LogWarning(string message, params object[] args);
@@ -11,3 +11,8 @@ public interface ILogger
     void LogError(Exception exception, string message, params object[] args);
     void LogCritical(Exception exception, string message, params object[] args);
 }
+
+public interface IECommerLogger<T> : IECommerLogger
+{
+}
+

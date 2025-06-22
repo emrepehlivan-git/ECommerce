@@ -8,9 +8,9 @@ namespace ECommerce.WebAPI.Controllers;
 public sealed class ConfigurationController : BaseApiController
 {
     private readonly IEmailService _emailService;
-    private readonly Application.Common.Logging.ILogger _logger;
+    private readonly Application.Common.Logging.IECommerLogger<ConfigurationController> _logger;
 
-    public ConfigurationController(IEmailService emailService, Application.Common.Logging.ILogger logger)
+    public ConfigurationController(IEmailService emailService, Application.Common.Logging.IECommerLogger<ConfigurationController> logger)
     {
         _emailService = emailService;
         _logger = logger;
