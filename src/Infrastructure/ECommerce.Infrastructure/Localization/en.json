@@ -71,5 +71,15 @@
     "AddressRequired": "Address information is required.",
     "DefaultAddressCannotBeDeleted": "Default address cannot be deleted.",
     "AddressAlreadyDefault": "This address is already set as default."
-  }
+  },
+  "Role_Name_Required": "Role name is required.",
+  "Role_Name_Exists": "Role name already exists.",
+  "Role_Name_AtLeast_Characters": "Role name must be at least 2 characters long.",
+  "Role_Name_LessThan_Characters": "Role name must be less than 100 characters long.",
+  "Role_Not_Found": "Role not found.",
+  "User_Not_Found": "User not found.",
+  "Role_Added_To_User": "Role successfully added to user.",
+  "Role_Removed_From_User": "Role successfully removed from user.",
+  "User_Already_In_Role": "User already has this role.",
+  "User_Not_In_Role": "User does not have this role."
 }

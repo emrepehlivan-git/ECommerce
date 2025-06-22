@@ -1,0 +1,154 @@
+using ECommerce.Application.Features.Roles.Commands;
+using Microsoft.AspNetCore.Identity;
+
+namespace ECommerce.Application.UnitTests.Features.Roles.Commands;
+
+public sealed class AddUserToRoleCommandTests : RoleTestBase
+{
+    private readonly AddUserToRoleCommandHandler _handler;
+    private readonly AddUserToRoleCommand _command;
+    private readonly AddUserToRoleCommandValidator _validator;
+    private readonly Guid _userId;
+
+    public AddUserToRoleCommandTests()
+    {
+        _userId = Guid.NewGuid();
+        _command = new AddUserToRoleCommand(_userId, "TestRole");
+
+        _handler = new AddUserToRoleCommandHandler(
+            RoleServiceMock.Object,
+            UserServiceMock.Object,
+            CacheManagerMock.Object,
+            LazyServiceProviderMock.Object);
+
+        _validator = new AddUserToRoleCommandValidator(
+            Localizer,
+            UserServiceMock.Object,
+            RoleServiceMock.Object);
+    }
+
+    [Fact]
+    public async Task Handle_WithValidCommand_ShouldAddUserToRole()
+    {
+        // Arrange
+        var user = DefaultUser;
+        SetupUserServiceFindByIdAsync(user);
+        SetupRoleServiceRoleExistsAsync(true);
+        SetupRoleServiceGetUserRolesAsync(new List<string>());
+        SetupRoleServiceAddToRoleAsync(IdentityResult.Success);
+
+        // Act
+        var result = await _handler.Handle(_command, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.IsSuccess.Should().BeTrue();
+
+        UserServiceMock.Verify(x => x.FindByIdAsync(_userId), Times.Once);
+        RoleServiceMock.Verify(x => x.GetUserRolesAsync(user), Times.Once);
+        RoleServiceMock.Verify(x => x.AddToRoleAsync(user, "TestRole"), Times.Once);
+        CacheManagerMock.Verify(x => x.RemoveByPatternAsync($"user-roles:{_userId}:*", It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WithUserAlreadyInRole_ShouldReturnError()
+    {
+        // Arrange
+        var user = DefaultUser;
+        SetupUserServiceFindByIdAsync(user);
+        SetupRoleServiceRoleExistsAsync(true);
+        SetupRoleServiceGetUserRolesAsync(new List<string> { "TestRole" });
+
+        // Act
+        var result = await _handler.Handle(_command, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().Contain("User already has this role.");
+    }
+
+    [Fact]
+    public async Task Handle_WithFailedIdentityResult_ShouldReturnError()
+    {
+        // Arrange
+        var user = DefaultUser;
+        var errors = new[] { new IdentityError { Description = "Add to role failed" } };
+        var identityResult = IdentityResult.Failed(errors);
+
+        SetupUserServiceFindByIdAsync(user);
+        SetupRoleServiceRoleExistsAsync(true);
+        SetupRoleServiceGetUserRolesAsync(new List<string>());
+        SetupRoleServiceAddToRoleAsync(identityResult);
+
+        // Act
+        var result = await _handler.Handle(_command, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.IsSuccess.Should().BeFalse();
+        result.Errors.Should().Contain("Add to role failed");
+    }
+
+    [Fact]
+    public async Task Validate_WithNonExistentUser_ShouldReturnValidationError()
+    {
+        // Arrange
+        SetupUserServiceFindByIdAsync(null);
+        SetupRoleServiceRoleExistsAsync(true);
+
+        // Act
+        var validationResult = await _validator.ValidateAsync(_command);
+
+        // Assert
+        validationResult.IsValid.Should().BeFalse();
+        validationResult.Errors.Should().Contain(x => x.ErrorMessage == "UserId is required");
+    }
+
+    [Fact]
+    public async Task Validate_WithNonExistentRole_ShouldReturnValidationError()
+    {
+        // Arrange
+        SetupUserServiceFindByIdAsync(DefaultUser);
+        SetupRoleServiceRoleExistsAsync(false);
+
+        // Act
+        var validationResult = await _validator.ValidateAsync(_command);
+
+        // Assert
+        validationResult.IsValid.Should().BeFalse();
+        validationResult.Errors.Should().Contain(x => x.ErrorMessage == "Role name is required.");
+    }
+
+    [Fact]
+    public async Task Validate_WithValidCommand_ShouldPassValidation()
+    {
+        // Arrange
+        SetupUserServiceFindByIdAsync(DefaultUser);
+        SetupRoleServiceRoleExistsAsync(true);
+
+        // Act
+        var validationResult = await _validator.ValidateAsync(_command);
+
+        // Assert
+        validationResult.IsValid.Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task Validate_WithInvalidRoleName_ShouldReturnValidationError(string roleName)
+    {
+        // Arrange
+        var command = _command with { RoleName = roleName };
+        SetupUserServiceFindByIdAsync(DefaultUser);
+        SetupRoleServiceRoleExistsAsync(false);
+
+        // Act
+        var validationResult = await _validator.ValidateAsync(command);
+
+        // Assert
+        validationResult.IsValid.Should().BeFalse();
+        validationResult.Errors.Should().Contain(x => x.ErrorMessage == "Role name is required.");
+    }
+} 

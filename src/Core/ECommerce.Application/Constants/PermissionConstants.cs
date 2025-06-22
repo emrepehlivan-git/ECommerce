@@ -38,6 +38,7 @@ public static class PermissionConstants
 
     public static class Roles
     {
+        public const string Read = "Roles.Read";
         public const string View = "Roles.View";
         public const string Create = "Roles.Create";
         public const string Update = "Roles.Update";

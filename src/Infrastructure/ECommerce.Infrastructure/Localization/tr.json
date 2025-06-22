@@ -71,5 +71,15 @@
     "AddressRequired": "Adres bilgisi gereklidir.",
     "DefaultAddressCannotBeDeleted": "Varsayılan adres silinemez.",
     "AddressAlreadyDefault": "Bu adres zaten varsayılan olarak ayarlanmış."
-  }
+  },
+  "Role_Name_Required": "Rol adı gereklidir.",
+  "Role_Name_Exists": "Rol adı zaten mevcut.",
+  "Role_Name_AtLeast_Characters": "Rol adı en az 2 karakter olmalıdır.",
+  "Role_Name_LessThan_Characters": "Rol adı en fazla 100 karakter olmalıdır.",
+  "Role_Not_Found": "Rol bulunamadı.",
+  "User_Not_Found": "Kullanıcı bulunamadı.",
+  "Role_Added_To_User": "Rol kullanıcıya başarıyla eklendi.",
+  "Role_Removed_From_User": "Rol kullanıcıdan başarıyla kaldırıldı.",
+  "User_Already_In_Role": "Kullanıcı zaten bu role sahip.",
+  "User_Not_In_Role": "Kullanıcı bu role sahip değil."
 }

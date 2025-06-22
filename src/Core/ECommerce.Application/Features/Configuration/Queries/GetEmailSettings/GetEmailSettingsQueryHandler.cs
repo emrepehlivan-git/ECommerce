@@ -8,18 +8,18 @@ public sealed class GetEmailSettingsQueryHandler(
     ILazyServiceProvider lazyServiceProvider) 
     : BaseHandler<GetEmailSettingsQuery, GetEmailSettingsResponse>(lazyServiceProvider)
 {
-    public override async Task<GetEmailSettingsResponse> Handle(GetEmailSettingsQuery request, CancellationToken cancellationToken)
+    public override  Task<GetEmailSettingsResponse> Handle(GetEmailSettingsQuery request, CancellationToken cancellationToken)
     {
         var configuration = LazyServiceProvider.LazyGetRequiredService<IConfiguration>();
         
         var emailSettings = configuration.GetSection("EmailSettings");
         
-        return new GetEmailSettingsResponse(
+        return Task.FromResult(new GetEmailSettingsResponse(
             SmtpHost: emailSettings["SmtpHost"] ?? string.Empty,
             SmtpPort: int.TryParse(emailSettings["SmtpPort"], out var port) ? port : 587,
             SmtpUser: emailSettings["SmtpUser"] ?? string.Empty,
             FromEmail: emailSettings["FromEmail"] ?? string.Empty,
             FromName: emailSettings["FromName"] ?? string.Empty
-        );
+        ));
     }
 } 

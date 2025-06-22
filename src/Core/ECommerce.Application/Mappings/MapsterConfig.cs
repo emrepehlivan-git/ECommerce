@@ -1,6 +1,7 @@
 using ECommerce.Application.Features.Categories;
 using ECommerce.Application.Features.Orders;
 using ECommerce.Application.Features.Products;
+using ECommerce.Application.Features.Roles;
 using ECommerce.Application.Features.UserAddresses;
 using Mapster;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +20,7 @@ public static class MapsterConfig
         CategoryMapperConfig.Configure(config);
         OrderMapperConfig.Configure(config);
         UserAddressMapperConfig.Configure(config);
+        RoleMapperConfig.Configure();
 
         return services;
     }
