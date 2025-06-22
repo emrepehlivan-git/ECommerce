@@ -13,12 +13,12 @@ public sealed class DatabaseSeeder(
     ApplicationDbContext context,
     UserManager<User> userManager,
     RoleManager<Role> roleManager,
-    Application.Common.Logging.ILogger logger)
+    Application.Common.Logging.IECommerLogger<DatabaseSeeder> logger)
 {
     private readonly ApplicationDbContext _context = context;
     private readonly UserManager<User> _userManager = userManager;
     private readonly RoleManager<Role> _roleManager = roleManager;
-    private readonly Application.Common.Logging.ILogger _logger = logger;
+    private readonly Application.Common.Logging.IECommerLogger<DatabaseSeeder> _logger = logger;
 
     public async Task SeedAsync()
     {

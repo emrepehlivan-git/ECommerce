@@ -5,7 +5,7 @@ namespace ECommerce.Application.Behaviors;
 
 public sealed class TransactionalRequestBehavior<TRequest, TResponse>(
     IUnitOfWork unitOfWork,
-    ILogger logger)
+    IECommerLogger<TransactionalRequestBehavior<TRequest, TResponse>> logger)
  : IPipelineBehavior<TRequest, TResponse>
  where TRequest : ITransactionalRequest
 {

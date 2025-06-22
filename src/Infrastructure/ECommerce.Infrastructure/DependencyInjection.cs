@@ -54,8 +54,8 @@ public static class DependencyInjection
 
         Log.Logger = loggerConfig.CreateLogger();
         
-        services.AddSingleton<Application.Common.Logging.ILogger>(provider =>
-                  new SerilogLogger(Log.Logger));
+        services.AddSingleton(typeof(Application.Common.Logging.IECommerLogger<>),
+                  typeof(SerilogLogger<>));
     }
 
     public static IServiceCollection AddObservability(

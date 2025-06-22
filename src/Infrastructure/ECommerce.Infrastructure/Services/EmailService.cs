@@ -11,9 +11,9 @@ namespace ECommerce.Infrastructure.Services;
 public sealed class EmailService : IEmailService, IScopedDependency
 {
     private readonly IConfiguration _configuration;
-    private readonly Application.Common.Logging.ILogger? _logger;
+    private readonly Application.Common.Logging.IECommerLogger<EmailService>? _logger;
 
-    public EmailService(IConfiguration configuration, Application.Common.Logging.ILogger? logger = null)
+    public EmailService(IConfiguration configuration, Application.Common.Logging.IECommerLogger<EmailService>? logger = null)
     {
         _configuration = configuration;
         _logger = logger;
