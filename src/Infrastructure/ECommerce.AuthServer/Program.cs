@@ -6,10 +6,8 @@ using ECommerce.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using ECommerce.AuthServer;
 using ECommerce.AuthServer.Services;
-using ECommerce.AuthServer.Jobs;
 using ECommerce.Infrastructure;
 using Quartz;
-using ECommerce.AuthServer.Handlers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -101,11 +99,6 @@ builder.Services.AddOpenIddict()
                .EnableStatusCodePagesIntegration()
                .EnableUserInfoEndpointPassthrough()
                .EnableEndSessionEndpointPassthrough();
-
-        options.IgnoreGrantTypePermissions();
-
-        options.AddEventHandler(AddClaimsToTokenHandler.Descriptor);
-
     })
     .AddValidation(options =>
     {

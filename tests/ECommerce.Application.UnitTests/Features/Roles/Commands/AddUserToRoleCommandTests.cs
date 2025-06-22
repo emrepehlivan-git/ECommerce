@@ -13,7 +13,7 @@ public sealed class AddUserToRoleCommandTests : RoleTestBase
     public AddUserToRoleCommandTests()
     {
         _userId = Guid.NewGuid();
-        _command = new AddUserToRoleCommand(_userId, "TestRole");
+        _command = new AddUserToRoleCommand(_userId, Guid.NewGuid());
 
         _handler = new AddUserToRoleCommandHandler(
             RoleServiceMock.Object,
@@ -32,8 +32,9 @@ public sealed class AddUserToRoleCommandTests : RoleTestBase
     {
         // Arrange
         var user = DefaultUser;
+        var role = DefaultRole;
         SetupUserServiceFindByIdAsync(user);
-        SetupRoleServiceRoleExistsAsync(true);
+        SetupRoleServiceFindByIdAsync(role);
         SetupRoleServiceGetUserRolesAsync(new List<string>());
         SetupRoleServiceAddToRoleAsync(IdentityResult.Success);
 
@@ -45,8 +46,9 @@ public sealed class AddUserToRoleCommandTests : RoleTestBase
         result.IsSuccess.Should().BeTrue();
 
         UserServiceMock.Verify(x => x.FindByIdAsync(_userId), Times.Once);
+        RoleServiceMock.Verify(x => x.FindRoleByIdAsync(_command.RoleId), Times.Once);
         RoleServiceMock.Verify(x => x.GetUserRolesAsync(user), Times.Once);
-        RoleServiceMock.Verify(x => x.AddToRoleAsync(user, "TestRole"), Times.Once);
+        RoleServiceMock.Verify(x => x.AddToRoleAsync(user, It.IsAny<string>()), Times.Once);
         CacheManagerMock.Verify(x => x.RemoveByPatternAsync($"user-roles:{_userId}:*", It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -55,9 +57,10 @@ public sealed class AddUserToRoleCommandTests : RoleTestBase
     {
         // Arrange
         var user = DefaultUser;
+        var role = DefaultRole;
         SetupUserServiceFindByIdAsync(user);
-        SetupRoleServiceRoleExistsAsync(true);
-        SetupRoleServiceGetUserRolesAsync(new List<string> { "TestRole" });
+        SetupRoleServiceFindByIdAsync(role);
+        SetupRoleServiceGetUserRolesAsync(new List<string> { role.Name! });
 
         // Act
         var result = await _handler.Handle(_command, CancellationToken.None);
@@ -73,11 +76,12 @@ public sealed class AddUserToRoleCommandTests : RoleTestBase
     {
         // Arrange
         var user = DefaultUser;
+        var role = DefaultRole;
         var errors = new[] { new IdentityError { Description = "Add to role failed" } };
         var identityResult = IdentityResult.Failed(errors);
 
         SetupUserServiceFindByIdAsync(user);
-        SetupRoleServiceRoleExistsAsync(true);
+        SetupRoleServiceFindByIdAsync(role);
         SetupRoleServiceGetUserRolesAsync(new List<string>());
         SetupRoleServiceAddToRoleAsync(identityResult);
 
@@ -110,14 +114,14 @@ public sealed class AddUserToRoleCommandTests : RoleTestBase
     {
         // Arrange
         SetupUserServiceFindByIdAsync(DefaultUser);
-        SetupRoleServiceRoleExistsAsync(false);
+        SetupRoleServiceFindByIdAsync(null);
 
         // Act
         var validationResult = await _validator.ValidateAsync(_command);
 
         // Assert
         validationResult.IsValid.Should().BeFalse();
-        validationResult.Errors.Should().Contain(x => x.ErrorMessage == "Role name is required.");
+        validationResult.Errors.Should().Contain(x => x.ErrorMessage == "Role not found.");
     }
 
     [Fact]
@@ -125,7 +129,7 @@ public sealed class AddUserToRoleCommandTests : RoleTestBase
     {
         // Arrange
         SetupUserServiceFindByIdAsync(DefaultUser);
-        SetupRoleServiceRoleExistsAsync(true);
+        SetupRoleServiceFindByIdAsync(DefaultRole);
 
         // Act
         var validationResult = await _validator.ValidateAsync(_command);
@@ -135,20 +139,20 @@ public sealed class AddUserToRoleCommandTests : RoleTestBase
     }
 
     [Theory]
-    [InlineData("")]
-    [InlineData("   ")]
-    public async Task Validate_WithInvalidRoleName_ShouldReturnValidationError(string roleName)
+    [InlineData("00000000-0000-0000-0000-000000000000")]
+    public async Task Validate_WithInvalidRoleId_ShouldReturnValidationError(string roleIdString)
     {
         // Arrange
-        var command = _command with { RoleName = roleName };
+        var roleId = Guid.Parse(roleIdString);
+        var command = _command with { RoleId = roleId };
         SetupUserServiceFindByIdAsync(DefaultUser);
-        SetupRoleServiceRoleExistsAsync(false);
+        SetupRoleServiceFindByIdAsync(null);
 
         // Act
         var validationResult = await _validator.ValidateAsync(command);
 
         // Assert
         validationResult.IsValid.Should().BeFalse();
-        validationResult.Errors.Should().Contain(x => x.ErrorMessage == "Role name is required.");
+        validationResult.Errors.Should().Contain(x => x.ErrorMessage == "Role not found.");
     }
 } 
