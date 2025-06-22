@@ -21,6 +21,11 @@ public abstract class ProductQueriesTestsBase
         LazyServiceProviderMock = new Mock<ILazyServiceProvider>();
         LocalizationServiceMock = new Mock<ILocalizationService>();
 
+        // Setup localization service to return test messages
+        LocalizationServiceMock
+            .Setup(x => x.GetLocalizedString(It.IsAny<string>()))
+            .Returns((string key) => $"Test message for {key}");
+
         Localizer = new LocalizationHelper(LocalizationServiceMock.Object);
 
         DefaultCategory = Category.Create("Test Category");

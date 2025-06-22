@@ -1,3 +1,4 @@
+using Ardalis.Result;
 using Ardalis.Result.AspNetCore;
 using ECommerce.Application.Features.Products.Commands;
 using ECommerce.Application.Features.Products.DTOs;
@@ -11,7 +12,7 @@ namespace ECommerce.WebAPI.Controllers;
 public sealed class ProductController : BaseApiController
 {
     [HttpGet]
-    [ProducesResponseType(typeof(List<ProductDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResult<List<ProductDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
@@ -36,6 +37,18 @@ public sealed class ProductController : BaseApiController
     {
         var result = await Mediator.Send(new GetProductByIdQuery(id), cancellationToken);
         return result.ToActionResult(this);
+    }
+
+    [HttpGet("category/{categoryId}")]
+    [ProducesResponseType(typeof(PagedResult<List<ProductDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetProductsByCategoryId(Guid categoryId, CancellationToken cancellationToken)
+    {
+        var result = await Mediator.Send(new GetProductsByCategoryIdQuery(categoryId), cancellationToken);
+        return Ok(result);
     }
 
     [HttpPost]

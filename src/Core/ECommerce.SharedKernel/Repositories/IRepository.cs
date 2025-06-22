@@ -12,7 +12,7 @@ public interface IRepository<TEntity>
         Expression<Func<IQueryable<TEntity>, IQueryable<TEntity>>>? include = null,
         bool isTracking = false);
 
-    Task<PagedResult<List<TEntity>>> GetPagedAsync(
+    Task<PagedResult<List<TResult>>> GetPagedAsync<TResult>(
         Expression<Func<TEntity, bool>>? predicate = null,
         Expression<Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>>? orderBy = null,
         Expression<Func<IQueryable<TEntity>, IQueryable<TEntity>>>? include = null,
@@ -21,12 +21,12 @@ public interface IRepository<TEntity>
         bool isTracking = false,
         CancellationToken cancellationToken = default);
 
-    Task<PagedResult<List<TEntity>>> GetPagedAsync(ISpecification<TEntity> specification, 
+    Task<PagedResult<List<TResult>>> GetPagedAsync<TResult>(ISpecification<TEntity> specification, 
         int page = 1, 
         int pageSize = 10, 
         CancellationToken cancellationToken = default);
 
-    PagedResult<List<TEntity>> GetPaged(
+    PagedResult<List<TResult>> GetPaged<TResult>(
         Expression<Func<TEntity, bool>>? predicate = null,
         Expression<Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>>? orderBy = null,
         Expression<Func<IQueryable<TEntity>, IQueryable<TEntity>>>? include = null,
@@ -34,7 +34,7 @@ public interface IRepository<TEntity>
         int pageSize = 10,
         bool isTracking = false);
 
-    PagedResult<List<TEntity>> GetPaged(ISpecification<TEntity> specification, 
+    PagedResult<List<TResult>> GetPaged<TResult>(ISpecification<TEntity> specification, 
         int page = 1, 
         int pageSize = 10);
 

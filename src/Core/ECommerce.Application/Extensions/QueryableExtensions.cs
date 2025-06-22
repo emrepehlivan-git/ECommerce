@@ -10,13 +10,13 @@ namespace ECommerce.Application.Extensions;
 
 public static class QueryableExtensions
 {
-    public static PagedResult<List<T>> ApplyPaging<T>(this IQueryable<T> query, PageableRequestParams pageableRequestParams)
+    public static PagedResult<List<TResult>> ApplyPaging<T, TResult>(this IQueryable<T> query, PageableRequestParams pageableRequestParams)
     {
         var totalCount = query.Count();
         var totalPages = (int)Math.Ceiling((double)totalCount / pageableRequestParams.PageSize);
         var pageInfo = new PagedInfo(pageableRequestParams.Page, pageableRequestParams.PageSize, totalPages, totalCount);
         var items = query.Take(((pageableRequestParams.Page - 1) * pageableRequestParams.PageSize)..pageableRequestParams.PageSize).ToList();
-        return new PagedResult<List<T>>(pageInfo, items);
+        return new PagedResult<List<TResult>>(pageInfo, items.Adapt<List<TResult>>());
     }
 
     public static async Task<PagedResult<List<TDestination>>> ApplyPagingAsync<TSource, TDestination>(
