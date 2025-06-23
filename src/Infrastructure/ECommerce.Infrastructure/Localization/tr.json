@@ -72,14 +72,37 @@
     "DefaultAddressCannotBeDeleted": "Varsayılan adres silinemez.",
     "AddressAlreadyDefault": "Bu adres zaten varsayılan olarak ayarlanmış."
   },
-  "Role_Name_Required": "Rol adı gereklidir.",
-  "Role_Name_Exists": "Rol adı zaten mevcut.",
-  "Role_Name_AtLeast_Characters": "Rol adı en az 2 karakter olmalıdır.",
-  "Role_Name_LessThan_Characters": "Rol adı en fazla 100 karakter olmalıdır.",
-  "Role_Not_Found": "Rol bulunamadı.",
-  "User_Not_Found": "Kullanıcı bulunamadı.",
-  "Role_Added_To_User": "Rol kullanıcıya başarıyla eklendi.",
-  "Role_Removed_From_User": "Rol kullanıcıdan başarıyla kaldırıldı.",
-  "User_Already_In_Role": "Kullanıcı zaten bu role sahip.",
-  "User_Not_In_Role": "Kullanıcı bu role sahip değil."
+  "Cart": {
+    "NotFound": "Sepet bulunamadı.",
+    "ItemNotFound": "Sepet öğesi bulunamadı.",
+    "ProductNotFound": "Ürün bulunamadı.",
+    "ProductNotActive": "Ürün aktif değil.",
+    "InsufficientStock": "Yetersiz stok.",
+    "MaxItemsExceeded": "Sepette maksimum {0} ürün bulunabilir.",
+    "MaxQuantityExceeded": "Bir üründen maksimum {0} adet sepete eklenebilir.",
+    "MaxTotalAmountExceeded": "Sepet toplam tutarı {0} TL'yi geçemez.",
+    "InvalidQuantity": "Geçersiz miktar.",
+    "InvalidProductId": "Geçersiz ürün ID.",
+    "InvalidUserId": "Geçersiz kullanıcı ID.",
+    "Validation": {
+      "QuantityRequired": "Miktar gereklidir.",
+      "QuantityMustBePositive": "Miktar pozitif olmalıdır.",
+      "ProductIdRequired": "Ürün ID gereklidir.",
+      "UserIdRequired": "Kullanıcı ID gereklidir."
+    }
+  },
+  "Role": {
+    "NotFound": "Rol bulunamadı.",
+    "UserNotFound": "Kullanıcı bulunamadı.",
+    "Name": {
+      "IsRequired": "Rol adı gereklidir.",
+      "Exists": "Rol adı zaten mevcut.",
+      "MustBeAtLeastCharacters": "Rol adı en az 2 karakter olmalıdır.",
+      "MustBeLessThanCharacters": "Rol adı en fazla 100 karakter olmalıdır."
+    },
+    "AddedToUser": "Rol kullanıcıya başarıyla eklendi.",
+    "RemovedFromUser": "Rol kullanıcıdan başarıyla kaldırıldı.",
+    "UserAlreadyInRole": "Kullanıcı zaten bu role sahip.",
+    "UserNotInRole": "Kullanıcı bu role sahip değil."
+  }
 }

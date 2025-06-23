@@ -31,7 +31,12 @@ conventions:
   - Use BaseApiController for all controllers
   - Controllers should be sealed
   - Use primary constructor for all classes
-
+  - Use constants for error messages
+  - Use constants for validation messages
+  - Localization files should be in the Infrastructure layer
+  - Localization files should be named like en.json and tr.json
+  - Localization json files should be categorized by feature
+  
 validation:
   framework: FluentValidation
   location: ECommerce.Application/Behaviors
@@ -119,3 +124,6 @@ naming:
   queries: VerbNounQuery
   validators: EntityValidator
   constants: PascalCase
+
+general:
+ - Do not add unnecessary comments

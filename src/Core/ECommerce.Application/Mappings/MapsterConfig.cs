@@ -1,3 +1,4 @@
+using ECommerce.Application.Features.Carts;
 using ECommerce.Application.Features.Categories;
 using ECommerce.Application.Features.Orders;
 using ECommerce.Application.Features.Products;
@@ -21,6 +22,7 @@ public static class MapsterConfig
         OrderMapperConfig.Configure(config);
         UserAddressMapperConfig.Configure(config);
         RoleMapperConfig.Configure();
+        CartMapperConfig.Configure();
 
         return services;
     }
