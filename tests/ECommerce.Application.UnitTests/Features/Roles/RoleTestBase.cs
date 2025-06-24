@@ -15,6 +15,7 @@ public abstract class RoleTestBase
     protected Mock<IUserService> UserServiceMock;
     protected Mock<ILazyServiceProvider> LazyServiceProviderMock;
     protected Mock<ILocalizationService> LocalizationServiceMock;
+    protected Mock<LocalizationHelper> LocalizationHelperMock;
     protected Mock<ICacheManager> CacheManagerMock;
 
     protected LocalizationHelper Localizer;
@@ -25,6 +26,7 @@ public abstract class RoleTestBase
         UserServiceMock = new Mock<IUserService>();
         LazyServiceProviderMock = new Mock<ILazyServiceProvider>();
         LocalizationServiceMock = new Mock<ILocalizationService>();
+        LocalizationHelperMock = new Mock<LocalizationHelper>();
         CacheManagerMock = new Mock<ICacheManager>();
         Localizer = new LocalizationHelper(LocalizationServiceMock.Object);
 

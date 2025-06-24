@@ -6,9 +6,7 @@ using ECommerce.Application.Extensions;
 using ECommerce.Application.Repositories;
 using ECommerce.Application.Features.Products.DTOs;
 using ECommerce.Application.Parameters;
-using ECommerce.SharedKernel;
 using MediatR;
-using ECommerce.Domain.Entities;
 
 namespace ECommerce.Application.Features.Products.Queries;
 
@@ -24,9 +22,11 @@ public sealed class GetAllProductsQueryHandler(
 {
     public override async Task<PagedResult<List<ProductDto>>> Handle(GetAllProductsQuery query, CancellationToken cancellationToken)
     {
-        return await productRepository.Query(
+        return await productRepository.GetPagedAsync<ProductDto>(
             orderBy: x => x.ApplyOrderBy(Filter.FromOrderByString(query.OrderBy)),
-            include: x => x.IncludeIf(query.IncludeCategory, y => y.Category))
-            .ApplyPagingAsync<Product, ProductDto>(query.PageableRequestParams, cancellationToken: cancellationToken);
+            include: x => x.IncludeIf(query.IncludeCategory, y => y.Category),
+            page: query.PageableRequestParams.Page,
+            pageSize: query.PageableRequestParams.PageSize,
+            cancellationToken: cancellationToken);
     }
 }

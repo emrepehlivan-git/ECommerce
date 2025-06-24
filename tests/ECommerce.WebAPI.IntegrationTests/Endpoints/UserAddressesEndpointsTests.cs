@@ -70,7 +70,6 @@ public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFac
             "Home",
             "123 Main St",
             "New York",
-            "NY",
             "10001",
             "USA");
 
@@ -105,8 +104,7 @@ public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFac
             _testUser.Id,
             "", // Invalid empty label
             "123 Main St",
-            "New York",
-            "NY",
+            "New York", 
             "10001",
             "USA");
 
@@ -124,7 +122,7 @@ public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFac
     public async Task UpdateUserAddress_WithValidData_ReturnsOk()
     {
         // Arrange - First create an address
-        var address = UserAddress.Create(_testUser.Id, "Work", new Address("456 Business Ave", "Boston", "MA", "02101", "USA"));
+        var address = UserAddress.Create(_testUser.Id, "Work", new Address("456 Business Ave", "Boston", "02101", "USA"));
         
         using (var scope = _factory.Services.CreateScope())
         {
@@ -139,7 +137,6 @@ public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFac
             "Updated Work",
             "789 Updated Ave",
             "Chicago",
-            "IL",
             "60601",
             "USA");
 
@@ -174,7 +171,6 @@ public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFac
             "Updated Work",
             "789 Updated Ave",
             "Chicago",
-            "IL",
             "60601",
             "USA");
 
@@ -192,8 +188,8 @@ public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFac
     public async Task SetDefaultUserAddress_WithValidData_ReturnsOk()
     {
         // Arrange - Create two addresses
-        var address1 = UserAddress.Create(_testUser.Id, "Home", new Address("123 Home St", "New York", "NY", "10001", "USA"));
-        var address2 = UserAddress.Create(_testUser.Id, "Work", new Address("456 Work Ave", "Boston", "MA", "02101", "USA"));
+        var address1 = UserAddress.Create(_testUser.Id, "Home", new Address("123 Home St", "New York", "10001", "USA"));
+        var address2 = UserAddress.Create(_testUser.Id, "Work", new Address("456 Work Ave", "Boston", "02101", "USA"));
         address1.SetAsDefault(); // Set first as default
 
         using (var scope = _factory.Services.CreateScope())
@@ -245,8 +241,8 @@ public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFac
     public async Task DeleteUserAddress_WithValidData_ReturnsOk()
     {
         // Arrange - Create two addresses (one default, one not)
-        var address1 = UserAddress.Create(_testUser.Id, "Home", new Address("123 Home St", "New York", "NY", "10001", "USA"));
-        var address2 = UserAddress.Create(_testUser.Id, "Work", new Address("456 Work Ave", "Boston", "MA", "02101", "USA"));
+        var address1 = UserAddress.Create(_testUser.Id, "Home", new Address("123 Home St", "New York", "10001", "USA"));
+        var address2 = UserAddress.Create(_testUser.Id, "Work", new Address("456 Work Ave", "Boston", "02101", "USA"));
         address1.SetAsDefault(); // Set first as default
 
         using (var scope = _factory.Services.CreateScope())
@@ -284,7 +280,7 @@ public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFac
     public async Task DeleteUserAddress_WithDefaultAddress_ReturnsBadRequest()
     {
         // Arrange - Create a default address
-        var address = UserAddress.Create(_testUser.Id, "Home", new Address("123 Home St", "New York", "NY", "10001", "USA"));
+        var address = UserAddress.Create(_testUser.Id, "Home", new Address("123 Home St", "New York", "10001", "USA"));
         address.SetAsDefault();
 
         using (var scope = _factory.Services.CreateScope())
@@ -344,8 +340,8 @@ public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFac
     public async Task GetUserAddresses_WithActiveOnlyFilter_ReturnsOnlyActiveAddresses()
     {
         // Arrange - Create one active and one inactive address
-        var activeAddress = UserAddress.Create(_testUser.Id, "Home", new Address("123 Home St", "New York", "NY", "10001", "USA"));
-        var inactiveAddress = UserAddress.Create(_testUser.Id, "Old Work", new Address("456 Old Ave", "Boston", "MA", "02101", "USA"));
+        var activeAddress = UserAddress.Create(_testUser.Id, "Home", new Address("123 Home St", "New York", "10001", "USA"));
+        var inactiveAddress = UserAddress.Create(_testUser.Id, "Old Work", new Address("456 Old Ave", "Boston", "02101", "USA"));
         inactiveAddress.Deactivate();
 
         using (var scope = _factory.Services.CreateScope())

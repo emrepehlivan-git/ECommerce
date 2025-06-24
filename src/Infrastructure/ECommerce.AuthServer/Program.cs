@@ -64,7 +64,8 @@ builder.Services.AddOpenIddict()
     })
     .AddServer(options =>
     {
-        options.SetIssuer(new Uri("https://localhost:5002"));
+        var authority = builder.Configuration["Authentication:Authority"] ?? "https://ecommerce.authserver:8081";
+        options.SetIssuer(new Uri(authority));
 
         options.SetAuthorizationEndpointUris("/connect/authorize")
                .SetTokenEndpointUris("/connect/token")

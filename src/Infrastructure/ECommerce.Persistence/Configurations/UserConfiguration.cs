@@ -1,3 +1,4 @@
+using ECommerce.Application.Features.Users;
 using ECommerce.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -16,12 +17,12 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
         {
             fullName.Property(x => x.FirstName)
                 .HasColumnName("first_name")
-                .HasMaxLength(100)
+                .HasMaxLength(UserConsts.FirstNameMaxLength)
                 .IsRequired();
 
             fullName.Property(x => x.LastName)
                 .HasColumnName("last_name")
-                .HasMaxLength(100)
+                .HasMaxLength(UserConsts.LastNameMaxLength)
                 .IsRequired();
         });
 

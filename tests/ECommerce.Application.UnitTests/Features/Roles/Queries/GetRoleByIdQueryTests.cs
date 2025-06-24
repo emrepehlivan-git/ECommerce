@@ -1,7 +1,9 @@
 using ECommerce.Application.Behaviors;
+using ECommerce.Application.Features.Roles;
 using ECommerce.Application.Features.Roles.DTOs;
 using ECommerce.Application.Features.Roles.Queries;
 using ECommerce.Domain.Entities;
+using ECommerce.Domain.ValueObjects;
 
 namespace ECommerce.Application.UnitTests.Features.Roles.Queries;
 
@@ -21,7 +23,8 @@ public sealed class GetRoleByIdQueryTests : RoleTestBase
             RoleServiceMock.Object,
             LazyServiceProviderMock.Object);
 
-        _validator = new GetRoleByIdQueryValidator();
+        _validator = new GetRoleByIdQueryValidator(LocalizationHelperMock.Object);
+        LocalizationHelperMock.Setup(x => x[RoleConsts.UserNotFound]).Returns("User not found.");
     }
 
     [Fact]

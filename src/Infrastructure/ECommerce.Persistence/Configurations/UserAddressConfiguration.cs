@@ -1,3 +1,4 @@
+using ECommerce.Application.Features.UserAddresses;
 using ECommerce.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -18,7 +19,7 @@ public sealed class UserAddressConfiguration : IEntityTypeConfiguration<UserAddr
 
         builder.Property(x => x.Label)
             .HasColumnName("label")
-            .HasMaxLength(50)
+            .HasMaxLength(UserAddressConsts.LabelMaxLengthValue)
             .IsRequired();
 
         builder.Property(x => x.IsDefault)
@@ -33,27 +34,22 @@ public sealed class UserAddressConfiguration : IEntityTypeConfiguration<UserAddr
         {
             address.Property(x => x.Street)
                 .HasColumnName("street")
-                .HasMaxLength(200)
+                .HasMaxLength(UserAddressConsts.StreetMaxLengthValue)
                 .IsRequired();
 
             address.Property(x => x.City)
                 .HasColumnName("city")
-                .HasMaxLength(100)
-                .IsRequired();
-
-            address.Property(x => x.State)
-                .HasColumnName("state")
-                .HasMaxLength(100)
+                .HasMaxLength(UserAddressConsts.CityMaxLengthValue)
                 .IsRequired();
 
             address.Property(x => x.ZipCode)
                 .HasColumnName("zip_code")
-                .HasMaxLength(20)
+                .HasMaxLength(UserAddressConsts.ZipCodeMaxLengthValue)
                 .IsRequired();
 
             address.Property(x => x.Country)
                 .HasColumnName("country")
-                .HasMaxLength(100)
+                .HasMaxLength(UserAddressConsts.CountryMaxLengthValue)
                 .IsRequired();
         });
 

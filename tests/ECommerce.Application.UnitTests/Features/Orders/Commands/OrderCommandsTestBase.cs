@@ -44,7 +44,7 @@ public abstract class OrderCommandsTestBase
         DefaultProduct = Product.Create("Test Product", "Test Description", 100m, DefaultCategory.Id, 10);
         DefaultProduct.Category = DefaultCategory;
 
-        DefaultOrder = Order.Create(UserId, new Address("Test Shipping", "Istanbul", "Marmara", "34000", "Turkey"), new Address("Test Billing", "Istanbul", "Marmara", "34000", "Turkey"));
+        DefaultOrder = Order.Create(UserId, new Address("Test Shipping", "Istanbul", "34000", "Turkey"), new Address("Test Billing", "Istanbul", "34000", "Turkey"));
     }
 
     protected void SetupOrderRepositoryGetByIdAsync(Order? order = null)

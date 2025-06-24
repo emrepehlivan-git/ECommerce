@@ -4,19 +4,18 @@ public sealed class AddressTests
 {
     private const string ValidStreet = "123 Main Street";
     private const string ValidCity = "New York";
-    private const string ValidState = "NY";
     private const string ValidZipCode = "10001";
     private const string ValidCountry = "USA";
 
     [Theory]
-    [InlineData(null, ValidCity, ValidState, ValidZipCode, ValidCountry)]
-    [InlineData("", ValidCity, ValidState, ValidZipCode, ValidCountry)]
-    [InlineData(" ", ValidCity, ValidState, ValidZipCode, ValidCountry)]
-    public void Constructor_WithInvalidStreet_ShouldThrowArgumentException(string? street, string city, string state, string zipCode, string country)
+    [InlineData(null, ValidCity, ValidZipCode, ValidCountry)]
+    [InlineData("", ValidCity, ValidZipCode, ValidCountry)]
+    [InlineData(" ", ValidCity, ValidZipCode, ValidCountry)]
+    public void Constructor_WithInvalidStreet_ShouldThrowArgumentException(string? street, string city, string zipCode, string country)
     {
         // Act
 #pragma warning disable CS8604 // Possible null reference argument.
-        var act = () => new Address(street, city, state, zipCode, country);
+        var act = () => new Address(street, city, zipCode, country);
 #pragma warning restore CS8604 // Possible null reference argument.
 
         // Assert
@@ -25,14 +24,14 @@ public sealed class AddressTests
     }
 
     [Theory]
-    [InlineData(ValidStreet, null, ValidState, ValidZipCode, ValidCountry)]
-    [InlineData(ValidStreet, "", ValidState, ValidZipCode, ValidCountry)]
-    [InlineData(ValidStreet, " ", ValidState, ValidZipCode, ValidCountry)]
-    public void Constructor_WithInvalidCity_ShouldThrowArgumentException(string street, string? city, string state, string zipCode, string country)
+    [InlineData(ValidStreet, null, ValidZipCode, ValidCountry)]
+    [InlineData(ValidStreet, "", ValidZipCode, ValidCountry)]
+    [InlineData(ValidStreet, " ", ValidZipCode, ValidCountry)]
+    public void Constructor_WithInvalidCity_ShouldThrowArgumentException(string street, string? city, string zipCode, string country)
     {
         // Act
 #pragma warning disable CS8604 // Possible null reference argument.
-        var act = () => new Address(street, city, state, zipCode, country);
+        var act = () => new Address(street, city, zipCode, country);
 #pragma warning restore CS8604 // Possible null reference argument.
 
         // Assert
@@ -41,30 +40,14 @@ public sealed class AddressTests
     }
 
     [Theory]
-    [InlineData(ValidStreet, ValidCity, null, ValidZipCode, ValidCountry)]
-    [InlineData(ValidStreet, ValidCity, "", ValidZipCode, ValidCountry)]
-    [InlineData(ValidStreet, ValidCity, " ", ValidZipCode, ValidCountry)]
-    public void Constructor_WithInvalidState_ShouldThrowArgumentException(string street, string city, string? state, string zipCode, string country)
+    [InlineData(ValidStreet, ValidCity, null, ValidCountry)]
+    [InlineData(ValidStreet, ValidCity, "", ValidCountry)]
+    [InlineData(ValidStreet, ValidCity, " ", ValidCountry)]
+    public void Constructor_WithInvalidZipCode_ShouldThrowArgumentException(string street, string city, string? zipCode, string country)
     {
         // Act
 #pragma warning disable CS8604 // Possible null reference argument.
-        var act = () => new Address(street, city, state, zipCode, country);
-#pragma warning restore CS8604 // Possible null reference argument.
-
-        // Assert
-        act.Should().Throw<ArgumentException>()
-            .WithMessage("State cannot be null or empty.*");
-    }
-
-    [Theory]
-    [InlineData(ValidStreet, ValidCity, ValidState, null, ValidCountry)]
-    [InlineData(ValidStreet, ValidCity, ValidState, "", ValidCountry)]
-    [InlineData(ValidStreet, ValidCity, ValidState, " ", ValidCountry)]
-    public void Constructor_WithInvalidZipCode_ShouldThrowArgumentException(string street, string city, string state, string? zipCode, string country)
-    {
-        // Act
-#pragma warning disable CS8604 // Possible null reference argument.
-        var act = () => new Address(street, city, state, zipCode, country);
+        var act = () => new Address(street, city, zipCode, country);
 #pragma warning restore CS8604 // Possible null reference argument.
 
         // Assert
@@ -73,14 +56,14 @@ public sealed class AddressTests
     }
 
     [Theory]
-    [InlineData(ValidStreet, ValidCity, ValidState, ValidZipCode, null)]
-    [InlineData(ValidStreet, ValidCity, ValidState, ValidZipCode, "")]
-    [InlineData(ValidStreet, ValidCity, ValidState, ValidZipCode, " ")]
-    public void Constructor_WithInvalidCountry_ShouldThrowArgumentException(string street, string city, string state, string zipCode, string? country)
+    [InlineData(ValidStreet, ValidCity, ValidZipCode, null)]
+    [InlineData(ValidStreet, ValidCity, ValidZipCode, "")]
+    [InlineData(ValidStreet, ValidCity, ValidZipCode, " ")]
+    public void Constructor_WithInvalidCountry_ShouldThrowArgumentException(string street, string city, string zipCode, string? country)
     {
         // Act
 #pragma warning disable CS8604 // Possible null reference argument.
-        var act = () => new Address(street, city, state, zipCode, country);
+        var act = () => new Address(street, city, zipCode, country);
 #pragma warning restore CS8604 // Possible null reference argument.
 
         // Assert
@@ -95,7 +78,7 @@ public sealed class AddressTests
         var longStreet = new string('a', 201);
 
         // Act
-        var act = () => new Address(longStreet, ValidCity, ValidState, ValidZipCode, ValidCountry);
+        var act = () => new Address(longStreet, ValidCity, ValidZipCode, ValidCountry);
 
         // Assert
         act.Should().Throw<ArgumentException>()
@@ -109,25 +92,11 @@ public sealed class AddressTests
         var longCity = new string('a', 101);
 
         // Act
-        var act = () => new Address(ValidStreet, longCity, ValidState, ValidZipCode, ValidCountry);
+        var act = () => new Address(ValidStreet, longCity, ValidZipCode, ValidCountry);
 
         // Assert
         act.Should().Throw<ArgumentException>()
             .WithMessage("City cannot be longer than 100 characters.*");
-    }
-
-    [Fact]
-    public void Constructor_WithTooLongState_ShouldThrowArgumentException()
-    {
-        // Arrange
-        var longState = new string('a', 101);
-
-        // Act
-        var act = () => new Address(ValidStreet, ValidCity, longState, ValidZipCode, ValidCountry);
-
-        // Assert
-        act.Should().Throw<ArgumentException>()
-            .WithMessage("State cannot be longer than 100 characters.*");
     }
 
     [Fact]
@@ -137,7 +106,7 @@ public sealed class AddressTests
         var longZipCode = new string('a', 21);
 
         // Act
-        var act = () => new Address(ValidStreet, ValidCity, ValidState, longZipCode, ValidCountry);
+        var act = () => new Address(ValidStreet, ValidCity, longZipCode, ValidCountry);
 
         // Assert
         act.Should().Throw<ArgumentException>()
@@ -151,7 +120,7 @@ public sealed class AddressTests
         var longCountry = new string('a', 101);
 
         // Act
-        var act = () => new Address(ValidStreet, ValidCity, ValidState, ValidZipCode, longCountry);
+        var act = () => new Address(ValidStreet, ValidCity, ValidZipCode, longCountry);
 
         // Assert
         act.Should().Throw<ArgumentException>()
@@ -162,13 +131,12 @@ public sealed class AddressTests
     public void Constructor_WithValidParameters_ShouldCreateAddress()
     {
         // Act
-        var address = new Address(ValidStreet, ValidCity, ValidState, ValidZipCode, ValidCountry);
+        var address = new Address(ValidStreet, ValidCity, ValidZipCode, ValidCountry);
 
         // Assert
         address.Should().NotBeNull();
         address.Street.Should().Be(ValidStreet);
         address.City.Should().Be(ValidCity);
-        address.State.Should().Be(ValidState);
         address.ZipCode.Should().Be(ValidZipCode);
         address.Country.Should().Be(ValidCountry);
     }
@@ -177,21 +145,21 @@ public sealed class AddressTests
     public void ToString_ShouldReturnFormattedAddress()
     {
         // Arrange
-        var address = new Address(ValidStreet, ValidCity, ValidState, ValidZipCode, ValidCountry);
+        var address = new Address(ValidStreet, ValidCity, ValidZipCode, ValidCountry);
 
         // Act
         var result = address.ToString();
 
         // Assert
-        result.Should().Be($"{ValidStreet}, {ValidCity}, {ValidState}, {ValidZipCode}, {ValidCountry}");
+        result.Should().Be($"{ValidStreet}, {ValidCity}, {ValidZipCode}, {ValidCountry}");
     }
 
     [Fact]
     public void Equals_WithSameValues_ShouldReturnTrue()
     {
         // Arrange
-        var address1 = new Address(ValidStreet, ValidCity, ValidState, ValidZipCode, ValidCountry);
-        var address2 = new Address(ValidStreet, ValidCity, ValidState, ValidZipCode, ValidCountry);
+        var address1 = new Address(ValidStreet, ValidCity, ValidZipCode, ValidCountry);
+        var address2 = new Address(ValidStreet, ValidCity, ValidZipCode, ValidCountry);
 
         // Act & Assert
         address1.Equals(address2).Should().BeTrue();
@@ -202,8 +170,8 @@ public sealed class AddressTests
     public void Equals_WithDifferentValues_ShouldReturnFalse()
     {
         // Arrange
-        var address1 = new Address(ValidStreet, ValidCity, ValidState, ValidZipCode, ValidCountry);
-        var address2 = new Address("456 Oak Street", ValidCity, ValidState, ValidZipCode, ValidCountry);
+        var address1 = new Address(ValidStreet, ValidCity, ValidZipCode, ValidCountry);
+        var address2 = new Address("456 Oak Street", ValidCity, ValidZipCode, ValidCountry);
 
         // Act & Assert
         address1.Equals(address2).Should().BeFalse();
@@ -211,19 +179,18 @@ public sealed class AddressTests
     }
 
     [Theory]
-    [InlineData("123 Main Street", "New York", "NY", "10001", "USA")]
-    [InlineData("456 Oak Avenue", "Los Angeles", "CA", "90210", "USA")]
-    [InlineData("789 Pine Road", "Chicago", "IL", "60601", "USA")]
-    public void Constructor_WithVariousValidInputs_ShouldCreateAddress(string street, string city, string state, string zipCode, string country)
+    [InlineData("123 Main Street", "New York", "10001", "USA")]
+    [InlineData("456 Oak Avenue", "Los Angeles", "90210", "USA")]
+    [InlineData("789 Pine Road", "Chicago", "60601", "USA")]
+    public void Constructor_WithVariousValidInputs_ShouldCreateAddress(string street, string city, string zipCode, string country)
     {
         // Act
-        var address = new Address(street, city, state, zipCode, country);
+        var address = new Address(street, city, zipCode, country);
 
         // Assert
         address.Should().NotBeNull();
         address.Street.Should().Be(street);
         address.City.Should().Be(city);
-        address.State.Should().Be(state);
         address.ZipCode.Should().Be(zipCode);
         address.Country.Should().Be(country);
     }

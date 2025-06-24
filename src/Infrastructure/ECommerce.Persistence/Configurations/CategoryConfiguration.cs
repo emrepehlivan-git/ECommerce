@@ -1,3 +1,4 @@
+using ECommerce.Application.Features.Categories;
 using ECommerce.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,7 +13,7 @@ public sealed class CategoryConfiguration : IEntityTypeConfiguration<Category>
 
         builder.Property(c => c.Name)
             .IsRequired()
-            .HasMaxLength(100);
+            .HasMaxLength(CategoryConsts.NameMaxLength);
 
         builder.HasIndex(c => c.Name)
             .IsUnique();

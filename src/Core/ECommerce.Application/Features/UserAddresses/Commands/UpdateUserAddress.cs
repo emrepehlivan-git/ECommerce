@@ -5,7 +5,6 @@ using ECommerce.SharedKernel.DependencyInjection;
 using ECommerce.Application.Helpers;
 using ECommerce.Application.Repositories;
 using ECommerce.Domain.ValueObjects;
-using ECommerce.SharedKernel;
 using FluentValidation;
 using MediatR;
 
@@ -17,7 +16,6 @@ public sealed record UpdateUserAddressCommand(
     string Label,
     string Street,
     string City,
-    string State,
     string ZipCode,
     string Country) : IRequest<Result>, IValidatableRequest, ITransactionalRequest;
 
@@ -42,33 +40,27 @@ public sealed class UpdateUserAddressCommandValidator : AbstractValidator<Update
 
         RuleFor(x => x.Street)
             .NotEmpty()
-            .WithMessage("Street is required")
-            .MaximumLength(200)
-            .WithMessage("Street cannot be longer than 200 characters");
+            .WithMessage(localizer[UserAddressConsts.StreetRequired])
+            .MaximumLength(UserAddressConsts.StreetMaxLengthValue)
+            .WithMessage(string.Format(localizer[UserAddressConsts.StreetMaxLength], UserAddressConsts.StreetMaxLengthValue));
 
         RuleFor(x => x.City)
             .NotEmpty()
-            .WithMessage("City is required")
-            .MaximumLength(100)
-            .WithMessage("City cannot be longer than 100 characters");
-
-        RuleFor(x => x.State)
-            .NotEmpty()
-            .WithMessage("State is required")
-            .MaximumLength(100)
-            .WithMessage("State cannot be longer than 100 characters");
+            .WithMessage(localizer[UserAddressConsts.CityRequired])
+            .MaximumLength(UserAddressConsts.CityMaxLengthValue)
+            .WithMessage(string.Format(localizer[UserAddressConsts.CityMaxLength], UserAddressConsts.CityMaxLengthValue));
 
         RuleFor(x => x.ZipCode)
             .NotEmpty()
-            .WithMessage("ZipCode is required")
-            .MaximumLength(20)
-            .WithMessage("ZipCode cannot be longer than 20 characters");
+            .WithMessage(localizer[UserAddressConsts.ZipCodeRequired])
+            .MaximumLength(UserAddressConsts.ZipCodeMaxLengthValue)
+            .WithMessage(string.Format(localizer[UserAddressConsts.ZipCodeMaxLength], UserAddressConsts.ZipCodeMaxLengthValue));
 
         RuleFor(x => x.Country)
             .NotEmpty()
-            .WithMessage("Country is required")
-            .MaximumLength(100)
-            .WithMessage("Country cannot be longer than 100 characters");
+            .WithMessage(localizer[UserAddressConsts.CountryRequired])
+            .MaximumLength(UserAddressConsts.CountryMaxLengthValue)
+            .WithMessage(string.Format(localizer[UserAddressConsts.CountryMaxLength], UserAddressConsts.CountryMaxLengthValue));
     }
 }
 
@@ -86,7 +78,6 @@ public sealed class UpdateUserAddressCommandHandler(
         var address = new Address(
             command.Street,
             command.City,
-            command.State,
             command.ZipCode,
             command.Country);
 

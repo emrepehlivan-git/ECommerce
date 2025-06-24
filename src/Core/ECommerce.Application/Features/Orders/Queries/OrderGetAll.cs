@@ -23,11 +23,12 @@ public sealed class OrderGetAllQueryHandler(
 {
     public override async Task<PagedResult<List<OrderDto>>> Handle(OrderGetAllQuery query, CancellationToken cancellationToken)
     {
-        return await orderRepository.Query(
+        return await orderRepository.GetPagedAsync<OrderDto>(
             predicate: query.Status.HasValue ? x => x.Status == query.Status.Value : null,
             orderBy: q => q.OrderByDescending(x => x.OrderDate),
-            include: q => q.Include(x => x.Items).ThenInclude(x => x.Product)
-        )
-        .ApplyPagingAsync<Order, OrderDto>(query.PageableRequestParams, cancellationToken: cancellationToken);
+            include: q => q.Include(x => x.Items).ThenInclude(x => x.Product),
+            page: query.PageableRequestParams.Page,
+            pageSize: query.PageableRequestParams.PageSize,
+            cancellationToken: cancellationToken);
     }
 }

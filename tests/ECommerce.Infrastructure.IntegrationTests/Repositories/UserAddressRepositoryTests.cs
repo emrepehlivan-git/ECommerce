@@ -21,7 +21,7 @@ public class UserAddressRepositoryTests : RepositoryTestBase
         var address = UserAddress.Create(
             userId,
             "Home",
-            new Address("123 Main St", "New York", "NY", "10001", "USA")
+            new Address("123 Main St", "New York", "10001", "USA")
         );
         address.SetAsDefault();
         Context.UserAddresses.Add(address);
@@ -58,8 +58,8 @@ public class UserAddressRepositoryTests : RepositoryTestBase
         user.Id = userId;
         Context.Users.Add(user);
 
-        var activeAddress = UserAddress.Create(userId, "Home", new Address("123 Main St", "New York", "NY", "10001", "USA"));
-        var inactiveAddress = UserAddress.Create(userId, "Work", new Address("456 Work St", "New York", "NY", "10002", "USA"));
+        var activeAddress = UserAddress.Create(userId, "Home", new Address("123 Main St", "New York", "10001", "USA"));
+        var inactiveAddress = UserAddress.Create(userId, "Work", new Address("456 Work St", "New York", "10002", "USA"));
         inactiveAddress.Deactivate();
 
         Context.UserAddresses.AddRange(activeAddress, inactiveAddress);
@@ -83,8 +83,8 @@ public class UserAddressRepositoryTests : RepositoryTestBase
         user.Id = userId;
         Context.Users.Add(user);
 
-        var activeAddress = UserAddress.Create(userId, "Home", new Address("123 Main St", "New York", "NY", "10001", "USA"));
-        var inactiveAddress = UserAddress.Create(userId, "Work", new Address("456 Work St", "New York", "NY", "10002", "USA"));
+        var activeAddress = UserAddress.Create(userId, "Home", new Address("123 Main St", "New York", "10001", "USA"));
+        var inactiveAddress = UserAddress.Create(userId, "Work", new Address("456 Work St", "New York", "10002", "USA"));
         inactiveAddress.Deactivate();
 
         Context.UserAddresses.AddRange(activeAddress, inactiveAddress);
@@ -106,7 +106,7 @@ public class UserAddressRepositoryTests : RepositoryTestBase
         user.Id = userId;
         Context.Users.Add(user);
 
-        var address = UserAddress.Create(userId, "Home", new Address("123 Main St", "New York", "NY", "10001", "USA"));
+        var address = UserAddress.Create(userId, "Home", new Address("123 Main St", "New York", "10001", "USA"));
         address.SetAsDefault();
         Context.UserAddresses.Add(address);
         await Context.SaveChangesAsync();
@@ -140,10 +140,10 @@ public class UserAddressRepositoryTests : RepositoryTestBase
         user.Id = userId;
         Context.Users.Add(user);
 
-        var oldDefaultAddress = UserAddress.Create(userId, "Home", new Address("123 Main St", "New York", "NY", "10001", "USA"));
+        var oldDefaultAddress = UserAddress.Create(userId, "Home", new Address("123 Main St", "New York", "10001", "USA"));
         oldDefaultAddress.SetAsDefault();
         
-        var newAddress = UserAddress.Create(userId, "Work", new Address("456 Work St", "New York", "NY", "10002", "USA"));
+        var newAddress = UserAddress.Create(userId, "Work", new Address("456 Work St", "New York", "10002", "USA"));
 
         Context.UserAddresses.AddRange(oldDefaultAddress, newAddress);
         await Context.SaveChangesAsync();
@@ -169,7 +169,7 @@ public class UserAddressRepositoryTests : RepositoryTestBase
         user.Id = userId;
         Context.Users.Add(user);
 
-        var address = UserAddress.Create(userId, "Home", new Address("123 Main St", "New York", "NY", "10001", "USA"));
+        var address = UserAddress.Create(userId, "Home", new Address("123 Main St", "New York", "10001", "USA"));
         address.SetAsDefault();
         Context.UserAddresses.Add(address);
         await Context.SaveChangesAsync();

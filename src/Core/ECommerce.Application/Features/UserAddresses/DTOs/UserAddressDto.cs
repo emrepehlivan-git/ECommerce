@@ -6,7 +6,6 @@ public sealed record UserAddressDto(
     string Label,
     string Street,
     string City,
-    string State,
     string ZipCode,
     string Country,
     bool IsDefault,

@@ -26,7 +26,7 @@ public sealed class GetCartQueryHandler(
         
         if (cart is null)
         {
-            return Result<CartDto>.NotFound(CartConsts.ErrorMessages.CartNotFound);
+            return Result<CartDto>.NotFound(Localizer[CartConsts.ErrorMessages.CartNotFound]);
         }
 
         var cartDto = cart.Adapt<CartDto>();

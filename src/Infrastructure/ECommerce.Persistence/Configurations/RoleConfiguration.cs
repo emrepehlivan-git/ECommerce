@@ -1,3 +1,4 @@
+using ECommerce.Application.Features.Roles;
 using ECommerce.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -14,10 +15,10 @@ public sealed class RoleConfiguration : IEntityTypeConfiguration<Role>
 
         builder.Property(x => x.Name)
             .IsRequired()
-            .HasMaxLength(100);
+            .HasMaxLength(RoleConsts.NameMaxLength);
 
         builder.Property(x => x.NormalizedName)
             .IsRequired()
-            .HasMaxLength(100);
+            .HasMaxLength(RoleConsts.NameMaxLength);
     }
 }

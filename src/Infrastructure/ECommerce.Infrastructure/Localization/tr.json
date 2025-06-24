@@ -60,7 +60,8 @@
     "BillingAddressNotFound": "Fatura adresi bulunamadı.",
     "EmptyOrder": "Sipariş boş olamaz. Lütfen en az bir ürün ekleyin.",
     "InsufficientStock": "Ürün için yeterli stok bulunmamaktadır.",
-    "ProductNotActive": "Ürün aktif değil, sipariş verilemez."
+    "ProductNotActive": "Ürün aktif değil, sipariş verilemez.",
+    "OrderStatusInvalid": "Geçersiz sipariş durumu."
   },
   "UserAddress": {
     "NotFound": "Kullanıcı adresi bulunamadı.",
@@ -70,7 +71,16 @@
     "LabelMaxLength": "Adres etiketi en fazla {0} karakter olmalıdır.",
     "AddressRequired": "Adres bilgisi gereklidir.",
     "DefaultAddressCannotBeDeleted": "Varsayılan adres silinemez.",
-    "AddressAlreadyDefault": "Bu adres zaten varsayılan olarak ayarlanmış."
+    "AddressAlreadyDefault": "Bu adres zaten varsayılan olarak ayarlanmış.",
+    "StreetRequired": "Sokak bilgisi gereklidir.",
+    "StreetMaxLength": "Sokak bilgisi en fazla {0} karakter olmalıdır.",
+    "CityRequired": "Şehir bilgisi gereklidir.",
+    "CityMaxLength": "Şehir bilgisi en fazla {0} karakter olmalıdır.",
+
+    "ZipCodeRequired": "Posta kodu gereklidir.",
+    "ZipCodeMaxLength": "Posta kodu en fazla {0} karakter olmalıdır.",
+    "CountryRequired": "Ülke bilgisi gereklidir.",
+    "CountryMaxLength": "Ülke bilgisi en fazla {0} karakter olmalıdır."
   },
   "Cart": {
     "NotFound": "Sepet bulunamadı.",

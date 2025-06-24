@@ -1,7 +1,7 @@
+using ECommerce.Application.Constants;
 using ECommerce.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using ECommerce.Application.Constants;
 
 namespace ECommerce.Persistence.Configurations;
 
@@ -15,18 +15,18 @@ public sealed class PermissionConfiguration : IEntityTypeConfiguration<Permissio
 
         builder.Property(p => p.Name)
             .IsRequired()
-            .HasMaxLength(100);
+            .HasMaxLength(PermissionConsts.NameMaxLength);
 
         builder.Property(p => p.Description)
-            .HasMaxLength(500);
+            .HasMaxLength(PermissionConsts.DescriptionMaxLength);
 
         builder.Property(p => p.Module)
             .IsRequired()
-            .HasMaxLength(50);
+            .HasMaxLength(PermissionConsts.ModuleMaxLength);
 
         builder.Property(p => p.Action)
             .IsRequired()
-            .HasMaxLength(50);
+            .HasMaxLength(PermissionConsts.ActionMaxLength);
 
         builder.HasIndex(p => p.Name)
             .IsUnique();

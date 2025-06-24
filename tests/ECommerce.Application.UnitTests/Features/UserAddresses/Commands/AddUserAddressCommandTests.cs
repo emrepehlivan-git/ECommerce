@@ -15,7 +15,6 @@ public sealed class AddUserAddressCommandTests : UserAddressesTestBase
             "Home",
             "123 Main St",
             "New York",
-            "NY",
             "10001",
             "USA");
 
@@ -56,7 +55,6 @@ public sealed class AddUserAddressCommandTests : UserAddressesTestBase
         capturedAddress.Label.Should().Be(Command.Label);
         capturedAddress.Address.Street.Should().Be(Command.Street);
         capturedAddress.Address.City.Should().Be(Command.City);
-        capturedAddress.Address.State.Should().Be(Command.State);
         capturedAddress.Address.ZipCode.Should().Be(Command.ZipCode);
         capturedAddress.Address.Country.Should().Be(Command.Country);
         capturedAddress.IsDefault.Should().BeFalse();
@@ -134,7 +132,6 @@ public sealed class AddUserAddressCommandTests : UserAddressesTestBase
         // Arrange
         var street = "456 Oak Avenue";
         var city = "Boston";
-        var state = "Massachusetts";
         var zipCode = "02101";
         var country = "United States";
 
@@ -143,7 +140,6 @@ public sealed class AddUserAddressCommandTests : UserAddressesTestBase
             "Work",
             street,
             city,
-            state,
             zipCode,
             country);
 
@@ -165,7 +161,6 @@ public sealed class AddUserAddressCommandTests : UserAddressesTestBase
         capturedAddress.Should().NotBeNull();
         capturedAddress?.Address.Street.Should().Be(street);
         capturedAddress?.Address.City.Should().Be(city);
-        capturedAddress?.Address.State.Should().Be(state);
         capturedAddress?.Address.ZipCode.Should().Be(zipCode);
         capturedAddress?.Address.Country.Should().Be(country);
     }

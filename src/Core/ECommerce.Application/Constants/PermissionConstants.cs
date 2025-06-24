@@ -46,3 +46,11 @@ public static class PermissionConstants
         public const string Manage = "Roles.Manage";
     }
 }
+
+public static class PermissionConsts
+{
+    public const int NameMaxLength = 100;
+    public const int DescriptionMaxLength = 500;
+    public const int ModuleMaxLength = 50;
+    public const int ActionMaxLength = 50;
+}

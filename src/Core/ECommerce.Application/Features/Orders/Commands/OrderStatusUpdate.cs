@@ -29,7 +29,7 @@ public sealed class OrderStatusUpdateCommandValidator : AbstractValidator<OrderS
 
         RuleFor(x => x.NewStatus)
             .IsInEnum()
-            .WithMessage("Invalid order status");
+            .WithMessage(localizer[OrderConsts.OrderStatusInvalid]);
     }
 }
 

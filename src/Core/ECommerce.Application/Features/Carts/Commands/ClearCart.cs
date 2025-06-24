@@ -1,7 +1,6 @@
 using Ardalis.Result;
 using ECommerce.Application.Behaviors;
 using ECommerce.Application.CQRS;
-
 using ECommerce.Application.Repositories;
 using ECommerce.Application.Services;
 using ECommerce.SharedKernel.DependencyInjection;
@@ -24,7 +23,7 @@ public sealed class ClearCartCommandHandler(
 
         var cart = await cartRepository.GetByUserIdWithItemsAsync(currentUserId, cancellationToken);
         if (cart is null)
-            return Result.NotFound(CartConsts.ErrorMessages.CartNotFound);
+            return Result.NotFound(Localizer[CartConsts.ErrorMessages.CartNotFound]);
 
         cart.Clear();
 

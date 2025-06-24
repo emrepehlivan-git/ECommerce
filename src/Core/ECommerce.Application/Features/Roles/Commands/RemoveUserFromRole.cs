@@ -1,6 +1,7 @@
 using Ardalis.Result;
 using ECommerce.Application.Behaviors;
 using ECommerce.Application.CQRS;
+using ECommerce.Application.Features.Users;
 using ECommerce.Application.Helpers;
 using ECommerce.Application.Services;
 using ECommerce.SharedKernel.DependencyInjection;
@@ -17,7 +18,7 @@ public sealed class RemoveUserFromRoleCommandValidator : AbstractValidator<Remov
     {
         RuleFor(x => x.UserId)
             .MustAsync(async (userId, cancellationToken) => await userService.FindByIdAsync(userId) != null)
-            .WithMessage("UserId is required");
+            .WithMessage(localizer[UserConsts.NotFound]);
 
         RuleFor(x => x.RoleId)
             .MustAsync(async (roleId, cancellationToken) => await roleService.FindRoleByIdAsync(roleId) != null)

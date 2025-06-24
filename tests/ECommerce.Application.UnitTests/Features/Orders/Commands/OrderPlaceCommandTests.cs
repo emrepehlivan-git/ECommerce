@@ -13,8 +13,8 @@ public sealed class OrderPlaceCommandTests : OrderCommandsTestBase
 
     public OrderPlaceCommandTests()
     {
-        _defaultShippingAddress = new Address("123 Main St", "New York", "NY", "10001", "USA");
-        _defaultBillingAddress = new Address("456 Oak Ave", "New York", "NY", "10002", "USA");
+        _defaultShippingAddress = new Address("123 Main St", "New York", "10001", "USA");
+        _defaultBillingAddress = new Address("456 Oak Ave", "New York", "10002", "USA");
 
         _handler = new OrderPlaceCommandHandler(
             OrderRepositoryMock.Object,

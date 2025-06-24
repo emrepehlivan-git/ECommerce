@@ -127,3 +127,134 @@ naming:
 
 general:
  - Do not add unnecessary comments
+
+# Security & Authentication
+security:
+  authentication:
+    - Use OpenIddict with OAuth2/OIDC flows only
+    - Implement token expiration (AccessToken: 15min, RefreshToken: 7days)
+    - Enable HTTPS enforcement in production
+    - Use CORS policies with specific origins (no wildcards in production)
+    - Implement rate limiting for authentication endpoints
+    - Store sensitive data in Azure Key Vault or similar secure storage
+  authorization:
+    - Use permission-based authorization over role-based when possible
+    - Implement custom authorization handlers for complex business rules
+    - Apply [Authorize] at controller level, use [AllowAnonymous] for exceptions
+    - Use policy names instead of role names in attributes
+
+# Aggregate Design Rules (Vernon's Rules)
+domain_driven_design:
+  aggregates:
+    - Model true invariants in consistency boundaries
+    - Design small aggregates (prefer single entity aggregates when possible)
+    - Reference other aggregates by identity only
+    - Use eventual consistency between aggregates
+    - Keep aggregate size small (70% should be single entity)
+    - Avoid deep object graphs within aggregates
+  domain_events:
+    - Publish domain events for cross-aggregate communication
+    - Use domain events for side effects, not core business logic
+    - Keep domain events immutable with readonly properties
+  value_objects:
+    - Make all value objects immutable
+    - Implement equality based on all properties
+    - Use record types for simple value objects
+
+# Performance & Optimization
+performance:
+  database:
+    - Use AsNoTracking() for read-only queries
+    - Implement pagination for all list operations (default page size: 50)
+    - Use projections (Select) instead of loading full entities when possible
+    - Add database indexes for frequently queried columns
+    - Use Include() with caution, prefer split queries for complex includes
+    - Implement connection pooling configuration
+  caching:
+    - Cache frequently accessed read-only data
+    - Use cache keys with consistent naming: "feature:operation:id"
+    - Implement cache invalidation strategies
+    - Set appropriate cache expiration times
+  async_programming:
+    - Use async/await for all I/O operations
+    - Use ConfigureAwait(false) in library code
+    - Avoid async void except for event handlers
+
+# Code Quality & Architecture
+code_quality:
+  nullable_reference_types:
+    - Enable nullable reference types in all projects
+    - Use nullable annotations correctly (?, !.)
+    - Prefer explicit nullability over implicit
+  immutability:
+    - Make DTOs immutable using record types
+    - Use readonly fields for dependencies
+    - Prefer immutable collections (IReadOnlyList, IReadOnlyCollection)
+  exception_handling:
+    - Create domain-specific exceptions for business rule violations
+    - Use Result pattern for operations that can fail
+    - Log exceptions with correlation IDs
+    - Include meaningful error messages for client consumption
+
+# Testing Standards
+testing:
+  unit_tests:
+    - Follow AAA pattern (Arrange, Act, Assert)
+    - One test should verify one behavior
+    - Use descriptive test method names explaining the scenario
+    - Mock external dependencies using Moq
+    - Test both success and failure scenarios
+  integration_tests:
+    - Use TestContainers for database tests when possible
+    - Clean up test data after each test
+    - Test critical business workflows end-to-end
+    - Use separate test database
+
+# API & Web Standards
+api_design:
+  rest_conventions:
+    - Use proper HTTP status codes (200, 201, 204, 400, 401, 403, 404, 500)
+    - Implement consistent error response format
+    - Use kebab-case for URL endpoints
+    - Version APIs using URL versioning (/api/v1/)
+  request_response:
+    - Use DTOs for all API requests/responses
+    - Implement request/response logging for debugging
+    - Add request timeout configurations
+    - Use compression for large responses
+
+# Configuration & Environment
+configuration:
+  environment_specific:
+    - Use different appsettings per environment
+    - Store secrets in secure key management systems
+    - Implement feature flags for gradual rollouts
+    - Use structured logging with correlation IDs
+  health_checks:
+    - Implement health checks for all external dependencies
+    - Include readiness and liveness probes
+    - Monitor application metrics (response times, error rates)
+
+# Documentation Standards
+documentation:
+  code_documentation:
+    - Document public APIs with XML comments
+    - Explain complex business logic with inline comments
+    - Keep README.md files updated with setup instructions
+  architecture_decisions:
+    - Document architectural decisions in ADR format
+    - Record design patterns used and their reasoning
+    - Document integration patterns with external systems
+
+# Modern .NET 8 Specific
+dotnet8_features:
+  language_features:
+    - Use primary constructors for dependency injection
+    - Use collection expressions where appropriate
+    - Leverage pattern matching improvements
+    - Use required properties for mandatory fields
+  framework_features:
+    - Use minimal APIs for simple endpoints
+    - Implement native AOT for performance-critical applications
+    - Use new logging source generators
+    - Leverage improved JSON serialization options

@@ -12,6 +12,7 @@ public static class QueryableExtensions
 {
     public static PagedResult<List<TResult>> ApplyPaging<T, TResult>(this IQueryable<T> query, PageableRequestParams pageableRequestParams)
     {
+        ArgumentNullException.ThrowIfNull(query);
         var totalCount = query.Count();
         var totalPages = (int)Math.Ceiling((double)totalCount / pageableRequestParams.PageSize);
         var pageInfo = new PagedInfo(pageableRequestParams.Page, pageableRequestParams.PageSize, totalPages, totalCount);
@@ -25,8 +26,7 @@ public static class QueryableExtensions
     Expression<Func<TSource, bool>>? predicate = null,
     CancellationToken cancellationToken = default)
     {
-        if (query is null)
-            throw new ArgumentNullException(nameof(query));
+        ArgumentNullException.ThrowIfNull(query);
 
         int count;
         List<TDestination> items;

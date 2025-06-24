@@ -4,7 +4,7 @@ public sealed class UserAddressTests
 {
     private static readonly Guid ValidUserId = Guid.NewGuid();
     private const string ValidLabel = "Home";
-    private static readonly Address ValidAddress = new("123 Main St", "New York", "NY", "10001", "USA");
+    private static readonly Address ValidAddress = new("123 Main St", "New York", "10001", "USA");
 
     [Fact]
     public void Create_WithValidParameters_ShouldCreateUserAddress()
@@ -83,7 +83,7 @@ public sealed class UserAddressTests
         // Arrange
         var userAddress = UserAddress.Create(ValidUserId, ValidLabel, ValidAddress);
         var newLabel = "Work";
-        var newAddress = new Address("456 Business Ave", "Boston", "MA", "02101", "USA");
+        var newAddress = new Address("456 Business Ave", "Boston", "02101", "USA");
 
         // Act
         userAddress.Update(newLabel, newAddress);
@@ -101,7 +101,7 @@ public sealed class UserAddressTests
     {
         // Arrange
         var userAddress = UserAddress.Create(ValidUserId, ValidLabel, ValidAddress);
-        var newAddress = new Address("456 Business Ave", "Boston", "MA", "02101", "USA");
+        var newAddress = new Address("456 Business Ave", "Boston", "02101", "USA");
 
         // Act
 #pragma warning disable CS8604 // Possible null reference argument.

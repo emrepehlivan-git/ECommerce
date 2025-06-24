@@ -16,7 +16,7 @@ public class OrderItemRepositoryTests : RepositoryTestBase
         var category = Category.Create("Books");
         category.Id = Guid.NewGuid();
         var product = Product.Create("Book", null, 5m, category.Id, 10);
-        var order = Order.Create(Guid.NewGuid(), new Address("s", "Istanbul", "Marmara", "34000", "Turkey"), new Address("b", "Istanbul", "Marmara", "34000", "Turkey"));
+        var order = Order.Create(Guid.NewGuid(), new Address("s", "Istanbul", "34000", "Turkey"), new Address("b", "Istanbul", "34000", "Turkey"));
 
         Context.Categories.Add(category);
         Context.Products.Add(product);

@@ -16,4 +16,5 @@ public static class OrderConsts
     public const string EmptyOrder = "Order:EmptyOrder";
     public const string InsufficientStock = "Order:InsufficientStock";
     public const string ProductNotActive = "Order:ProductNotActive";
+    public const string OrderStatusInvalid = "Order:OrderStatusInvalid";
 }

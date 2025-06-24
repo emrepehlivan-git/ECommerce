@@ -11,7 +11,7 @@ public abstract class UserAddressesTestBase
 {
     protected static readonly Guid UserId = Guid.Parse("e64db34c-7455-41da-b255-a9a7a46ace54");
     protected static readonly Guid AddressId = Guid.Parse("f64db34c-7455-41da-b255-a9a7a46ace64");
-    protected static readonly Address DefaultAddress = new("123 Main St", "New York", "NY", "10001", "USA");
+    protected static readonly Address DefaultAddress = new("123 Main St", "New York", "10001", "USA");
     protected UserAddress DefaultUserAddress => UserAddress.Create(UserId, "Home", DefaultAddress);
 
     protected Mock<IUserAddressRepository> UserAddressRepositoryMock;
@@ -46,7 +46,6 @@ public abstract class UserAddressesTestBase
             .Map(dest => dest.Label, src => src.Label)
             .Map(dest => dest.Street, src => src.Address.Street)
             .Map(dest => dest.City, src => src.Address.City)
-            .Map(dest => dest.State, src => src.Address.State)
             .Map(dest => dest.ZipCode, src => src.Address.ZipCode)
             .Map(dest => dest.Country, src => src.Address.Country)
             .Map(dest => dest.IsDefault, src => src.IsDefault)

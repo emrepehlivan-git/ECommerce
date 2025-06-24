@@ -1,3 +1,4 @@
+using ECommerce.Application.Features.Products;
 using ECommerce.Domain.Entities;
 using ECommerce.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
@@ -15,10 +16,10 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
 
         builder.Property(p => p.Name)
             .IsRequired()
-            .HasMaxLength(100);
+            .HasMaxLength(ProductConsts.NameMaxLength);
 
         builder.Property(p => p.Description)
-            .HasMaxLength(500);
+            .HasMaxLength(ProductConsts.DescriptionMaxLength);
 
         builder.Property(p => p.Price)
             .HasConversion(

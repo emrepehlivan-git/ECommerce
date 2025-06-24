@@ -2,7 +2,7 @@ using Ardalis.Result;
 using ECommerce.Application.Behaviors;
 using ECommerce.Application.CQRS;
 using ECommerce.Application.Features.Carts.DTOs;
-
+using ECommerce.Application.Helpers;
 using ECommerce.Application.Repositories;
 using ECommerce.Application.Services;
 using ECommerce.SharedKernel.DependencyInjection;
@@ -17,17 +17,17 @@ public sealed record UpdateCartItemQuantityCommand(
 
 public sealed class UpdateCartItemQuantityCommandValidator : AbstractValidator<UpdateCartItemQuantityCommand>
 {
-    public UpdateCartItemQuantityCommandValidator()
+    public UpdateCartItemQuantityCommandValidator(LocalizationHelper localizer)
     {
         RuleFor(x => x.ProductId)
             .NotEmpty()
-            .WithMessage(CartConsts.ValidationMessages.ProductIdRequired);
+            .WithMessage(localizer[CartConsts.ValidationMessages.ProductIdRequired]);
 
         RuleFor(x => x.Quantity)
             .GreaterThan(0)
-            .WithMessage(CartConsts.ValidationMessages.QuantityMustBePositive)
+            .WithMessage(localizer[CartConsts.ValidationMessages.QuantityMustBePositive])
             .LessThanOrEqualTo(CartConsts.MaxQuantityPerItem)
-            .WithMessage(string.Format(CartConsts.ErrorMessages.MaxQuantityExceeded, CartConsts.MaxQuantityPerItem));
+            .WithMessage(string.Format(localizer[CartConsts.ErrorMessages.MaxQuantityExceeded], CartConsts.MaxQuantityPerItem));
     }
 }
 
@@ -45,22 +45,22 @@ public sealed class UpdateCartItemQuantityCommandHandler(
 
         var cart = await cartRepository.GetByUserIdWithItemsAsync(currentUserId, cancellationToken);
         if (cart is null)
-            return Result<CartSummaryDto>.NotFound(CartConsts.ErrorMessages.CartNotFound);
+            return Result<CartSummaryDto>.NotFound(Localizer[CartConsts.ErrorMessages.CartNotFound]);
 
         if (!cart.HasItem(request.ProductId))
-            return Result<CartSummaryDto>.NotFound(CartConsts.ErrorMessages.CartItemNotFound);
+            return Result<CartSummaryDto>.NotFound(Localizer[CartConsts.ErrorMessages.CartItemNotFound]);
 
         var product = await productRepository.GetByIdAsync(request.ProductId, cancellationToken: cancellationToken);
         if (product is null)
-            return Result<CartSummaryDto>.NotFound(CartConsts.ErrorMessages.ProductNotFound);
+            return Result<CartSummaryDto>.NotFound(Localizer[CartConsts.ErrorMessages.ProductNotFound]);
 
         if (!product.IsOrderable(request.Quantity))
-            return Result<CartSummaryDto>.Error(CartConsts.ErrorMessages.InsufficientStock);
+            return Result<CartSummaryDto>.Error(Localizer[CartConsts.ErrorMessages.InsufficientStock]);
 
         cart.UpdateItemQuantity(request.ProductId, request.Quantity);
 
         if (cart.TotalAmount > CartConsts.MaxTotalAmount)
-            return Result<CartSummaryDto>.Error(string.Format(CartConsts.ErrorMessages.MaxTotalAmountExceeded, CartConsts.MaxTotalAmount));
+            return Result<CartSummaryDto>.Error(string.Format(Localizer[CartConsts.ErrorMessages.MaxTotalAmountExceeded], CartConsts.MaxTotalAmount));
 
         var summary = new CartSummaryDto(cart.Id, cart.TotalItems, cart.TotalAmount);
         return Result<CartSummaryDto>.Success(summary);

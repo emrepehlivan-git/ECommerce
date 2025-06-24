@@ -25,7 +25,7 @@ public sealed class GetUserAddressesQueryTests : UserAddressesTestBase
         var userAddresses = new List<UserAddress>
         {
             UserAddress.Create(UserId, "Home", DefaultAddress),
-            UserAddress.Create(UserId, "Work", new Address("456 Business Ave", "Boston", "MA", "02101", "USA"))
+            UserAddress.Create(UserId, "Work", new Address("456 Business Ave", "Boston", "02101", "USA"))
         };
         SetupGetUserAddresses(userAddresses);
         SetupUserExists(true);
@@ -166,10 +166,9 @@ public sealed class GetUserAddressesQueryTests : UserAddressesTestBase
         // Arrange
         var street = "123 Test Street";
         var city = "Test City";
-        var state = "Test State";
         var zipCode = "12345";
         var country = "Test Country";
-        var address = new Address(street, city, state, zipCode, country);
+        var address = new Address(street, city, zipCode, country);
         var userAddress = UserAddress.Create(UserId, "Test Address", address);
 
         SetupUserExists(true);
@@ -186,7 +185,6 @@ public sealed class GetUserAddressesQueryTests : UserAddressesTestBase
         var dto = result.Value.First();
         dto.Street.Should().Be(street);
         dto.City.Should().Be(city);
-        dto.State.Should().Be(state);
         dto.ZipCode.Should().Be(zipCode);
         dto.Country.Should().Be(country);
         dto.Label.Should().Be("Test Address");

@@ -12,4 +12,5 @@ public static class ProductConsts
     public const string StockQuantityMustBeGreaterThanZero = "Product:StockQuantity:MustBeGreaterThanZero";
     public const int NameMinLength = 3;
     public const int NameMaxLength = 100;
+    public const int DescriptionMaxLength = 500;
 }

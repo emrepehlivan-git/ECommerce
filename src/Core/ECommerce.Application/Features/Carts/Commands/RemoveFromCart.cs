@@ -2,7 +2,7 @@ using Ardalis.Result;
 using ECommerce.Application.Behaviors;
 using ECommerce.Application.CQRS;
 using ECommerce.Application.Features.Carts.DTOs;
-
+using ECommerce.Application.Helpers;
 using ECommerce.Application.Repositories;
 using ECommerce.Application.Services;
 using ECommerce.SharedKernel.DependencyInjection;
@@ -16,11 +16,11 @@ public sealed record RemoveFromCartCommand(
 
 public sealed class RemoveFromCartCommandValidator : AbstractValidator<RemoveFromCartCommand>
 {
-    public RemoveFromCartCommandValidator()
+    public RemoveFromCartCommandValidator(LocalizationHelper localizer)
     {
         RuleFor(x => x.ProductId)
             .NotEmpty()
-            .WithMessage(CartConsts.ValidationMessages.ProductIdRequired);
+            .WithMessage(localizer[CartConsts.ValidationMessages.ProductIdRequired]);
     }
 }
 
@@ -37,10 +37,10 @@ public sealed class RemoveFromCartCommandHandler(
 
         var cart = await cartRepository.GetByUserIdWithItemsAsync(currentUserId, cancellationToken);
         if (cart is null)
-            return Result<CartSummaryDto>.NotFound(CartConsts.ErrorMessages.CartNotFound);
+            return Result<CartSummaryDto>.NotFound(Localizer[CartConsts.ErrorMessages.CartNotFound]);
 
         if (!cart.HasItem(request.ProductId))
-            return Result<CartSummaryDto>.NotFound(CartConsts.ErrorMessages.CartItemNotFound);
+            return Result<CartSummaryDto>.NotFound(Localizer[CartConsts.ErrorMessages.CartItemNotFound]);
 
         cart.RemoveItem(request.ProductId);
 

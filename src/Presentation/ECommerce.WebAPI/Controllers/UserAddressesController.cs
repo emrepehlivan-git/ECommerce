@@ -31,7 +31,6 @@ public sealed class UserAddressesController : BaseApiController
             request.Label,
             request.Street,
             request.City,
-            request.State,
             request.ZipCode,
             request.Country);
 

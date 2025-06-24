@@ -1,9 +1,9 @@
 using Ardalis.Result;
 using ECommerce.Application.Behaviors;
 using ECommerce.Application.CQRS;
-using ECommerce.Application.Exceptions;
 using ECommerce.Application.Features.Roles.DTOs;
 using ECommerce.Application.Services;
+using ECommerce.Application.Helpers;
 using ECommerce.SharedKernel.DependencyInjection;
 using FluentValidation;
 using MediatR;
@@ -18,11 +18,11 @@ public sealed record GetUserRolesQuery(Guid UserId) : IRequest<Result<UserRoleDt
 
 public sealed class GetUserRolesQueryValidator : AbstractValidator<GetUserRolesQuery>
 {
-    public GetUserRolesQueryValidator()
+    public GetUserRolesQueryValidator(LocalizationHelper localizer)
     {
         RuleFor(x => x.UserId)
             .NotEmpty()
-            .WithMessage("UserId is required");
+            .WithMessage(localizer[RoleConsts.UserNotFound]);
     }
 }
 

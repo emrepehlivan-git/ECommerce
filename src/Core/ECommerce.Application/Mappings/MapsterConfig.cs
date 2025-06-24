@@ -20,7 +20,7 @@ public static class MapsterConfig
         ProductMapperConfig.Configure(config);
         CategoryMapperConfig.Configure(config);
         OrderMapperConfig.Configure(config);
-        UserAddressMapperConfig.Configure(config);
+        UserAddressMapperConfig.Configure();
         RoleMapperConfig.Configure();
         CartMapperConfig.Configure();
 

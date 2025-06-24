@@ -16,7 +16,6 @@ public sealed class UpdateUserAddressCommandTests : UserAddressesTestBase
             "Updated Home",
             "456 Updated St",
             "Boston",
-            "MA",
             "02101",
             "USA");
 
@@ -42,7 +41,6 @@ public sealed class UpdateUserAddressCommandTests : UserAddressesTestBase
         existingAddress.Label.Should().Be(Command.Label);
         existingAddress.Address.Street.Should().Be(Command.Street);
         existingAddress.Address.City.Should().Be(Command.City);
-        existingAddress.Address.State.Should().Be(Command.State);
         existingAddress.Address.ZipCode.Should().Be(Command.ZipCode);
         existingAddress.Address.Country.Should().Be(Command.Country);
 
@@ -120,7 +118,6 @@ public sealed class UpdateUserAddressCommandTests : UserAddressesTestBase
         var newLabel = "Work Office";
         var newStreet = "789 Business Blvd";
         var newCity = "Chicago";
-        var newState = "Illinois";
         var newZipCode = "60601";
         var newCountry = "United States";
 
@@ -130,7 +127,6 @@ public sealed class UpdateUserAddressCommandTests : UserAddressesTestBase
             newLabel,
             newStreet,
             newCity,
-            newState,
             newZipCode,
             newCountry);
 
@@ -144,7 +140,6 @@ public sealed class UpdateUserAddressCommandTests : UserAddressesTestBase
         existingAddress.Label.Should().Be(newLabel);
         existingAddress.Address.Street.Should().Be(newStreet);
         existingAddress.Address.City.Should().Be(newCity);
-        existingAddress.Address.State.Should().Be(newState);
         existingAddress.Address.ZipCode.Should().Be(newZipCode);
         existingAddress.Address.Country.Should().Be(newCountry);
     }

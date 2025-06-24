@@ -145,7 +145,7 @@ public abstract class BaseRepository<TEntity> : IRepository<TEntity> where TEnti
         CancellationToken cancellationToken = default)
     {
         var query = Query(predicate, orderBy, include, isTracking);
-        return query.ApplyPagingAsync<TEntity, TResult>(new PageableRequestParams(page, pageSize), predicate: predicate, cancellationToken: cancellationToken);
+        return query.ApplyPagingAsync<TEntity, TResult>(new PageableRequestParams(page, pageSize), cancellationToken: cancellationToken);
     }
 
     public virtual async Task<PagedResult<List<TResult>>> GetPagedAsync<TResult>(ISpecification<TEntity> specification, 
