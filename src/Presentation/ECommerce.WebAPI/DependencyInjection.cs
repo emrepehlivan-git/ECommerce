@@ -95,9 +95,6 @@ public static class DependencyInjection
         app.UseAuthentication();
         app.UseAuthorization();
 
-        // Add OpenTelemetry Prometheus metrics endpoint
-        app.MapPrometheusScrapingEndpoint();
-
         app.MapControllers();
 
         return app;

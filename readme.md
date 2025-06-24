@@ -22,7 +22,7 @@ A modular and scalable e-commerce application built with modern .NET technologie
 - **Validation**: FluentValidation
 - **Authentication**: OpenIddict + ASP.NET Identity (Token & Cookie based)
 - **Logging**: Serilog with structured logging
-- **Observability**: OpenTelemetry with Jaeger, Prometheus, Grafana
+- **Observability**: OpenTelemetry with Jaeger
 - **Testing**: xUnit, Testcontainers
 - **Dependency Injection**: ILazyServiceProvider pattern
 - **API**: RESTful services using Controllers
@@ -77,18 +77,18 @@ docker-compose up -d
 ### Access URLs
 
 **Application:**
+
 - **API**: http://localhost:4000
 - **Auth Server**: https://localhost:5002
 - **Swagger Documentation**: http://localhost:4000/swagger
-- **API Metrics**: http://localhost:4000/metrics
 
 **Observability Stack:**
+
 - **Jaeger (Distributed Tracing)**: http://localhost:16686
-- **Prometheus (Metrics)**: http://localhost:9090
-- **Grafana (Dashboards)**: http://localhost:3000 (admin/admin)
 - **Seq (Structured Logs)**: http://localhost:5341
 
 **Database & Tools:**
+
 - **PostgreSQL**: localhost:5432 (postgres/postgres)
 - **PgAdmin**: http://localhost:8082 (admin@example.com/admin)
 - **Redis**: localhost:6379

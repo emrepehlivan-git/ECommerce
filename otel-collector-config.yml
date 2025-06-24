@@ -24,11 +24,7 @@ exporters:
     endpoint: ecommerce.jaeger:4317
     tls:
       insecure: true
-  
-  prometheus:
-    endpoint: "0.0.0.0:8889"
-    namespace: ecommerce
-    
+
   debug:
     verbosity: detailed
 
@@ -38,10 +34,10 @@ service:
       receivers: [otlp]
       processors: [memory_limiter, resource, batch]
       exporters: [otlp/jaeger, debug]
-    
+
     metrics:
       receivers: [otlp]
       processors: [memory_limiter, resource, batch]
-      exporters: [prometheus, debug]
-  
-  extensions: [] 
+      exporters: [debug]
+
+  extensions: []

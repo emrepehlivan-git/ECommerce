@@ -145,38 +145,13 @@
     image: jaegertracing/all-in-one:latest
     container_name: ecommerce.jaeger
     ports:
-      - "16686:16686"  
+      - "16686:16686"
       - "14268:14268"
       - "6831:6831/udp"
       - "4317:4317"
       - "4318:4318"
     environment:
       - COLLECTOR_OTLP_ENABLED=true
-    networks:
-      - ecommerce-network
-
-  ecommerce.prometheus:
-    build:
-      context: .
-      dockerfile: Dockerfile.prometheus
-    container_name: ecommerce.prometheus
-    ports:
-      - "9090:9090"
-    volumes:
-      - prometheus-data:/prometheus
-    networks:
-      - ecommerce-network
-
-  ecommerce.grafana:
-    image: grafana/grafana:latest
-    container_name: ecommerce.grafana
-    ports:
-      - "5005:3000"
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      - GF_USERS_ALLOW_SIGN_UP=false
-    volumes:
-      - grafana-storage:/var/lib/grafana
     networks:
       - ecommerce-network
 
@@ -192,7 +167,6 @@
       - "8889:8889"
     depends_on:
       - ecommerce.jaeger
-      - ecommerce.prometheus
     networks:
       - ecommerce-network
 
@@ -202,10 +176,7 @@ volumes:
   seqdata:
   keys:
   pgadmin:
-  prometheus-data:
-  grafana-storage:
-  
+
 networks:
   ecommerce-network:
     driver: bridge
-  

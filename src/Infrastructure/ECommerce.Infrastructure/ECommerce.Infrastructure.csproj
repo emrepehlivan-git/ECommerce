@@ -31,7 +31,6 @@
       <PackageReference Include="OpenTelemetry.Instrumentation.EntityFrameworkCore" />
       <PackageReference Include="OpenTelemetry.Instrumentation.SqlClient" />
       <PackageReference Include="OpenTelemetry.Exporter.Jaeger" />
-      <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" />
       <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
     </ItemGroup>
 

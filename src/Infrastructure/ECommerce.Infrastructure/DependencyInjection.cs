@@ -1,7 +1,3 @@
-using ECommerce.Application.Interfaces;
-using ECommerce.Application.Services;
-using ECommerce.Infrastructure.Services;
-using ECommerce.Persistence.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ECommerce.Infrastructure.Logging;
@@ -13,7 +9,6 @@ using OpenTelemetry.Trace;
 using OpenTelemetry.Metrics;
 using Microsoft.AspNetCore.Http;
 using System.Diagnostics;
-using OpenTelemetry.Exporter;
 
 namespace ECommerce.Infrastructure;
 
@@ -121,9 +116,6 @@ public static class DependencyInjection
                     .AddHttpClientInstrumentation()
                     .AddMeter("ECommerce.*");
 
-                // Add exporters
-                meterProviderBuilder.AddPrometheusExporter();
-
                 var otlpEndpoint = configuration["OpenTelemetry:OTLP:Endpoint"];
                 if (!string.IsNullOrEmpty(otlpEndpoint))
                 {
@@ -139,11 +131,10 @@ public static class DependencyInjection
 
     private static bool FilterRequests(HttpContext context)
     {
-        // Filter out health checks and metrics endpoints
+        // Filter out health checks and swagger endpoints
         var path = context.Request.Path.Value;
         return !string.IsNullOrEmpty(path) &&
                !path.StartsWith("/health") &&
-               !path.StartsWith("/metrics") &&
                !path.StartsWith("/swagger");
     }
 
