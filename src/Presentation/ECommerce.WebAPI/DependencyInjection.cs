@@ -1,8 +1,7 @@
 using System.Globalization;
-using System.Threading.Tasks;
+using System;
 using ECommerce.Application;
 using ECommerce.Application.Constants;
-using ECommerce.Application.Interfaces;
 using ECommerce.Infrastructure;
 using ECommerce.Persistence;
 using ECommerce.Persistence.Contexts;
@@ -10,7 +9,6 @@ using ECommerce.Persistence.Seeds;
 using ECommerce.SharedKernel.DependencyInjection;
 using ECommerce.WebAPI.Authorization;
 using ECommerce.WebAPI.Middlewares;
-using ECommerce.WebAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
@@ -62,6 +60,7 @@ public static class DependencyInjection
         });
 
         ConfigureOpenIddict(services, configuration);
+        ConfigureAuthorization(services);
 
         services.AddAuthorization();
 
@@ -100,7 +99,7 @@ public static class DependencyInjection
         return app;
     }
 
-    private static void AddAuthorization(this IServiceCollection services)
+    private static void ConfigureAuthorization(this IServiceCollection services)
     {
         services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
         services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
@@ -138,8 +137,15 @@ public static class DependencyInjection
         services.AddOpenIddict()
             .AddValidation(options =>
             {
-                options.SetIssuer(new Uri(configuration["Authentication:Authority"]!));
+                var issuerUrl = configuration.GetValue<string>("Authentication:Authority") ?? 
+                               (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true" 
+                                   ? "https://ecommerce.authserver:8081"
+                                   : "https://localhost:5002");
+                options.SetIssuer(new Uri(issuerUrl));
+
                 options.AddAudiences(configuration["Authentication:Audience"]!);
+                options.SetClientId(configuration["Authentication:ClientId"]!);
+                options.SetClientSecret(configuration["Authentication:ClientSecret"]!);
 
                 options.UseSystemNetHttp(httpOptions =>
                 {
@@ -150,7 +156,6 @@ public static class DependencyInjection
                 });
 
                 options.UseAspNetCore();
-
             });
     }
 
@@ -165,7 +170,8 @@ public static class DependencyInjection
                 Description = "ECommerce API with OpenIddict Authentication"
             });
             
-            var authServerUrl = configuration["Authentication:SwaggerAuthority"] ?? "https://localhost:5002";
+            // Swagger tarayıcıdan çalışır, bu yüzden her zaman localhost kullanmalı
+            var authServerUrl = "https://localhost:5002";
             
             options.AddSecurityDefinition("oauth2", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
             {

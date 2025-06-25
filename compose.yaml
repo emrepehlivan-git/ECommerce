@@ -10,11 +10,6 @@
       - ASPNETCORE_URLS=http://+:8080
       - ASPNETCORE_ENVIRONMENT=Development
       - Serilog__WriteTo__1__Args__serverUrl=http://ecommerce.seq:5341
-      - Authentication__Authority=https://ecommerce.authserver:8081
-      - Authentication__SwaggerAuthority=https://localhost:5002
-      - Authentication__Audience=api
-      - Authentication__ClientId=api
-      - Authentication__ClientSecret=api-secret
       - DOTNET_RUNNING_IN_CONTAINER=true
       - OpenTelemetry__ServiceName=ECommerce.WebAPI
       - OpenTelemetry__ServiceVersion=1.0.0
@@ -22,6 +17,7 @@
       - OpenTelemetry__Jaeger__AgentPort=6831
       - OpenTelemetry__Jaeger__Endpoint=http://ecommerce.jaeger:14268/api/traces
       - OpenTelemetry__OTLP__Endpoint=http://ecommerce.jaeger:4317
+      - Authentication__Authority=https://ecommerce.authserver:8081
     depends_on:
       - ecommerce.db
       - ecommerce.redis
@@ -59,10 +55,8 @@
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/auth.pfx
       - ASPNETCORE_Kestrel__Certificates__Default__Password=YourSecurePassword
-      - Authentication__UseHttps=true
-      - Authentication__Authority=https://ecommerce.authserver:8081
-      - Authentication__RequireHttpsMetadata=true
       - DOTNET_RUNNING_IN_CONTAINER=true
+      - LoggingOptions__SeqUrl=http://ecommerce.seq:5341
       - OpenTelemetry__ServiceName=ECommerce.AuthServer
       - OpenTelemetry__ServiceVersion=1.0.0
       - OpenTelemetry__Jaeger__AgentHost=ecommerce.jaeger
@@ -89,6 +83,41 @@
         - action: rebuild
           path: ./src/Application/
           target: /app
+
+  ecommerce.client:
+    container_name: ecommerce.client
+    hostname: ecommerce.client
+    build:
+      context: ../ecommerce-client
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+      - NEXT_PUBLIC_AUTH_SERVER_URL=https://localhost:5002/
+      - NEXT_PUBLIC_OPENIDDICT_CLIENT_ID=nextjs-client
+      - NEXT_PUBLIC_API_URL=http://localhost:4000
+      - AUTH_SECRET=ImlfqyTaDdLdzrqQRLmth4aThtyPcRI8zAQvJjmNtJw=
+      - NEXTAUTH_SECRET=ImlfqyTaDdLdzrqQRLmth4aThtyPcRI8zAQvJjmNtJw=
+      - NEXTAUTH_URL=http://localhost:3000
+      - AUTH_TRUST_HOST=true
+      - INTERNAL_API_URL=http://ecommerce.webapi:8080
+      - INTERNAL_AUTH_SERVER_URL=https://ecommerce.authserver:8081
+      - NODE_TLS_REJECT_UNAUTHORIZED=0
+    depends_on:
+      - ecommerce.authserver
+      - ecommerce.webapi
+    ports:
+      - 3000:3000
+    networks:
+      - ecommerce-network
+    develop:
+      watch:
+        - action: rebuild
+          path: ../ecommerce-client/src/
+          target: /app/src
+        - action: rebuild
+          path: ../ecommerce-client/public/
+          target: /app/public
 
   ecommerce.db:
     container_name: ecommerce.db

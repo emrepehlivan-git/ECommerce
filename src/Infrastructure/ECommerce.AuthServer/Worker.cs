@@ -33,14 +33,16 @@ public class Worker : IHostedService
         {
             new Uri("http://localhost:8080/callback"),
             new Uri("https://localhost:8080/callback"),
-            new Uri("https://oauth.pstmn.io/v1/callback"),
-            new Uri("https://oauth.pstmn.io/v1/browser-callback"),
-            new Uri("https://oauth.pstmn.io/v1/vscode-callback"),
             new Uri("http://localhost:3000/api/auth/callback/openiddict"),
+            new Uri("http://0.0.0.0:3000/api/auth/callback/openiddict"),
+            new Uri("https://0.0.0.0:3000/api/auth/callback/openiddict"),
             new Uri("https://oidcdebugger.com/debug"),
             new Uri("vscode://postman.postman-for-vscode/oauth2/callback"),
         },
-            PostLogoutRedirectUris = { new Uri("http://localhost:3000/") },
+            PostLogoutRedirectUris = { 
+                new Uri("http://localhost:3000/"),
+                new Uri("http://0.0.0.0:3000/"),
+            },
             Permissions =
         {
             Permissions.Endpoints.Authorization,

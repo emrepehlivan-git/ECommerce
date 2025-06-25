@@ -1,4 +1,5 @@
 using ECommerce.Application.Services;
+using System;
 using ECommerce.Persistence.Contexts;
 using ECommerce.Persistence;
 using static OpenIddict.Abstractions.OpenIddictConstants;
@@ -35,7 +36,11 @@ builder.Services.AddCors(options =>
             "http://localhost:4000",
             "https://localhost:4001",
             "http://localhost:3000",
-            "https://localhost:3000"
+            "https://localhost:3000",
+            "http://ecommerce.webapi:8080",
+            "https://ecommerce.webapi:8081",
+            "http://ecommerce.client:3000",
+            "https://ecommerce.client:3000"
         )
         .AllowAnyMethod()
         .AllowAnyHeader()
@@ -64,8 +69,8 @@ builder.Services.AddOpenIddict()
     })
     .AddServer(options =>
     {
-        var authority = builder.Configuration["Authentication:Authority"] ?? "https://ecommerce.authserver:8081";
-        options.SetIssuer(new Uri(authority));
+        var issuerUrl = builder.Configuration.GetValue<string>("Authentication:Authority") ?? "https://localhost:5002";
+        options.SetIssuer(new Uri(issuerUrl));
 
         options.SetAuthorizationEndpointUris("/connect/authorize")
                .SetTokenEndpointUris("/connect/token")
