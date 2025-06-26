@@ -1,4 +1,3 @@
-using ECommerce.Domain.Entities;
 using ECommerce.Domain.Events.Cart;
 
 namespace ECommerce.Domain.UnitTests.Entities;
@@ -45,7 +44,7 @@ public sealed class CartTests
 
         // Assert
         cart.Items.Should().HaveCount(1);
-        cart.TotalItems.Should().Be(2);
+        cart.TotalItems.Should().Be(1);
         cart.TotalAmount.Should().Be(199.98m);
         cart.IsEmpty.Should().BeFalse();
         cart.HasItem(productId).Should().BeTrue();
@@ -74,7 +73,7 @@ public sealed class CartTests
 
         // Assert
         cart.Items.Should().HaveCount(1);
-        cart.TotalItems.Should().Be(3);
+        cart.TotalItems.Should().Be(1);
         cart.TotalAmount.Should().Be(150m);
 
         var item = cart.GetItem(productId);
@@ -155,7 +154,7 @@ public sealed class CartTests
         cart.UpdateItemQuantity(productId, 5);
 
         // Assert
-        cart.TotalItems.Should().Be(5);
+        cart.TotalItems.Should().Be(1);
         cart.TotalAmount.Should().Be(125m);
 
         var item = cart.GetItem(productId);

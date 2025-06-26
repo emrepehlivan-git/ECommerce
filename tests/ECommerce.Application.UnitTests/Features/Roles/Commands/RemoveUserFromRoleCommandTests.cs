@@ -107,7 +107,7 @@ public sealed class RemoveUserFromRoleCommandTests : RoleTestBase
 
         // Assert
         validationResult.IsValid.Should().BeFalse();
-        validationResult.Errors.Should().Contain(x => x.ErrorMessage == "UserId is required");
+        validationResult.Errors.Should().Contain(x => x.ErrorMessage == "User not found.");
     }
 
     [Fact]

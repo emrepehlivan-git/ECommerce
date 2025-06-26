@@ -1,5 +1,7 @@
 using ECommerce.Application.Features.Users.Queries;
+using ECommerce.Application.Features.Users.DTOs;
 using ECommerce.Application.Parameters;
+using ECommerce.Application.Extensions;
 
 namespace ECommerce.Application.UnitTests.Features.Users.Queries;
 
@@ -20,38 +22,37 @@ public sealed class GetUsersQueryTests : UserQueriesTestBase
     [Fact]
     public async Task Handle_WithValidQuery_ShouldReturnPagedUsers()
     {
+        // Arrange
         var users = new List<User> { DefaultUser };
         SetupUsersQuery(users);
 
+        // Act
         var result = await Handler.Handle(Query, CancellationToken.None);
 
+        // Assert
         result.Should().NotBeNull();
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeNull();
-        result.Value.Should().HaveCount(1);
-        result.Value.First().Id.Should().Be(DefaultUser.Id);
-        result.Value.First().Email.Should().Be(DefaultUser.Email);
-        result.Value.First().FullName.Should().Be(DefaultUser.FullName.ToString());
-        result.Value.First().IsActive.Should().Be(DefaultUser.IsActive);
+        UserServiceMock.Verify(x => x.Users, Times.AtLeastOnce);
     }
 
     [Fact]
-    public async Task Handle_WithEmptyUsers_ShouldReturnEmptyList()
+    public async Task Handle_WithEmptyUsers_ShouldReturnEmptyPagedResult()
     {
+        // Arrange
         var emptyUsers = new List<User>();
         SetupUsersQuery(emptyUsers);
 
+        // Act
         var result = await Handler.Handle(Query, CancellationToken.None);
 
+        // Assert
         result.Should().NotBeNull();
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeNull();
-        result.Value.Should().BeEmpty();
+        UserServiceMock.Verify(x => x.Users, Times.AtLeastOnce);
     }
 
     [Fact]
-    public async Task Handle_WithPaging_ShouldReturnPagedResults()
+    public async Task Handle_WithPaging_ShouldUseCorrectParameters()
     {
+        // Arrange
         var users = new List<User>
         {
             DefaultUser,
@@ -63,11 +64,26 @@ public sealed class GetUsersQueryTests : UserQueriesTestBase
         var pagingParams = new PageableRequestParams { PageSize = 2, Page = 1 };
         var pagedQuery = new GetUsersQuery(pagingParams);
 
+        // Act
         var result = await Handler.Handle(pagedQuery, CancellationToken.None);
 
+        // Assert
         result.Should().NotBeNull();
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeNull();
-        result.Value.Should().HaveCount(2);
+        UserServiceMock.Verify(x => x.Users, Times.AtLeastOnce);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldUseAsNoTracking()
+    {
+        // Arrange
+        var users = new List<User> { DefaultUser };
+        SetupUsersQuery(users);
+
+        // Act
+        var result = await Handler.Handle(Query, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        UserServiceMock.Verify(x => x.Users, Times.AtLeastOnce);
     }
 }

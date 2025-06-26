@@ -137,11 +137,8 @@ public static class DependencyInjection
         services.AddOpenIddict()
             .AddValidation(options =>
             {
-                var issuerUrl = configuration.GetValue<string>("Authentication:Authority") ?? 
-                               (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true" 
-                                   ? "https://ecommerce.authserver:8081"
-                                   : "https://localhost:5002");
-                options.SetIssuer(new Uri(issuerUrl));
+                // Use container network URL for WebAPI - this is where it can actually reach auth server
+                options.SetIssuer(new Uri("https://ecommerce.authserver:8081/"));
 
                 options.AddAudiences(configuration["Authentication:Audience"]!);
                 options.SetClientId(configuration["Authentication:ClientId"]!);
@@ -170,7 +167,6 @@ public static class DependencyInjection
                 Description = "ECommerce API with OpenIddict Authentication"
             });
             
-            // Swagger tarayıcıdan çalışır, bu yüzden her zaman localhost kullanmalı
             var authServerUrl = "https://localhost:5002";
             
             options.AddSecurityDefinition("oauth2", new Microsoft.OpenApi.Models.OpenApiSecurityScheme

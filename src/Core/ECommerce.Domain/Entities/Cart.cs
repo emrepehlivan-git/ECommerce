@@ -12,7 +12,7 @@ public sealed class Cart : AuditableEntity
     public IReadOnlyCollection<CartItem> Items => _items.AsReadOnly();
 
     public decimal TotalAmount => _items.Sum(item => item.TotalPrice);
-    public int TotalItems => _items.Sum(item => item.Quantity);
+    public int TotalItems => _items.DistinctBy(item => item.ProductId).Count();
 
     internal Cart()
     {

@@ -8,6 +8,7 @@ using ECommerce.Application.Repositories;
 using ECommerce.SharedKernel;
 using FluentValidation;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Application.Features.Stock.Commands;
 
@@ -35,7 +36,9 @@ public sealed class UpdateProductStockHandler(
 {
     public override async Task<Result> Handle(UpdateProductStock request, CancellationToken cancellationToken)
     {
-        var product = await productRepository.GetByIdAsync(request.ProductId, cancellationToken: cancellationToken);
+        var product = await productRepository.GetByIdAsync(request.ProductId, 
+            include: x => x.Include(p => p.Stock), 
+            cancellationToken: cancellationToken);
 
         if (product is null)
             return Result.NotFound(Localizer[ProductConsts.NotFound]);

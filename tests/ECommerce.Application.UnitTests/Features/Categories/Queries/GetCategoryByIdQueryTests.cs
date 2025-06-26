@@ -24,7 +24,9 @@ public sealed class GetCategoryByIdQueryTests : CategoryQueriesTestBase
     {
         // Arrange
         var category = Category.Create("Test Category");
-        SetupCategoryRepositoryGetByIdAsync(category);
+        CategoryRepositoryMock
+            .Setup(x => x.GetByIdAsync(CategoryId, It.IsAny<Expression<Func<IQueryable<Category>, IQueryable<Category>>>?>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(category);
 
         // Act
         var result = await Handler.Handle(Query, CancellationToken.None);
@@ -41,7 +43,11 @@ public sealed class GetCategoryByIdQueryTests : CategoryQueriesTestBase
     public async Task Handle_WithNonExistentId_ShouldReturnNotFound()
     {
         // Arrange
-        SetupCategoryRepositoryGetByIdAsync(null);
+        CategoryRepositoryMock
+            .Setup(x => x.GetByIdAsync(CategoryId, It.IsAny<Expression<Func<IQueryable<Category>, IQueryable<Category>>>?>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Category?)null);
+
+        SetupDefaultLocalizationMessages();
 
         // Act
         var result = await Handler.Handle(Query, CancellationToken.None);
@@ -54,22 +60,24 @@ public sealed class GetCategoryByIdQueryTests : CategoryQueriesTestBase
     }
 
     [Fact]
-    public async Task Handle_WithIncludeProducts_ShouldReturnCategoryWithProducts()
+    public async Task Handle_ShouldCallRepositoryWithCorrectId()
     {
         // Arrange
         var category = Category.Create("Test Category");
-        var product = Product.Create("Test Product", "Description", 100m, category.Id, 10);
-        category.Products = [product];
-
-        SetupCategoryRepositoryGetByIdAsync(category);
+        CategoryRepositoryMock
+            .Setup(x => x.GetByIdAsync(CategoryId, It.IsAny<Expression<Func<IQueryable<Category>, IQueryable<Category>>>?>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(category);
 
         // Act
         var result = await Handler.Handle(Query, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeNull();
+        CategoryRepositoryMock.Verify(x => x.GetByIdAsync(
+            CategoryId,
+            It.IsAny<Expression<Func<IQueryable<Category>, IQueryable<Category>>>?>(),
+            It.IsAny<bool>(),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

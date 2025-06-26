@@ -21,9 +21,10 @@ public sealed class ProductController : BaseApiController
         [FromQuery] PageableRequestParams requestParams, 
         [FromQuery] bool includeCategory = false,
         [FromQuery] string? orderBy = null,
+        [FromQuery] Guid? categoryId = null,
         CancellationToken cancellationToken = default)
     {
-        var result = await Mediator.Send(new GetAllProductsQuery(requestParams, includeCategory, orderBy), cancellationToken);
+        var result = await Mediator.Send(new GetAllProductsQuery(requestParams, includeCategory, orderBy, categoryId), cancellationToken);
         return Ok(result);
     }
 
@@ -39,17 +40,7 @@ public sealed class ProductController : BaseApiController
         return result.ToActionResult(this);
     }
 
-    [HttpGet("category/{categoryId}")]
-    [ProducesResponseType(typeof(PagedResult<List<ProductDto>>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetProductsByCategoryId(Guid categoryId, CancellationToken cancellationToken)
-    {
-        var result = await Mediator.Send(new GetProductsByCategoryIdQuery(categoryId), cancellationToken);
-        return Ok(result);
-    }
+
 
     [HttpPost]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]

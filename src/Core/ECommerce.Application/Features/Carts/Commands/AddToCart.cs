@@ -9,6 +9,7 @@ using ECommerce.Domain.Entities;
 using ECommerce.SharedKernel.DependencyInjection;
 using FluentValidation;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Application.Features.Carts.Commands;
 
@@ -44,7 +45,9 @@ public sealed class AddToCartCommandHandler(
         if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out var currentUserId))
             return Result<CartSummaryDto>.Unauthorized();
 
-        var product = await productRepository.GetByIdAsync(request.ProductId, cancellationToken: cancellationToken);
+        var product = await productRepository.GetByIdAsync(request.ProductId, 
+            include: x => x.Include(p => p.Stock), 
+            cancellationToken: cancellationToken);
         if (product is null)
             return Result<CartSummaryDto>.NotFound(Localizer[CartConsts.ErrorMessages.ProductNotFound]);
 

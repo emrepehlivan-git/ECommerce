@@ -69,9 +69,9 @@ builder.Services.AddOpenIddict()
     })
     .AddServer(options =>
     {
-        var issuerUrl = builder.Configuration.GetValue<string>("Authentication:Authority") ?? "https://localhost:5002";
-        options.SetIssuer(new Uri(issuerUrl));
-
+        // Use container network URL as issuer - WebAPI needs this to validate tokens
+        options.SetIssuer("https://ecommerce.authserver:8081/");
+        
         options.SetAuthorizationEndpointUris("/connect/authorize")
                .SetTokenEndpointUris("/connect/token")
                .SetUserInfoEndpointUris("/connect/userinfo")
@@ -113,6 +113,8 @@ builder.Services.AddHostedService<Worker>();
 
 
 var app = builder.Build();
+
+
 
 if (!app.Environment.IsDevelopment())
 {

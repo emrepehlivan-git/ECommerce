@@ -1,11 +1,13 @@
 using ECommerce.Application.Features.Products.Queries;
 using ECommerce.Application.Features.Products.DTOs;
 using ECommerce.Application.Parameters;
+using ECommerce.Application.Behaviors;
 
 namespace ECommerce.Application.UnitTests.Features.Products.Queries;
 
 public sealed class GetAllProductsQueryTest : ProductQueriesTestsBase
 {
+    private PagedInfo PagedInfo = new(1, 1, 10, 10);
     private readonly GetAllProductsQueryHandler Handler;
     private readonly GetAllProductsQuery Query;
 
@@ -21,44 +23,136 @@ public sealed class GetAllProductsQueryTest : ProductQueriesTestsBase
     [Fact]
     public async Task Handle_WithValidQuery_ShouldReturnPagedProducts()
     {
-        var products = new List<Product> { DefaultProduct };
-        var queryable = products.AsQueryable();
+        // Arrange
+        var productDtos = new List<ProductDto>
+        {
+            new(DefaultProduct.Id, DefaultProduct.Name, DefaultProduct.Description, DefaultProduct.Price.Value, DefaultProduct.Category?.Name, DefaultProduct.Stock?.Quantity ?? 0, DefaultProduct.IsActive)
+        };
+        var pagedResult = new PagedResult<List<ProductDto>>(PagedInfo, productDtos);
 
         ProductRepositoryMock
-            .Setup(x => x.Query(
+            .Setup(x => x.GetPagedAsync<ProductDto>(
                 It.IsAny<Expression<Func<Product, bool>>>(),
                 It.IsAny<Expression<Func<IQueryable<Product>, IOrderedQueryable<Product>>>>(),
                 It.IsAny<Expression<Func<IQueryable<Product>, IQueryable<Product>>>>(),
-                It.IsAny<bool>()))
-            .Returns(queryable);
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<bool>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(pagedResult);
 
+        // Act
         var result = await Handler.Handle(Query, CancellationToken.None);
 
+        // Assert
         result.Should().NotBeNull();
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeNull();
-        result.Value.Should().HaveCount(1);
+        result.Should().BeSameAs(pagedResult);
     }
 
     [Fact]
     public async Task Handle_WithEmptyProducts_ShouldReturnEmptyList()
     {
-        var emptyProducts = new List<Product>();
-        var queryable = emptyProducts.AsQueryable();
+        // Arrange
+        var emptyResult = new PagedResult<List<ProductDto>>(PagedInfo, new List<ProductDto>());
 
         ProductRepositoryMock
-            .Setup(x => x.Query(
+            .Setup(x => x.GetPagedAsync<ProductDto>(
                 It.IsAny<Expression<Func<Product, bool>>>(),
                 It.IsAny<Expression<Func<IQueryable<Product>, IOrderedQueryable<Product>>>>(),
                 It.IsAny<Expression<Func<IQueryable<Product>, IQueryable<Product>>>>(),
-                It.IsAny<bool>()))
-            .Returns(queryable);
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<bool>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(emptyResult);
 
+        // Act
         var result = await Handler.Handle(Query, CancellationToken.None);
 
+        // Assert
         result.Should().NotBeNull();
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeNull();
-        result.Value.Should().BeEmpty();
+        result.Should().BeSameAs(emptyResult);
+    }
+
+    [Fact]
+    public async Task Handle_WithCategoryFilter_ShouldPassCategoryIdPredicate()
+    {
+        // Arrange
+        var categoryId = Guid.NewGuid();
+        var queryWithCategory = new GetAllProductsQuery(new PageableRequestParams(), CategoryId: categoryId);
+        var productDtos = new List<ProductDto>();
+        var pagedResult = new PagedResult<List<ProductDto>>(PagedInfo, productDtos);
+
+        ProductRepositoryMock
+            .Setup(x => x.GetPagedAsync<ProductDto>(
+                It.IsAny<Expression<Func<Product, bool>>>(),
+                It.IsAny<Expression<Func<IQueryable<Product>, IOrderedQueryable<Product>>>>(),
+                It.IsAny<Expression<Func<IQueryable<Product>, IQueryable<Product>>>>(),
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<bool>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(pagedResult);
+
+        // Act
+        var result = await Handler.Handle(queryWithCategory, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        ProductRepositoryMock.Verify(x => x.GetPagedAsync<ProductDto>(
+            It.IsAny<Expression<Func<Product, bool>>>(),
+            It.IsAny<Expression<Func<IQueryable<Product>, IOrderedQueryable<Product>>>>(),
+            It.IsAny<Expression<Func<IQueryable<Product>, IQueryable<Product>>>>(),
+            It.IsAny<int>(),
+            It.IsAny<int>(),
+            It.IsAny<bool>(),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WithIncludeCategory_ShouldPassIncludeExpression()
+    {
+        // Arrange
+        var queryWithInclude = new GetAllProductsQuery(new PageableRequestParams(), IncludeCategory: true);
+        var productDtos = new List<ProductDto>();
+        var pagedResult = new PagedResult<List<ProductDto>>(PagedInfo, productDtos);
+
+        ProductRepositoryMock
+            .Setup(x => x.GetPagedAsync<ProductDto>(
+                It.IsAny<Expression<Func<Product, bool>>>(),
+                It.IsAny<Expression<Func<IQueryable<Product>, IOrderedQueryable<Product>>>>(),
+                It.IsAny<Expression<Func<IQueryable<Product>, IQueryable<Product>>>>(),
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<bool>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(pagedResult);
+
+        // Act
+        var result = await Handler.Handle(queryWithInclude, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        ProductRepositoryMock.Verify(x => x.GetPagedAsync<ProductDto>(
+            It.IsAny<Expression<Func<Product, bool>>>(),
+            It.IsAny<Expression<Func<IQueryable<Product>, IOrderedQueryable<Product>>>>(),
+            It.IsAny<Expression<Func<IQueryable<Product>, IQueryable<Product>>>>(),
+            It.IsAny<int>(),
+            It.IsAny<int>(),
+            It.IsAny<bool>(),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public void Query_ShouldImplementICacheableRequest()
+    {
+        // Arrange
+        var pageableParams = new PageableRequestParams(Page: 1, PageSize: 10);
+        var query = new GetAllProductsQuery(pageableParams, IncludeCategory: true, OrderBy: "Name asc");
+
+        // Act & Assert
+        query.Should().BeAssignableTo<ICacheableRequest>();
+        query.CacheKey.Should().Contain("products:page-1:size-10");
+        query.CacheDuration.Should().Be(TimeSpan.FromMinutes(10));
     }
 }

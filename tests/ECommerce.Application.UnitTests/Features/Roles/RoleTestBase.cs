@@ -1,7 +1,7 @@
 using ECommerce.Application.Features.Roles;
+using ECommerce.Application.Features.Users;
 using ECommerce.Application.Helpers;
 using ECommerce.Application.Services;
-using ECommerce.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 
 namespace ECommerce.Application.UnitTests.Features.Roles;
@@ -15,7 +15,6 @@ public abstract class RoleTestBase
     protected Mock<IUserService> UserServiceMock;
     protected Mock<ILazyServiceProvider> LazyServiceProviderMock;
     protected Mock<ILocalizationService> LocalizationServiceMock;
-    protected Mock<LocalizationHelper> LocalizationHelperMock;
     protected Mock<ICacheManager> CacheManagerMock;
 
     protected LocalizationHelper Localizer;
@@ -26,8 +25,9 @@ public abstract class RoleTestBase
         UserServiceMock = new Mock<IUserService>();
         LazyServiceProviderMock = new Mock<ILazyServiceProvider>();
         LocalizationServiceMock = new Mock<ILocalizationService>();
-        LocalizationHelperMock = new Mock<LocalizationHelper>();
         CacheManagerMock = new Mock<ICacheManager>();
+        
+        // LocalizationHelper'ı concrete implementation olarak oluştur
         Localizer = new LocalizationHelper(LocalizationServiceMock.Object);
 
         LazyServiceProviderMock
@@ -70,6 +70,11 @@ public abstract class RoleTestBase
         LocalizationServiceMock
             .Setup(x => x.GetLocalizedString(RoleConsts.UserNotInRole))
             .Returns("User does not have this role.");
+        
+        // UserConsts için de setup ekle
+        LocalizationServiceMock
+            .Setup(x => x.GetLocalizedString(UserConsts.NotFound))
+            .Returns("User not found.");
     }
 
     protected void SetupRoleServiceCreateAsync(IdentityResult? result = null)

@@ -1,6 +1,7 @@
 using ECommerce.Application.Behaviors;
 using ECommerce.Application.Features.Categories;
 using ECommerce.Application.Features.Categories.Queries;
+using ECommerce.Application.Features.Categories.DTOs;
 using ECommerce.Application.Parameters;
 using Mapster;
 
@@ -10,16 +11,17 @@ public sealed class GetAllCategoriesQueryTests : CategoryQueriesTestBase
 {
     private readonly GetAllCategoriesQueryHandler Handler;
     private readonly GetAllCategoriesQuery Query;
-    private readonly List<Category> Categories;
+    private readonly List<CategoryDto> Categories;
+    private readonly PagedInfo PagedInfo = new(1, 3, 10, 1);
 
     public GetAllCategoriesQueryTests()
     {
-        Categories = new List<Category>
-        {
-            Category.Create("Category 1"),
-            Category.Create("Category 2"),
-            Category.Create("Category 3")
-        };
+        Categories =
+        [
+            new(Guid.NewGuid(), "Category 1"),
+            new(Guid.NewGuid(), "Category 2"),
+            new(Guid.NewGuid(), "Category 3")
+        ];
 
         Query = new GetAllCategoriesQuery(new PageableRequestParams(Page: 1, PageSize: 10));
         Handler = new GetAllCategoriesQueryHandler(CategoryRepositoryMock.Object, LazyServiceProviderMock.Object);
@@ -29,22 +31,24 @@ public sealed class GetAllCategoriesQueryTests : CategoryQueriesTestBase
     public async Task Handle_WithValidQuery_ShouldReturnCategories()
     {
         // Arrange
-        var queryable = Categories.AsQueryable();
+        var pagedResult = new PagedResult<List<CategoryDto>>(PagedInfo, Categories);
         CategoryRepositoryMock
-            .Setup(x => x.Query(
+            .Setup(x => x.GetPagedAsync<CategoryDto>(
                 It.IsAny<Expression<Func<Category, bool>>>(),
                 It.IsAny<Expression<Func<IQueryable<Category>, IOrderedQueryable<Category>>>>(),
                 It.IsAny<Expression<Func<IQueryable<Category>, IQueryable<Category>>>>(),
-                It.IsAny<bool>()))
-            .Returns(queryable);
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<bool>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(pagedResult);
 
         // Act
         var result = await Handler.Handle(Query, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().HaveCount(3);
+        result.Should().BeSameAs(pagedResult);
     }
 
     [Fact]
@@ -52,46 +56,59 @@ public sealed class GetAllCategoriesQueryTests : CategoryQueriesTestBase
     {
         // Arrange
         var query = new GetAllCategoriesQuery(new PageableRequestParams(Page: 1, PageSize: 2));
-        var queryable = Categories.AsQueryable();
+        var paginatedCategories = Categories.Take(2).ToList();
+        var pagedResult = new PagedResult<List<CategoryDto>>(new PagedInfo(1, 3, 2, 2), paginatedCategories);
+        
         CategoryRepositoryMock
-            .Setup(x => x.Query(
+            .Setup(x => x.GetPagedAsync<CategoryDto>(
                 It.IsAny<Expression<Func<Category, bool>>>(),
                 It.IsAny<Expression<Func<IQueryable<Category>, IOrderedQueryable<Category>>>>(),
                 It.IsAny<Expression<Func<IQueryable<Category>, IQueryable<Category>>>>(),
-                It.IsAny<bool>()))
-            .Returns(queryable);
+                1,
+                2,
+                It.IsAny<bool>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(pagedResult);
 
         // Act
         var result = await Handler.Handle(query, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().HaveCount(2);
+        result.Should().BeSameAs(pagedResult);
     }
 
     [Fact]
-    public async Task Handle_WithOrderBy_ShouldReturnOrderedCategories()
+    public async Task Handle_WithOrderBy_ShouldPassOrderByToRepository()
     {
         // Arrange
         var query = new GetAllCategoriesQuery(new PageableRequestParams(Page: 1, PageSize: 10), OrderBy: "Name desc");
-        var orderedCategories = Categories.OrderByDescending(x => x.Name).ToList();
-        var queryable = orderedCategories.AsQueryable();
+        var pagedResult = new PagedResult<List<CategoryDto>>(PagedInfo, Categories);
+        
         CategoryRepositoryMock
-            .Setup(x => x.Query(
+            .Setup(x => x.GetPagedAsync<CategoryDto>(
                 It.IsAny<Expression<Func<Category, bool>>>(),
                 It.IsAny<Expression<Func<IQueryable<Category>, IOrderedQueryable<Category>>>>(),
                 It.IsAny<Expression<Func<IQueryable<Category>, IQueryable<Category>>>>(),
-                It.IsAny<bool>()))
-            .Returns(queryable);
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<bool>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(pagedResult);
 
         // Act
         var result = await Handler.Handle(query, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeInDescendingOrder(x => x.Name);
+        CategoryRepositoryMock.Verify(x => x.GetPagedAsync<CategoryDto>(
+            It.IsAny<Expression<Func<Category, bool>>>(),
+            It.IsAny<Expression<Func<IQueryable<Category>, IOrderedQueryable<Category>>>>(),
+            It.IsAny<Expression<Func<IQueryable<Category>, IQueryable<Category>>>>(),
+            1,
+            10,
+            It.IsAny<bool>(),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

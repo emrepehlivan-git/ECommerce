@@ -3,9 +3,7 @@ using ECommerce.Application.Behaviors;
 using ECommerce.Application.CQRS;
 using ECommerce.Application.Helpers;
 using ECommerce.Application.Repositories;
-using ECommerce.Domain.Entities;
 using ECommerce.Domain.Enums;
-using ECommerce.SharedKernel;
 using ECommerce.SharedKernel.DependencyInjection;
 using FluentValidation;
 using MediatR;
@@ -54,7 +52,9 @@ public sealed class OrderItemAddCommandHandler(
     {
         var order = await orderRepository.GetByIdAsync(command.OrderId, cancellationToken: cancellationToken);
 
-        var product = await productRepository.GetByIdAsync(command.ProductId, cancellationToken: cancellationToken);
+        var product = await productRepository.GetByIdAsync(command.ProductId, 
+            include: x => x.Include(p => p.Stock), 
+            cancellationToken: cancellationToken);
 
         if (product is null)
             return Result.NotFound(Localizer[OrderConsts.ProductNotFound]);
