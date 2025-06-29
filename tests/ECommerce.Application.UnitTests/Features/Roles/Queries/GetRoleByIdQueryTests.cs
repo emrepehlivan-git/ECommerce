@@ -57,7 +57,7 @@ public sealed class GetRoleByIdQueryTests : RoleTestBase
         // Assert
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain("Role not found.");
+        result.Errors.Should().Contain(Localizer[RoleConsts.RoleNotFound]);
 
         RoleServiceMock.Verify(x => x.FindRoleByIdAsync(_roleId), Times.Once);
     }
@@ -100,7 +100,7 @@ public sealed class GetRoleByIdQueryTests : RoleTestBase
 
         // Assert
         validationResult.IsValid.Should().BeFalse();
-        validationResult.Errors.Should().Contain(x => x.ErrorMessage == "Role not found.");
+        validationResult.Errors.Should().Contain(x => x.ErrorMessage == Localizer[RoleConsts.RoleNotFound]);
     }
 
     [Fact]

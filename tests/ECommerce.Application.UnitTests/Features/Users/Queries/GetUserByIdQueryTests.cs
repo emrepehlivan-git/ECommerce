@@ -30,6 +30,7 @@ public sealed class GetUserByIdQueryTests : UserQueriesTestBase
         result.Value.Email.Should().Be(DefaultUser.Email);
         result.Value.FullName.Should().Be(DefaultUser.FullName.ToString());
         result.Value.IsActive.Should().Be(DefaultUser.IsActive);
+        result.Value.Birthday.Should().Be(DefaultUser.Birthday);
     }
 
     [Fact]

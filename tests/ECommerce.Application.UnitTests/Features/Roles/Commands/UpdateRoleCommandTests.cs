@@ -22,8 +22,9 @@ public sealed class UpdateRoleCommandTests : RoleTestBase
             LazyServiceProviderMock.Object);
 
         _validator = new UpdateRoleCommandValidator(
-            RoleServiceMock.Object,
-            Localizer);
+            LocalizationServiceMock.Object,
+            RoleServiceMock.Object
+            );
     }
 
     [Fact]
@@ -43,7 +44,7 @@ public sealed class UpdateRoleCommandTests : RoleTestBase
 
         RoleServiceMock.Verify(x => x.FindRoleByIdAsync(_roleId), Times.Once);
         RoleServiceMock.Verify(x => x.UpdateRoleAsync(It.IsAny<Role>()), Times.Once);
-        CacheManagerMock.Verify(x => x.RemoveByPatternAsync("roles:*", It.IsAny<CancellationToken>()), Times.Once);
+        CacheManagerMock.Verify(x => x.RemoveByPatternAsync("roles:all:include-permissions:*", It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -78,7 +79,7 @@ public sealed class UpdateRoleCommandTests : RoleTestBase
 
         // Assert
         validationResult.IsValid.Should().BeFalse();
-        validationResult.Errors.Should().Contain(x => x.ErrorMessage == "Role not found.");
+        validationResult.Errors.Should().Contain(x => x.ErrorMessage == Localizer[RoleConsts.RoleNotFound]);
     }
 
     [Fact]
@@ -108,7 +109,7 @@ public sealed class UpdateRoleCommandTests : RoleTestBase
 
         // Assert
         validationResult.IsValid.Should().BeFalse();
-        validationResult.Errors.Should().Contain(x => x.ErrorMessage == "Role name already exists.");
+        validationResult.Errors.Should().Contain(x => x.ErrorMessage == Localizer[RoleConsts.NameExists]);
     }
 
     [Fact]
@@ -128,13 +129,11 @@ public sealed class UpdateRoleCommandTests : RoleTestBase
         validationResult.IsValid.Should().BeTrue();
     }
 
-    [Theory]
-    [InlineData("", "Role name is required.")]
-    [InlineData("A", "Role name must be at least 2 characters long.")]
-    public async Task Validate_WithInvalidName_ShouldReturnValidationError(string name, string expectedError)
+    [Fact]
+    public async Task Validate_WithEmptyName_ShouldReturnValidationError()
     {
         // Arrange
-        var command = _command with { Name = name };
+        var command = _command with { Name = "" };
         SetupRoleServiceFindByIdAsync(DefaultRole);
 
         // Act
@@ -142,6 +141,21 @@ public sealed class UpdateRoleCommandTests : RoleTestBase
 
         // Assert
         validationResult.IsValid.Should().BeFalse();
-        validationResult.Errors.Should().Contain(x => x.ErrorMessage == expectedError);
+        validationResult.Errors.Should().Contain(x => x.ErrorMessage == Localizer[RoleConsts.NameIsRequired]);
+    }
+
+    [Fact]
+    public async Task Validate_WithShortName_ShouldReturnValidationError()
+    {
+        // Arrange
+        var command = _command with { Name = "A" };
+        SetupRoleServiceFindByIdAsync(DefaultRole);
+
+        // Act
+        var validationResult = await _validator.ValidateAsync(command);
+
+        // Assert
+        validationResult.IsValid.Should().BeFalse();
+        validationResult.Errors.Should().Contain(x => x.ErrorMessage == Localizer[RoleConsts.NameMustBeAtLeastCharacters, RoleConsts.NameMinLength.ToString()]);
     }
 } 

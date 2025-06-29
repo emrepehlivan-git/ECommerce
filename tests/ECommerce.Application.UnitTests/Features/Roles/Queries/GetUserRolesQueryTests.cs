@@ -1,7 +1,7 @@
 using ECommerce.Application.Behaviors;
+using ECommerce.Application.Features.Roles;
 using ECommerce.Application.Features.Roles.DTOs;
 using ECommerce.Application.Features.Roles.Queries;
-using ECommerce.Application.Features.Users;
 
 namespace ECommerce.Application.UnitTests.Features.Roles.Queries;
 
@@ -88,7 +88,7 @@ public sealed class GetUserRolesQueryTests : RoleTestBase
         // Assert
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain("User not found.");
+        result.Errors.Should().Contain(Localizer[RoleConsts.UserNotFound]);
 
         UserServiceMock.Verify(x => x.FindByIdAsync(_userId), Times.Once);
     }
@@ -135,7 +135,7 @@ public sealed class GetUserRolesQueryTests : RoleTestBase
 
         // Assert
         validationResult.IsValid.Should().BeFalse();
-        validationResult.Errors.Should().Contain(x => x.ErrorMessage == "User not found.");
+        validationResult.Errors.Should().Contain(x => x.ErrorMessage == Localizer[RoleConsts.UserNotFound]);
     }
 
     [Fact]

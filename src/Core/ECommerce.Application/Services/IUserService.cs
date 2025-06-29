@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Ardalis.Result;
 using ECommerce.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 
@@ -13,4 +14,5 @@ public interface IUserService
     Task<IdentityResult> CreateAsync(User user, string password);
     Task<IdentityResult> UpdateAsync(User user);
     Task<bool> CanSignInAsync(User user);
+    Task<Result> UpdateBirthdayAsync(Guid userId, DateTime? birthday);
 } 

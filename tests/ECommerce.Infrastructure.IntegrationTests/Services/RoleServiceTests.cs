@@ -1,3 +1,4 @@
+using ECommerce.Application.Features.Roles.DTOs;
 using Microsoft.AspNetCore.Identity;
 using MockQueryable.Moq;
 
@@ -23,6 +24,28 @@ public sealed class RoleServiceTests
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 
         _roleService = new RoleService(_userManagerMock.Object, _roleManagerMock.Object);
+    }
+
+    [Fact]
+    public async Task GetAllRolesAsync_ShouldReturnPagedRoles()
+    {
+        // Arrange
+        var roles = new List<Role>
+        {
+            Role.Create("Admin"),
+            Role.Create("User")
+        }.AsQueryable().BuildMock();
+
+        _roleManagerMock.Setup(m => m.Roles).Returns(roles);
+
+        // Act
+        var result = await _roleService.GetAllRolesAsync(1, 10, string.Empty);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Value.Should().NotBeNull();
+        result.Value.Should().HaveCount(2);
+        result.Value.First().Should().BeOfType<RoleDto>();
     }
 
     [Fact]

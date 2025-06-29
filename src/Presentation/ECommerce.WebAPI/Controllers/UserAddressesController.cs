@@ -60,7 +60,6 @@ public sealed record UpdateUserAddressRequest(
     string Label,
     string Street,
     string City,
-    string State,
     string ZipCode,
     string Country);
 

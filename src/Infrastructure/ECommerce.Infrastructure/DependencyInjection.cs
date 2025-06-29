@@ -9,6 +9,7 @@ using OpenTelemetry.Trace;
 using OpenTelemetry.Metrics;
 using Microsoft.AspNetCore.Http;
 using System.Diagnostics;
+using StackExchange.Redis;
 
 namespace ECommerce.Infrastructure;
 
@@ -25,6 +26,9 @@ public static class DependencyInjection
         {
             options.Configuration = configuration.GetConnectionString("Redis");
         });
+
+        services.AddSingleton<IConnectionMultiplexer>(sp => 
+            ConnectionMultiplexer.Connect(configuration.GetConnectionString("Redis")!));
 
         return services;
     }

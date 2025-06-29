@@ -21,7 +21,8 @@ public sealed class CreateRoleCommandTests : RoleTestBase
 
         _validator = new CreateRoleCommandValidator(
             RoleServiceMock.Object,
-            Localizer);
+            LocalizationServiceMock.Object
+            );
     }
 
     [Fact]
@@ -39,7 +40,7 @@ public sealed class CreateRoleCommandTests : RoleTestBase
         result.Value.Should().NotBe(Guid.Empty);
 
         RoleServiceMock.Verify(x => x.CreateRoleAsync(It.IsAny<Role>()), Times.Once);
-        CacheManagerMock.Verify(x => x.RemoveByPatternAsync("roles:*", It.IsAny<CancellationToken>()), Times.Once);
+        CacheManagerMock.Verify(x => x.RemoveByPatternAsync("roles:all:include-permissions:*", It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -59,13 +60,11 @@ public sealed class CreateRoleCommandTests : RoleTestBase
         result.Errors.Should().Contain("Role creation failed");
     }
 
-    [Theory]
-    [InlineData("", "Role name is required.")]
-    [InlineData("A", "Role name must be at least 2 characters long.")]
-    public async Task Validate_WithInvalidName_ShouldReturnValidationError(string name, string expectedError)
+    [Fact]
+    public async Task Validate_WithEmptyName_ShouldReturnValidationError()
     {
         // Arrange
-        var command = _command with { Name = name };
+        var command = _command with { Name = "" };
         SetupRoleServiceRoleExistsAsync(false);
 
         // Act
@@ -73,7 +72,22 @@ public sealed class CreateRoleCommandTests : RoleTestBase
 
         // Assert
         validationResult.IsValid.Should().BeFalse();
-        validationResult.Errors.Should().Contain(x => x.ErrorMessage == expectedError);
+        validationResult.Errors.Should().Contain(x => x.ErrorMessage == Localizer[RoleConsts.NameIsRequired]);
+    }
+
+    [Fact]
+    public async Task Validate_WithShortName_ShouldReturnValidationError()
+    {
+        // Arrange
+        var command = _command with { Name = "A" };
+        SetupRoleServiceRoleExistsAsync(false);
+
+        // Act
+        var validationResult = await _validator.ValidateAsync(command);
+
+        // Assert
+        validationResult.IsValid.Should().BeFalse();
+        validationResult.Errors.Should().Contain(x => x.ErrorMessage == Localizer[RoleConsts.NameMustBeAtLeastCharacters, RoleConsts.NameMinLength.ToString()]);
     }
 
     [Fact]
@@ -87,7 +101,7 @@ public sealed class CreateRoleCommandTests : RoleTestBase
 
         // Assert
         validationResult.IsValid.Should().BeFalse();
-        validationResult.Errors.Should().Contain(x => x.ErrorMessage == "Role name already exists.");
+        validationResult.Errors.Should().Contain(x => x.ErrorMessage == Localizer[RoleConsts.NameExists]);
     }
 
     [Fact]
@@ -107,7 +121,7 @@ public sealed class CreateRoleCommandTests : RoleTestBase
     public async Task Validate_WithLongName_ShouldReturnValidationError()
     {
         // Arrange
-        var longName = new string('A', 101);
+        var longName = new string('A', RoleConsts.NameMaxLength + 1);
         var command = _command with { Name = longName };
         SetupRoleServiceRoleExistsAsync(false);
 
@@ -116,6 +130,6 @@ public sealed class CreateRoleCommandTests : RoleTestBase
 
         // Assert
         validationResult.IsValid.Should().BeFalse();
-        validationResult.Errors.Should().Contain(x => x.ErrorMessage == "Role name must be less than 100 characters long.");
+        validationResult.Errors.Should().Contain(x => x.ErrorMessage == Localizer[RoleConsts.NameMustBeLessThanCharacters, RoleConsts.NameMaxLength.ToString()]);
     }
 } 

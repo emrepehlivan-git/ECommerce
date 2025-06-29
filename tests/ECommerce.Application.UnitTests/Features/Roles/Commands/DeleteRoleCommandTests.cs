@@ -43,7 +43,8 @@ public sealed class DeleteRoleCommandTests : RoleTestBase
 
         RoleServiceMock.Verify(x => x.FindRoleByIdAsync(_roleId), Times.Once);
         RoleServiceMock.Verify(x => x.DeleteRoleAsync(It.IsAny<Role>()), Times.Once);
-        CacheManagerMock.Verify(x => x.RemoveByPatternAsync("roles:*", It.IsAny<CancellationToken>()), Times.Once);
+        CacheManagerMock.Verify(x => x.RemoveAsync("roles:all:include-permissions:True", It.IsAny<CancellationToken>()), Times.Once);
+        CacheManagerMock.Verify(x => x.RemoveAsync("roles:all:include-permissions:False", It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -77,7 +78,7 @@ public sealed class DeleteRoleCommandTests : RoleTestBase
 
         // Assert
         validationResult.IsValid.Should().BeFalse();
-        validationResult.Errors.Should().Contain(x => x.ErrorMessage == "Role not found.");
+        validationResult.Errors.Should().Contain(x => x.ErrorMessage == Localizer[RoleConsts.RoleNotFound]);
     }
 
     [Fact]
@@ -105,6 +106,6 @@ public sealed class DeleteRoleCommandTests : RoleTestBase
 
         // Assert
         validationResult.IsValid.Should().BeFalse();
-        validationResult.Errors.Should().Contain(x => x.ErrorMessage == "Role not found.");
+        validationResult.Errors.Should().Contain(x => x.ErrorMessage == Localizer[RoleConsts.RoleNotFound]);
     }
 } 

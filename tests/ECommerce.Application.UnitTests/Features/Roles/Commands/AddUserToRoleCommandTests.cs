@@ -1,4 +1,6 @@
+using ECommerce.Application.Features.Roles;
 using ECommerce.Application.Features.Roles.Commands;
+using ECommerce.Application.Features.Users;
 using Microsoft.AspNetCore.Identity;
 
 namespace ECommerce.Application.UnitTests.Features.Roles.Commands;
@@ -68,7 +70,7 @@ public sealed class AddUserToRoleCommandTests : RoleTestBase
         // Assert
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain("User already has this role.");
+        result.Errors.Should().Contain(Localizer[RoleConsts.UserAlreadyInRole]);
     }
 
     [Fact]
@@ -106,7 +108,7 @@ public sealed class AddUserToRoleCommandTests : RoleTestBase
 
         // Assert
         validationResult.IsValid.Should().BeFalse();
-        validationResult.Errors.Should().Contain(x => x.ErrorMessage == "User not found.");
+        validationResult.Errors.Should().Contain(x => x.ErrorMessage == Localizer[UserConsts.NotFound]);
     }
 
     [Fact]
@@ -121,7 +123,7 @@ public sealed class AddUserToRoleCommandTests : RoleTestBase
 
         // Assert
         validationResult.IsValid.Should().BeFalse();
-        validationResult.Errors.Should().Contain(x => x.ErrorMessage == "Role not found.");
+        validationResult.Errors.Should().Contain(x => x.ErrorMessage == Localizer[RoleConsts.RoleNotFound]);
     }
 
     [Fact]
@@ -138,13 +140,11 @@ public sealed class AddUserToRoleCommandTests : RoleTestBase
         validationResult.IsValid.Should().BeTrue();
     }
 
-    [Theory]
-    [InlineData("00000000-0000-0000-0000-000000000000")]
-    public async Task Validate_WithInvalidRoleId_ShouldReturnValidationError(string roleIdString)
+    [Fact]
+    public async Task Validate_WithInvalidRoleId_ShouldReturnValidationError()
     {
         // Arrange
-        var roleId = Guid.Parse(roleIdString);
-        var command = _command with { RoleId = roleId };
+        var command = _command with { RoleId = Guid.Empty };
         SetupUserServiceFindByIdAsync(DefaultUser);
         SetupRoleServiceFindByIdAsync(null);
 
@@ -153,6 +153,6 @@ public sealed class AddUserToRoleCommandTests : RoleTestBase
 
         // Assert
         validationResult.IsValid.Should().BeFalse();
-        validationResult.Errors.Should().Contain(x => x.ErrorMessage == "Role not found.");
+        validationResult.Errors.Should().Contain(x => x.ErrorMessage == Localizer[RoleConsts.RoleNotFound]);
     }
 } 

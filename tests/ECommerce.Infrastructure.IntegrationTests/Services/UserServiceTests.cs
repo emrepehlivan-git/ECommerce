@@ -25,7 +25,7 @@ public sealed class UserServiceTests
             _userManagerMock.Object, contextAccessor.Object, 
             claimsFactory.Object, null, null, null, null);
 
-        _userService = new UserService(_userManagerMock.Object, _signInManagerMock.Object);
+        _userService = new UserService(_userManagerMock.Object, _signInManagerMock.Object, new LocalizationService());
     }
 
     [Fact]
@@ -210,5 +210,43 @@ public sealed class UserServiceTests
         result.Should().NotBeNull();
         result.Count().Should().Be(2);
         _userManagerMock.Verify(x => x.Users, Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateBirthdayAsync_ShouldUpdateBirthday_WhenUserExists()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var user = User.Create("test@example.com", "Test", "User");
+        var newBirthday = new DateTime(1990, 1, 1);
+        _userManagerMock.Setup(x => x.FindByIdAsync(userId.ToString()))
+                        .ReturnsAsync(user);
+        _userManagerMock.Setup(x => x.UpdateAsync(user))
+                        .ReturnsAsync(IdentityResult.Success);
+
+        // Act
+        var result = await _userService.UpdateBirthdayAsync(userId, newBirthday);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        user.Birthday.Should().Be(newBirthday);
+        _userManagerMock.Verify(x => x.FindByIdAsync(userId.ToString()), Times.Once);
+        _userManagerMock.Verify(x => x.UpdateAsync(user), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateBirthdayAsync_ShouldReturnFailed_WhenUserDoesNotExist()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        _userManagerMock.Setup(x => x.FindByIdAsync(userId.ToString()))
+                        .ReturnsAsync((User?)null);
+
+        // Act
+        var result = await _userService.UpdateBirthdayAsync(userId, new DateTime(1990, 1, 1));
+
+        // Assert
+        result.IsSuccess.Should().BeFalse();
+        _userManagerMock.Verify(x => x.FindByIdAsync(userId.ToString()), Times.Once);
     }
 } 

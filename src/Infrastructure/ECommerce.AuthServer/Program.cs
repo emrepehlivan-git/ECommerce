@@ -69,7 +69,6 @@ builder.Services.AddOpenIddict()
     })
     .AddServer(options =>
     {
-        // Use container network URL as issuer - WebAPI needs this to validate tokens
         options.SetIssuer("https://ecommerce.authserver:8081/");
         
         options.SetAuthorizationEndpointUris("/connect/authorize")
@@ -84,10 +83,12 @@ builder.Services.AddOpenIddict()
             Scopes.Phone,
             Scopes.Profile,
             Scopes.Roles,
+            Scopes.OfflineAccess,
             "api");
 
         options.AllowAuthorizationCodeFlow()
                 .AllowClientCredentialsFlow()
+                .AllowRefreshTokenFlow()
                 .RequireProofKeyForCodeExchange();
 
         options.AddDevelopmentEncryptionCertificate()

@@ -20,8 +20,16 @@ public sealed class GetUsersQueryHandler(
     public override async Task<PagedResult<List<UserDto>>> Handle(GetUsersQuery query,
     CancellationToken cancellationToken)
     {
-        return await userService.Users
-            .AsNoTracking()
-            .ApplyPagingAsync<User, UserDto>(query.PageableRequestParams, cancellationToken: cancellationToken);
+        var usersQuery = userService.Users.AsNoTracking();
+        if (!string.IsNullOrWhiteSpace(query.PageableRequestParams.Search))
+        {
+            var search = query.PageableRequestParams.Search.ToLower();
+            usersQuery = usersQuery.Where(u =>
+                u.FullName.FirstName.ToLower().Contains(search) ||
+                u.FullName.LastName.ToLower().Contains(search) ||
+                u.Email!.ToLower().Contains(search)
+            );
+        }
+        return await usersQuery.ApplyPagingAsync<User, UserDto>(query.PageableRequestParams, cancellationToken: cancellationToken);
     }
 }

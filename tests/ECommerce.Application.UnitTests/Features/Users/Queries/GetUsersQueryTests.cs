@@ -32,6 +32,13 @@ public sealed class GetUsersQueryTests : UserQueriesTestBase
         // Assert
         result.Should().NotBeNull();
         UserServiceMock.Verify(x => x.Users, Times.AtLeastOnce);
+        // Birthday alanı kontrolü
+        foreach (var user in users)
+        {
+            var dto = result.Value.FirstOrDefault(x => x.Id == user.Id);
+            dto.Should().NotBeNull();
+            dto!.Birthday.Should().Be(user.Birthday);
+        }
     }
 
     [Fact]
@@ -85,5 +92,29 @@ public sealed class GetUsersQueryTests : UserQueriesTestBase
         // Assert
         result.Should().NotBeNull();
         UserServiceMock.Verify(x => x.Users, Times.AtLeastOnce);
+    }
+
+    [Fact]
+    public async Task Handle_WithSearch_ShouldReturnFilteredUsers()
+    {
+        // Arrange
+        var users = new List<User>
+        {
+            DefaultUser,
+            User.Create("admin@example.com", "Admin User", "Password123!"),
+            User.Create("test@example.com", "Test User", "Password123!")
+        };
+        SetupUsersQuery(users);
+
+        var search = "admin";
+        var searchParams = new PageableRequestParams(Page: 1, PageSize: 10, Search: search);
+        var searchQuery = new GetUsersQuery(searchParams);
+
+        // Act
+        var result = await Handler.Handle(searchQuery, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Value.Should().ContainSingle(x => x.Email.ToLower().Contains(search) || x.FullName.ToLower().Contains(search));
     }
 }

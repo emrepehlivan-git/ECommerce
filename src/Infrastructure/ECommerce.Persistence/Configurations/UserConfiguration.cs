@@ -29,5 +29,9 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(x => x.IsActive)
             .HasColumnName("is_active")
             .IsRequired();
+
+        builder.Property(x => x.Birthday)
+            .HasColumnName("birthday")
+            .IsRequired(false);
     }
 }

@@ -10,6 +10,7 @@ public sealed class User : IdentityUser<Guid>
 
     public FullName FullName { get; private set; } = null!;
     public bool IsActive { get; private set; }
+    public DateTime? Birthday { get; private set; }
     
     public IReadOnlyCollection<UserAddress> Addresses => _addresses.AsReadOnly();
 
@@ -17,16 +18,17 @@ public sealed class User : IdentityUser<Guid>
     {
     }
 
-    private User(string email, FullName fullName)
+    private User(string email, FullName fullName, DateTime? birthday = null)
     {
         SetEmail(email);
         FullName = fullName;
         IsActive = true;
+        Birthday = birthday;
     }
 
-    public static User Create(string email, string firstName, string lastName)
+    public static User Create(string email, string firstName, string lastName, DateTime? birthday = null)
     {
-        return new(email, FullName.Create(firstName, lastName));
+        return new(email, FullName.Create(firstName, lastName), birthday);
     }
 
     public void Deactivate() => IsActive = false;
@@ -34,6 +36,8 @@ public sealed class User : IdentityUser<Guid>
     public void Activate() => IsActive = true;
 
     public void UpdateName(string firstName, string lastName) => FullName = FullName.Create(firstName, lastName);
+
+    public void UpdateBirthday(DateTime? birthday) => Birthday = birthday;
 
     private void SetEmail(string email)
     {

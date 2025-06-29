@@ -1,8 +1,10 @@
 using ECommerce.Application.Features.Roles;
+using ECommerce.Application.Features.Roles.DTOs;
 using ECommerce.Application.Features.Users;
 using ECommerce.Application.Helpers;
 using ECommerce.Application.Services;
 using Microsoft.AspNetCore.Identity;
+using Mapster;
 
 namespace ECommerce.Application.UnitTests.Features.Roles;
 
@@ -27,7 +29,6 @@ public abstract class RoleTestBase
         LocalizationServiceMock = new Mock<ILocalizationService>();
         CacheManagerMock = new Mock<ICacheManager>();
         
-        // LocalizationHelper'ı concrete implementation olarak oluştur
         Localizer = new LocalizationHelper(LocalizationServiceMock.Object);
 
         LazyServiceProviderMock
@@ -48,12 +49,12 @@ public abstract class RoleTestBase
             .Returns("Role name already exists.");
 
         LocalizationServiceMock
-            .Setup(x => x.GetLocalizedString(RoleConsts.NameMustBeAtLeastCharacters))
-            .Returns("Role name must be at least 2 characters long.");
+            .Setup(x => x.GetLocalizedString(RoleConsts.NameMustBeAtLeastCharacters, RoleConsts.NameMinLength.ToString()))
+            .Returns("Role name must be at least {0} characters long.");
 
         LocalizationServiceMock
-            .Setup(x => x.GetLocalizedString(RoleConsts.NameMustBeLessThanCharacters))
-            .Returns("Role name must be less than 100 characters long.");
+            .Setup(x => x.GetLocalizedString(RoleConsts.NameMustBeLessThanCharacters, RoleConsts.NameMaxLength.ToString()))
+            .Returns("Role name must be less than {0} characters long.");
 
         LocalizationServiceMock
             .Setup(x => x.GetLocalizedString(RoleConsts.RoleNotFound))
@@ -122,9 +123,15 @@ public abstract class RoleTestBase
 
     protected void SetupRoleServiceGetAllRolesAsync(IList<Role>? roles = null)
     {
+        var roleDtos = (roles ?? new List<Role>()).Adapt<List<RoleDto>>();
         RoleServiceMock
-            .Setup(x => x.GetAllRolesAsync())
-            .ReturnsAsync(roles ?? new List<Role>());
+            .Setup(x => x.GetAllRolesAsync(
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<string>(),
+                It.IsAny<bool>()
+            ))
+            .ReturnsAsync(new PagedResult<List<RoleDto>>(new PagedInfo(1, 10, roleDtos.Count, 1), roleDtos));
     }
 
     protected void SetupRoleServiceGetUserRolesAsync(IList<string>? roles = null)

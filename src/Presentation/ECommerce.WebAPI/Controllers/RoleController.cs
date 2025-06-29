@@ -2,6 +2,7 @@ using ECommerce.Application.Constants;
 using ECommerce.Application.Features.Roles.Commands;
 using ECommerce.Application.Features.Roles.DTOs;
 using ECommerce.Application.Features.Roles.Queries;
+using ECommerce.Application.Parameters;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Ardalis.Result.AspNetCore;
@@ -16,10 +17,9 @@ public sealed class RoleController : BaseApiController
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetRoles(CancellationToken cancellationToken = default)
+    public async Task<IActionResult> GetRoles([FromQuery] PageableRequestParams requestParams, [FromQuery] bool includePermissions = false, CancellationToken cancellationToken = default)
     {
-        var result = await Mediator.Send(new GetAllRolesQuery(), cancellationToken);
+        var result = await Mediator.Send(new GetAllRolesQuery(requestParams, includePermissions), cancellationToken);
         return Ok(result);
     }
 

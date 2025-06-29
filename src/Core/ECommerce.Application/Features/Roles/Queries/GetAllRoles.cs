@@ -2,6 +2,7 @@ using Ardalis.Result;
 using ECommerce.Application.Behaviors;
 using ECommerce.Application.CQRS;
 using ECommerce.Application.Features.Roles.DTOs;
+using ECommerce.Application.Parameters;
 using ECommerce.Application.Services;
 using ECommerce.SharedKernel.DependencyInjection;
 using Mapster;
@@ -9,21 +10,18 @@ using MediatR;
 
 namespace ECommerce.Application.Features.Roles.Queries;
 
-public sealed record GetAllRolesQuery : IRequest<Result<List<RoleDto>>>, ICacheableRequest
+public sealed record GetAllRolesQuery (PageableRequestParams pageableRequestParams, bool IncludePermissions = false): IRequest<PagedResult<List<RoleDto>>>, ICacheableRequest
 {
-    public string CacheKey => "roles:all";
+    public string CacheKey => $"roles:all:include-permissions:{IncludePermissions}";
     public TimeSpan CacheDuration => TimeSpan.FromMinutes(30);
 }
 
 public sealed class GetAllRolesQueryHandler(
     IRoleService roleService,
-    ILazyServiceProvider lazyServiceProvider) : BaseHandler<GetAllRolesQuery, Result<List<RoleDto>>>(lazyServiceProvider)
+    ILazyServiceProvider lazyServiceProvider) : BaseHandler<GetAllRolesQuery, PagedResult<List<RoleDto>>>(lazyServiceProvider)
 {
-    public override async Task<Result<List<RoleDto>>> Handle(GetAllRolesQuery query, CancellationToken cancellationToken)
+    public override async Task<PagedResult<List<RoleDto>>> Handle(GetAllRolesQuery query, CancellationToken cancellationToken)
     {
-        var roles = await roleService.GetAllRolesAsync();
-        var roleDtos = roles.Adapt<List<RoleDto>>();
-
-        return Result.Success(roleDtos);
+        return await roleService.GetAllRolesAsync(query.pageableRequestParams.Page, query.pageableRequestParams.PageSize, query.pageableRequestParams?.Search ?? string.Empty, query.IncludePermissions);
     }
 } 

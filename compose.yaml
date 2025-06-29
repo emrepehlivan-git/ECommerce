@@ -141,6 +141,7 @@
     environment:
       - PGADMIN_DEFAULT_EMAIL=admin@example.com
       - PGADMIN_DEFAULT_PASSWORD=admin
+      - PGADMIN_CONFIG_WEBSERVER_MAX_HTTP_HEADERS_SIZE=16384
     depends_on:
       - ecommerce.db
     networks:

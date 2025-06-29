@@ -57,4 +57,16 @@ public sealed class UsersController : BaseApiController
         var result = await Mediator.Send(new DeactivateUserCommand(id), cancellationToken);
         return result.ToActionResult(this);
     }
+
+    [HttpPut("{id}/birthday")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> UpdateBirthday(Guid id, [FromBody] DateTime? birthday, CancellationToken cancellationToken)
+    {
+        var result = await Mediator.Send(new UpdateUserBirthdayCommand(id, birthday), cancellationToken);
+        return result.ToActionResult(this);
+    }
 }

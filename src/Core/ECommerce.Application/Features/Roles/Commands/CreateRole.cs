@@ -15,22 +15,22 @@ public sealed record CreateRoleCommand(string Name) : IRequest<Result<Guid>>, IV
 public sealed class CreateRoleCommandValidator : AbstractValidator<CreateRoleCommand>
 {
     private readonly IRoleService _roleService;
-    private readonly LocalizationHelper _localizer;
+    private readonly ILocalizationService _localizationService;
 
-    public CreateRoleCommandValidator(IRoleService roleService, LocalizationHelper localizer)
+    public CreateRoleCommandValidator(IRoleService roleService, ILocalizationService localizationService)
     {
         _roleService = roleService;
-        _localizer = localizer;
+        _localizationService = localizationService;
 
         RuleFor(x => x.Name)
             .NotEmpty()
-            .WithMessage(_localizer[RoleConsts.NameIsRequired])
+                .WithMessage(_localizationService.GetLocalizedString(RoleConsts.NameIsRequired))
             .MinimumLength(RoleConsts.NameMinLength)
-            .WithMessage(_localizer[RoleConsts.NameMustBeAtLeastCharacters])
+                .WithMessage(_localizationService.GetLocalizedString(RoleConsts.NameMustBeAtLeastCharacters, RoleConsts.NameMinLength.ToString()))
             .MaximumLength(RoleConsts.NameMaxLength)
-            .WithMessage(_localizer[RoleConsts.NameMustBeLessThanCharacters])
-            .MustAsync(async (name, ct) => !await _roleService.RoleExistsAsync(name))
-            .WithMessage(_localizer[RoleConsts.NameExists]);
+                .WithMessage(_localizationService.GetLocalizedString(RoleConsts.NameMustBeLessThanCharacters, RoleConsts.NameMaxLength.ToString()))
+            .MustAsync(async (name, cancellationToken) => !await _roleService.RoleExistsAsync(name))
+                .WithMessage(_localizationService.GetLocalizedString(RoleConsts.NameExists));
     }
 }
 
@@ -51,7 +51,7 @@ public sealed class CreateRoleCommandHandler(
             return Result.Error([.. result.Errors.Select(e => e.Description)]);
         }
 
-        await cacheManager.RemoveByPatternAsync("roles:*", cancellationToken);
+        await cacheManager.RemoveByPatternAsync("roles:all:include-permissions:*", cancellationToken);
 
         return Result.Success(role.Id);
     }

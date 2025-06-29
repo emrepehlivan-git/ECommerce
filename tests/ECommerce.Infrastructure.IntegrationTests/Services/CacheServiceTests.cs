@@ -1,20 +1,17 @@
-using Microsoft.Extensions.Logging;
+using StackExchange.Redis;
 
 namespace ECommerce.Infrastructure.IntegrationTests.Services;
 
-public class HybridCacheManagerTests
+public class CacheManagerTests
 {
-    private readonly IMemoryCache _memoryCache;
     private readonly IDistributedCache _distributedCache;
-    private readonly HybridCacheManager _cacheManager;
-    private readonly ILogger<HybridCacheManager> _logger;
+    private readonly CacheManager _cacheManager;
 
-    public HybridCacheManagerTests()
+    public CacheManagerTests()
     {
-        _memoryCache = new MemoryCache(Options.Create(new MemoryCacheOptions()));
         _distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
-        _logger = new Mock<ILogger<HybridCacheManager>>().Object;
-        _cacheManager = new HybridCacheManager(_memoryCache, _distributedCache, _logger);
+        var mockConnectionMultiplexer = new Mock<IConnectionMultiplexer>();
+        _cacheManager = new CacheManager(_distributedCache, mockConnectionMultiplexer.Object);
     }
 
     [Fact]
@@ -23,7 +20,7 @@ public class HybridCacheManagerTests
         // Arrange
         var key = "test-key-l1";
         var value = new TestRecord("L1 Value");
-        _memoryCache.Set(key, value);
+        await _cacheManager.SetAsync(key, value);
 
         // Act
         var result = await _cacheManager.GetAsync<TestRecord>(key);
@@ -42,7 +39,7 @@ public class HybridCacheManagerTests
         await _cacheManager.SetAsync(key, value, TimeSpan.FromMinutes(1));
         
         // Clear L1 cache to simulate L1 miss
-        _memoryCache.Remove(key);
+        await _cacheManager.RemoveAsync(key);
 
         // Act
         var result = await _cacheManager.GetAsync<TestRecord>(key);
@@ -64,7 +61,7 @@ public class HybridCacheManagerTests
 
         // Assert
         // Check L1 cache
-        _memoryCache.TryGetValue(key, out var l1Result).Should().BeTrue();
+        var l1Result = await _cacheManager.GetAsync<TestRecord>(key);
         ((TestRecord)l1Result!).Value.Should().Be(value.Value);
 
         // Check L2 cache
@@ -87,7 +84,8 @@ public class HybridCacheManagerTests
         var result = await _cacheManager.GetAsync<TestRecord>(key);
         result.Should().BeNull();
         
-        _memoryCache.TryGetValue(key, out _).Should().BeFalse();
+        var result2 = await _distributedCache.GetStringAsync(key);
+        result2.Should().BeNull();
     }
 
     [Fact]

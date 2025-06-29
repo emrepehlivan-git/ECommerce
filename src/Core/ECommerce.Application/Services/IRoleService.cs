@@ -1,3 +1,5 @@
+using Ardalis.Result;
+using ECommerce.Application.Features.Roles.DTOs;
 using ECommerce.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 
@@ -12,7 +14,7 @@ public interface IRoleService
     Task<IdentityResult> CreateRoleAsync(Role role);
     Task<IdentityResult> UpdateRoleAsync(Role role);
     Task<IdentityResult> DeleteRoleAsync(Role role);
-    Task<IList<Role>> GetAllRolesAsync();
+    Task<PagedResult<List<RoleDto>>> GetAllRolesAsync(int page, int pageSize, string search, bool includePermissions = false);
     Task<bool> RoleExistsAsync(string roleName);
     Task<IdentityResult> AddToRoleAsync(User user, string role);
     Task<IdentityResult> RemoveFromRoleAsync(User user, string role);
