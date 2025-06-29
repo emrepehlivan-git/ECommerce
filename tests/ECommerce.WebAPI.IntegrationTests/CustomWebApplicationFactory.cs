@@ -1,16 +1,23 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Testcontainers.PostgreSql;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.AspNetCore.Authentication;
 
 namespace ECommerce.WebAPI.IntegrationTests;
 
 public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _dbContainer = new PostgreSqlBuilder()
-        .WithDatabase("ecommerce")
-        .WithUsername("postgres")
-        .WithPassword("postgres")
-        .Build();
+    public readonly PostgreSqlContainer DbContainer;
+
+    public CustomWebApplicationFactory()
+    {
+        DbContainer = new PostgreSqlBuilder()
+            .WithDatabase("ecommerce")
+            .WithUsername("postgres")
+            .WithPassword("postgres")
+            .Build();
+    }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -20,20 +27,37 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
         {
             var overrides = new Dictionary<string, string?>
             {
-                ["ConnectionStrings:DefaultConnection"] = _dbContainer.GetConnectionString(),
-                ["ConnectionStrings:Redis"] = "localhost:6379"
+                ["ConnectionStrings:PostgreSQL"] = DbContainer.GetConnectionString()
             };
             config.AddInMemoryCollection(overrides!);
         });
+
+        builder.ConfigureTestServices(services =>
+        {
+            services.AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = TestAuthHandler.AuthenticationScheme;
+                    options.DefaultScheme = TestAuthHandler.AuthenticationScheme;
+                    options.DefaultChallengeScheme = TestAuthHandler.AuthenticationScheme;
+                })
+                .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(TestAuthHandler.AuthenticationScheme, _ => { });
+        });
+    }
+
+    public async Task ApplyMigrations()
+    {
+        using var scope = Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        await dbContext.Database.MigrateAsync();
     }
 
     public async Task InitializeAsync()
     {
-        await _dbContainer.StartAsync();
+        await DbContainer.StartAsync();
     }
 
     async Task IAsyncLifetime.DisposeAsync()
     {
-        await _dbContainer.DisposeAsync();
+        await DbContainer.DisposeAsync();
     }
 }

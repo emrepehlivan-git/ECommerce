@@ -60,8 +60,7 @@ public sealed class CartController : BaseApiController
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult> ClearCart()
     {
-        var command = new ClearCartCommand();
-        var result = await Mediator.Send(command);
+        var result = await Mediator.Send(new ClearCartCommand());
         return result.ToActionResult(this);
     }
 } 
