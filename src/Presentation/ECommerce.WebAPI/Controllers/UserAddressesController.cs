@@ -1,5 +1,7 @@
+using Ardalis.Result;
 using Ardalis.Result.AspNetCore;
 using ECommerce.Application.Features.UserAddresses.Commands;
+using ECommerce.Application.Features.UserAddresses.DTOs;
 using ECommerce.Application.Features.UserAddresses.Queries;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,13 +11,21 @@ namespace ECommerce.WebAPI.Controllers;
 public sealed class UserAddressesController : BaseApiController
 {
     [HttpGet("user/{userId:guid}")]
-    public async Task<IActionResult> GetUserAddresses(Guid userId, bool activeOnly = true)
+    [ProducesResponseType(typeof(List<UserAddressDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<List<UserAddressDto>>> GetUserAddresses(Guid userId, bool activeOnly = true)
     {
         var result = await Mediator.Send(new GetUserAddressesQuery(userId, activeOnly));
-        return Ok(result);
+        return result.ToActionResult(this);
     }
 
     [HttpPost]
+    [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<Guid>> AddUserAddress([FromBody] AddUserAddressCommand command)
     {
         var result = await Mediator.Send(command);
@@ -23,6 +33,10 @@ public sealed class UserAddressesController : BaseApiController
     }
 
     [HttpPut("{id:guid}")]
+    [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> UpdateUserAddress(Guid id, [FromBody] UpdateUserAddressRequest request)
     {
         var command = new UpdateUserAddressCommand(
@@ -39,6 +53,10 @@ public sealed class UserAddressesController : BaseApiController
     }
 
     [HttpPatch("{id:guid}/set-default")]
+    [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> SetDefaultAddress(Guid id, [FromBody] SetDefaultRequest request)
     {
         var command = new SetDefaultUserAddressCommand(id, request.UserId);
@@ -47,6 +65,10 @@ public sealed class UserAddressesController : BaseApiController
     }
 
     [HttpDelete("{id:guid}")]
+    [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> DeleteUserAddress(Guid id, [FromBody] DeleteUserAddressRequest request)
     {
         var command = new DeleteUserAddressCommand(id, request.UserId);

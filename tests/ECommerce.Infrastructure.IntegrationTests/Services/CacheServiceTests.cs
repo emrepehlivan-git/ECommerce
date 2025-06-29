@@ -6,12 +6,13 @@ public class CacheManagerTests
 {
     private readonly IDistributedCache _distributedCache;
     private readonly CacheManager _cacheManager;
+    private readonly Mock<IConnectionMultiplexer> _mockConnectionMultiplexer;
 
     public CacheManagerTests()
     {
         _distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
-        var mockConnectionMultiplexer = new Mock<IConnectionMultiplexer>();
-        _cacheManager = new CacheManager(_distributedCache, mockConnectionMultiplexer.Object);
+        _mockConnectionMultiplexer = new Mock<IConnectionMultiplexer>();
+        _cacheManager = new CacheManager(_distributedCache, _mockConnectionMultiplexer.Object);
     }
 
     [Fact]
@@ -37,12 +38,12 @@ public class CacheManagerTests
         var key = "test-key-l2";
         var value = new TestRecord("L2 Value");
         await _cacheManager.SetAsync(key, value, TimeSpan.FromMinutes(1));
-        
-        // Clear L1 cache to simulate L1 miss
-        await _cacheManager.RemoveAsync(key);
+
+        // Create a new CacheManager to simulate a new instance with an empty L1 cache
+        var newCacheManager = new CacheManager(_distributedCache, _mockConnectionMultiplexer.Object);
 
         // Act
-        var result = await _cacheManager.GetAsync<TestRecord>(key);
+        var result = await newCacheManager.GetAsync<TestRecord>(key);
 
         // Assert
         result.Should().NotBeNull();
