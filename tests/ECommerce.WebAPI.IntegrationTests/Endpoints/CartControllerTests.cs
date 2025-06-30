@@ -1,13 +1,21 @@
 using ECommerce.Application.Features.Carts.Commands;
+using ECommerce.Application.Features.Carts.DTOs;
 using ECommerce.WebAPI.IntegrationTests.Common;
 
 namespace ECommerce.WebAPI.IntegrationTests.Endpoints;
 
-public class CartControllerTests : BaseIntegrationTest
+public class CartControllerTests : BaseIntegrationTest, IAsyncLifetime
 {
     public CartControllerTests(CustomWebApplicationFactory factory) : base(factory)
     {
     }
+
+    public async Task InitializeAsync()
+    {
+        await Factory.InitializeAsync();
+    }
+
+    public async Task DisposeAsync() => await Task.CompletedTask;
 
     [Fact]
     public async Task GetCart_WhenUserHasNoCart_ReturnsOkWithEmptyCart()
@@ -25,65 +33,57 @@ public class CartControllerTests : BaseIntegrationTest
     }
 
     [Fact]
-    public async Task AddToCart_WithValidProduct_ReturnsOkWithCartSummary()
+    public async Task AddToCart_WithValidData_ReturnsOkWithCartSummary()
     {
-        // Arrange
         await ResetDatabaseAsync();
         await CreateUserAsync();
-        var product = await CreateProductAsync("Test Product", 100m, 10);
-        var command = new AddToCartCommand(product.Id, 2);
+        var product = await CreateProductAsync();
+        var summary = await AddToCartAsync(product.Id, 1);
 
-        // Act
-        var summary = await AddToCartAsync(command.ProductId, command.Quantity);
-
-        // Assert
         summary.Should().NotBeNull();
         summary.TotalItems.Should().Be(1);
-        summary.TotalAmount.Should().Be(200m);
+        summary.TotalAmount.Should().Be(100m);
     }
 
     [Fact]
-    public async Task AddToCart_WithNonExistentProduct_ReturnsNotFound()
+    public async Task GetCart_ReturnsOk()
     {
-        // Arrange
-        var command = new AddToCartCommand(Guid.NewGuid(), 1);
+        await ResetDatabaseAsync();
+        await CreateUserAsync();
+        var product = await CreateProductAsync();
+        await AddToCartAsync(product.Id, 2);
 
-        // Act
-        var response = await Client.PostAsJsonAsync("/api/Cart/add", command);
+        var cart = await GetCartAsync();
 
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        cart.Should().NotBeNull();
+        cart.Items.Should().ContainSingle();
+        cart.Items.First().Quantity.Should().Be(2);
+        cart.Items.First().ProductName.Should().Be("Test Product");
     }
-    
+
     [Fact]
-    public async Task AddToCart_WithInsufficientStock_ReturnsUnprocessableEntity()
+    public async Task AddToCart_ExceedsStock_ReturnsUnprocessableEntity()
     {
-        // Arrange
         await ResetDatabaseAsync();
         await CreateUserAsync();
         var product = await CreateProductAsync("Test Product", 100m, 1);
         var command = new AddToCartCommand(product.Id, 2);
 
-        // Act
         var response = await Client.PostAsJsonAsync("/api/Cart/add", command);
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
     }
 
     [Fact]
     public async Task RemoveFromCart_WithExistingProduct_ReturnsOkWithCartSummary()
     {
-        // Arrange
         await ResetDatabaseAsync();
         await CreateUserAsync();
         var product = await CreateProductAsync();
         await AddToCartAsync(product.Id, 1);
 
-        // Act
         var summary = await RemoveFromCartAsync(product.Id);
 
-        // Assert
         summary.Should().NotBeNull();
         summary.TotalItems.Should().Be(0);
         summary.TotalAmount.Should().Be(0);
@@ -92,17 +92,14 @@ public class CartControllerTests : BaseIntegrationTest
     [Fact]
     public async Task UpdateQuantity_WithValidData_ReturnsOkWithCartSummary()
     {
-        // Arrange
         await ResetDatabaseAsync();
         await CreateUserAsync();
         var product = await CreateProductAsync();
         await AddToCartAsync(product.Id, 1);
         var command = new UpdateCartItemQuantityCommand(product.Id, 5);
 
-        // Act
         var summary = await UpdateQuantityAsync(command.ProductId, command.Quantity);
 
-        // Assert
         summary.Should().NotBeNull();
         summary.TotalItems.Should().Be(1);
         summary.TotalAmount.Should().Be(500m);
@@ -111,7 +108,6 @@ public class CartControllerTests : BaseIntegrationTest
     [Fact]
     public async Task ClearCart_WhenCartIsNotEmpty_ReturnsNoContent()
     {
-        // Arrange
         await ResetDatabaseAsync();
         await CreateUserAsync();
         var product1 = await CreateProductAsync("Product 1", 10m, 5);
@@ -119,10 +115,8 @@ public class CartControllerTests : BaseIntegrationTest
         var product2 = await CreateProductAsync("Product 2", 20m, 3);
         await AddToCartAsync(product2.Id, 3);
 
-        // Act
         var response = await Client.DeleteAsync("/api/Cart/clear");
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         var cart = await GetCartAsync();

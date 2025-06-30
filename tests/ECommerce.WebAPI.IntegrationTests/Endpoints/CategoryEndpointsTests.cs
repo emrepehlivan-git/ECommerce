@@ -1,19 +1,16 @@
+using ECommerce.WebAPI.IntegrationTests.Common;
+
 namespace ECommerce.WebAPI.IntegrationTests.Endpoints;
 
-public class CategoryEndpointsTests : IClassFixture<CustomWebApplicationFactory>, IAsyncLifetime
+public class CategoryEndpointsTests : BaseIntegrationTest, IAsyncLifetime
 {
-    private readonly CustomWebApplicationFactory _factory;
-    private HttpClient _client = default!;
-
-    public CategoryEndpointsTests(CustomWebApplicationFactory factory)
+    public CategoryEndpointsTests(CustomWebApplicationFactory factory) : base(factory)
     {
-        _factory = factory;
     }
 
     public async Task InitializeAsync()
     {
-        await _factory.InitializeAsync();
-        _client = _factory.CreateClient();
+        await Factory.InitializeAsync();
     }
 
     public async Task DisposeAsync() => await Task.CompletedTask;
@@ -21,43 +18,48 @@ public class CategoryEndpointsTests : IClassFixture<CustomWebApplicationFactory>
     [Fact]
     public async Task GetCategories_ReturnsOk()
     {
-        var response = await _client.GetAsync("/api/Category");
+        await ResetDatabaseAsync();
+        var response = await Client.GetAsync("/api/Category");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task GetCategoryById_ReturnsOk()
     {
-        using var scope = _factory.Services.CreateScope();
+        await ResetDatabaseAsync();
+        using var scope = Factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var category = Category.Create("IntegrationCat");
         context.Categories.Add(category);
         await context.SaveChangesAsync();
 
-        var response = await _client.GetAsync($"/api/Category/{category.Id}");
+        var response = await Client.GetAsync($"/api/Category/{category.Id}");
         response.EnsureSuccessStatusCode();
     }
 
     [Fact]
     public async Task CreateCategory_RequiresAuthorization()
     {
+        await ResetDatabaseAsync();
         var command = new { Name = "New Category" };
-        var response = await _client.PostAsJsonAsync("/api/Category", command);
+        var response = await Client.PostAsJsonAsync("/api/Category", command);
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact]
     public async Task UpdateCategory_RequiresAuthorization()
     {
+        await ResetDatabaseAsync();
         var command = new { Name = "Updated" };
-        var response = await _client.PutAsJsonAsync($"/api/Category/{Guid.NewGuid()}", command);
+        var response = await Client.PutAsJsonAsync($"/api/Category/{Guid.NewGuid()}", command);
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact]
     public async Task DeleteCategory_RequiresAuthorization()
     {
-        var response = await _client.DeleteAsync($"/api/Category/{Guid.NewGuid()}");
+        await ResetDatabaseAsync();
+        var response = await Client.DeleteAsync($"/api/Category/{Guid.NewGuid()}");
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 }

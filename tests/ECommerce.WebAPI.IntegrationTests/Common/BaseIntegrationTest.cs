@@ -14,6 +14,28 @@ public abstract class BaseIntegrationTest : IClassFixture<CustomWebApplicationFa
     {
         Factory = factory;
         Client = factory.CreateClient();
+        
+        // GÜVENLİK KONTROLÜ: Gerçek veritabanına bağlanmayı engelle
+        VerifyTestDatabase();
+    }
+    
+    private void VerifyTestDatabase()
+    {
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var connectionString = context.Database.GetConnectionString();
+        
+        // ASLA gerçek veritabanına bağlanmamalı
+        if (connectionString != null &&
+            (connectionString.Contains("Database=ecommerce;") ||
+             connectionString.Contains("localhost:5432") ||
+             connectionString.Contains("ecommerce_prod") ||
+             !connectionString.Contains("ecommerce_test")))
+        {
+            throw new InvalidOperationException(
+                $"TEHLIKE! Integration test gerçek veritabanına bağlanmaya çalışıyor: {connectionString}. " +
+                "Bu kesinlikle engellenmelidir!");
+        }
     }
     
     protected async Task ResetDatabaseAsync()
@@ -21,15 +43,15 @@ public abstract class BaseIntegrationTest : IClassFixture<CustomWebApplicationFa
         using var scope = Factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         
-        // Veritabanındaki tüm tabloları temizle
-        await context.Database.ExecuteSqlRawAsync("TRUNCATE TABLE cart_items CASCADE");
-        await context.Database.ExecuteSqlRawAsync("TRUNCATE TABLE carts CASCADE");
-        await context.Database.ExecuteSqlRawAsync("TRUNCATE TABLE product_stocks CASCADE");
-        await context.Database.ExecuteSqlRawAsync("TRUNCATE TABLE products CASCADE");
-        await context.Database.ExecuteSqlRawAsync("TRUNCATE TABLE categories CASCADE");
-        await context.Database.ExecuteSqlRawAsync("TRUNCATE TABLE users CASCADE");
+        // Bir kez daha güvenlik kontrolü
+        VerifyTestDatabase();
         
-        await context.SaveChangesAsync();
+        // Testcontainer ile çalışırken database'i tamamen temizleyip yeniden oluşturuyoruz
+        await context.Database.EnsureDeletedAsync();
+        await context.Database.EnsureCreatedAsync();
+        
+        // Migration'ları uygula
+        await context.Database.MigrateAsync();
     }
     
     protected async Task<User> CreateUserAsync(string email = "testuser@example.com")

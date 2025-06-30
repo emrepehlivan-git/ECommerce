@@ -7,6 +7,8 @@ using ECommerce.Application.Repositories;
 using ECommerce.Application.Features.Products.DTOs;
 using ECommerce.Application.Parameters;
 using MediatR;
+using System.Linq.Expressions;
+using ECommerce.Domain.Entities;
 
 namespace ECommerce.Application.Features.Products.Queries;
 
@@ -27,8 +29,16 @@ public sealed class GetAllProductsQueryHandler(
 {
     public override async Task<PagedResult<List<ProductDto>>> Handle(GetAllProductsQuery query, CancellationToken cancellationToken)
     {
+        Expression<Func<Product, bool>>? predicate = null;
+
+        if (query.CategoryId.HasValue)
+            predicate = p => p.CategoryId == query.CategoryId.Value;
+
+        if (!string.IsNullOrWhiteSpace(query.PageableRequestParams.Search))
+            predicate = p => p.Name.ToLower().Contains(query.PageableRequestParams.Search.ToLower());
+
         return await productRepository.GetPagedAsync<ProductDto>(
-            predicate: query.CategoryId.HasValue ? p => p.CategoryId == query.CategoryId.Value : null,
+            predicate: predicate,
             orderBy: x => x.ApplyOrderBy(Filter.FromOrderByString(query.OrderBy)),
             include: x => x.IncludeIf(query.IncludeCategory, y => y.Category),
             page: query.PageableRequestParams.Page,

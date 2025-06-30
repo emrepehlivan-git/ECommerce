@@ -1,19 +1,16 @@
+using ECommerce.WebAPI.IntegrationTests.Common;
+
 namespace ECommerce.WebAPI.IntegrationTests.Endpoints;
 
-public class ProductEndpointsTests : IClassFixture<CustomWebApplicationFactory>, IAsyncLifetime
+public class ProductEndpointsTests : BaseIntegrationTest, IAsyncLifetime
 {
-    private readonly CustomWebApplicationFactory _factory;
-    private HttpClient _client = default!;
-
-    public ProductEndpointsTests(CustomWebApplicationFactory factory)
+    public ProductEndpointsTests(CustomWebApplicationFactory factory) : base(factory)
     {
-        _factory = factory;
     }
 
     public async Task InitializeAsync()
     {
-        await _factory.InitializeAsync();
-        _client = _factory.CreateClient();
+        await Factory.InitializeAsync();
     }
 
     public async Task DisposeAsync() => await Task.CompletedTask;
@@ -23,37 +20,40 @@ public class ProductEndpointsTests : IClassFixture<CustomWebApplicationFactory>,
     [Fact]
     public async Task GetProducts_ReturnsOk()
     {
-        var response = await _client.GetAsync("/api/Product");
+        await ResetDatabaseAsync();
+        var response = await Client.GetAsync("/api/Product");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task GetProducts_WithPagination_ReturnsOk()
     {
-        var response = await _client.GetAsync("/api/Product?page=1&pageSize=10");
+        await ResetDatabaseAsync();
+        var response = await Client.GetAsync("/api/Product?page=1&pageSize=10");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task GetProducts_WithIncludeCategory_ReturnsOk()
     {
-        var response = await _client.GetAsync("/api/Product?includeCategory=true");
+        await ResetDatabaseAsync();
+        var response = await Client.GetAsync("/api/Product?includeCategory=true");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task GetProducts_WithOrderBy_ReturnsOk()
     {
-        var response = await _client.GetAsync("/api/Product?orderBy=name");
-        // This might return BadRequest due to QueryableExtensions issue, so let's check for both
+        await ResetDatabaseAsync();
+        var response = await Client.GetAsync("/api/Product?orderBy=name");
         response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.BadRequest);
     }
 
     [Fact]
     public async Task GetProductById_WithValidId_ReturnsOk()
     {
-        // Arrange - create category and product
-        using var scope = _factory.Services.CreateScope();
+        await ResetDatabaseAsync();
+        using var scope = Factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var category = Category.Create(CreateUniqueCategoryName("Electronics"));
         context.Categories.Add(category);
@@ -64,10 +64,8 @@ public class ProductEndpointsTests : IClassFixture<CustomWebApplicationFactory>,
         context.ProductStocks.Add(product.Stock);
         await context.SaveChangesAsync();
 
-        // Act
-        var response = await _client.GetAsync($"/api/Product/{product.Id}");
+        var response = await Client.GetAsync($"/api/Product/{product.Id}");
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var content = await response.Content.ReadAsStringAsync();
         content.Should().Contain("Laptop");
@@ -77,15 +75,16 @@ public class ProductEndpointsTests : IClassFixture<CustomWebApplicationFactory>,
     [Fact]
     public async Task GetProductById_WithInvalidId_ReturnsNotFound()
     {
-        var response = await _client.GetAsync($"/api/Product/{Guid.NewGuid()}");
+        await ResetDatabaseAsync();
+        var response = await Client.GetAsync($"/api/Product/{Guid.NewGuid()}");
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
     public async Task CreateProduct_PersistsProduct()
     {
-        // Arrange - create category directly
-        using var scope = _factory.Services.CreateScope();
+        await ResetDatabaseAsync();
+        using var scope = Factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var category = Category.Create(CreateUniqueCategoryName("Integration"));
         context.Categories.Add(category);
@@ -100,11 +99,9 @@ public class ProductEndpointsTests : IClassFixture<CustomWebApplicationFactory>,
             StockQuantity = 3
         };
 
-        // Act
-        var response = await _client.PostAsJsonAsync("/api/Product", command);
+        var response = await Client.PostAsJsonAsync("/api/Product", command);
         response.EnsureSuccessStatusCode();
 
-        // Assert DB
         var product = await context.Products.Include(p => p.Stock).FirstOrDefaultAsync(p => p.Name == "Phone");
         product.Should().NotBeNull();
         product!.Name.Should().Be("Phone");
@@ -114,23 +111,25 @@ public class ProductEndpointsTests : IClassFixture<CustomWebApplicationFactory>,
     [Fact]
     public async Task CreateProduct_WithInvalidData_ReturnsBadRequest()
     {
+        await ResetDatabaseAsync();
         var command = new
         {
-            Name = "", // Invalid empty name
+            Name = "",
             Description = "Test description",
             Price = 100m,
             CategoryId = Guid.NewGuid(),
             StockQuantity = 3
         };
 
-        var response = await _client.PostAsJsonAsync("/api/Product", command);
+        var response = await Client.PostAsJsonAsync("/api/Product", command);
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
     public async Task CreateProduct_WithNegativePrice_ReturnsBadRequest()
     {
-        using var scope = _factory.Services.CreateScope();
+        await ResetDatabaseAsync();
+        using var scope = Factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var category = Category.Create(CreateUniqueCategoryName("TestCategory"));
         context.Categories.Add(category);
@@ -140,36 +139,37 @@ public class ProductEndpointsTests : IClassFixture<CustomWebApplicationFactory>,
         {
             Name = "Test Product",
             Description = "Test description",
-            Price = -10m, // Invalid negative price
+            Price = -10m,
             CategoryId = category.Id,
             StockQuantity = 3
         };
 
-        var response = await _client.PostAsJsonAsync("/api/Product", command);
+        var response = await Client.PostAsJsonAsync("/api/Product", command);
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
     public async Task CreateProduct_WithNonExistentCategory_ReturnsBadRequest()
     {
+        await ResetDatabaseAsync();
         var command = new
         {
             Name = "Test Product",
             Description = "Test description",
             Price = 100m,
-            CategoryId = Guid.NewGuid(), // Non-existent category
+            CategoryId = Guid.NewGuid(),
             StockQuantity = 3
         };
 
-        var response = await _client.PostAsJsonAsync("/api/Product", command);
+        var response = await Client.PostAsJsonAsync("/api/Product", command);
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
     public async Task UpdateProduct_WithValidData_ReturnsOk()
     {
-        // Arrange - create category and product
-        using var scope = _factory.Services.CreateScope();
+        await ResetDatabaseAsync();
+        using var scope = Factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var category = Category.Create(CreateUniqueCategoryName("Electronics"));
         context.Categories.Add(category);
@@ -188,14 +188,11 @@ public class ProductEndpointsTests : IClassFixture<CustomWebApplicationFactory>,
             CategoryId = category.Id
         };
 
-        // Act
-        var response = await _client.PutAsJsonAsync($"/api/Product/{product.Id}", updateCommand);
+        var response = await Client.PutAsJsonAsync($"/api/Product/{product.Id}", updateCommand);
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        // Verify the product was updated - use new scope to avoid caching issues
-        using var verifyScope = _factory.Services.CreateScope();
+        using var verifyScope = Factory.Services.CreateScope();
         var verifyContext = verifyScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var updatedProduct = await verifyContext.Products.FindAsync(product.Id);
         updatedProduct.Should().NotBeNull();
@@ -207,30 +204,24 @@ public class ProductEndpointsTests : IClassFixture<CustomWebApplicationFactory>,
     [Fact]
     public async Task UpdateProduct_WithNonExistentId_ReturnsNotFound()
     {
-        using var scope = _factory.Services.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        var category = Category.Create(CreateUniqueCategoryName("TestCategory"));
-        context.Categories.Add(category);
-        await context.SaveChangesAsync();
-
-        var updateCommand = new
+        await ResetDatabaseAsync();
+        var command = new
         {
-            Name = "Updated Name",
-            Description = "Updated description",
-            Price = 150m,
-            CategoryId = category.Id
+            Name = "Test Product",
+            Description = "Test description",
+            Price = 100m,
+            CategoryId = Guid.NewGuid()
         };
 
-        var response = await _client.PutAsJsonAsync($"/api/Product/{Guid.NewGuid()}", updateCommand);
-        // The validation will fail first because the product doesn't exist, so BadRequest is expected
-        response.StatusCode.Should().BeOneOf(HttpStatusCode.NotFound, HttpStatusCode.BadRequest);
+        var response = await Client.PutAsJsonAsync($"/api/Product/{Guid.NewGuid()}", command);
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
     public async Task UpdateProduct_WithInvalidData_ReturnsBadRequest()
     {
-        // Arrange - create category and product
-        using var scope = _factory.Services.CreateScope();
+        await ResetDatabaseAsync();
+        using var scope = Factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var category = Category.Create(CreateUniqueCategoryName("Electronics"));
         context.Categories.Add(category);
@@ -241,26 +232,23 @@ public class ProductEndpointsTests : IClassFixture<CustomWebApplicationFactory>,
         context.ProductStocks.Add(product.Stock);
         await context.SaveChangesAsync();
 
-        var updateCommand = new
+        var command = new
         {
-            Name = "", // Invalid empty name
-            Description = "Updated description",
-            Price = 150m,
+            Name = "",
+            Description = "Test description",
+            Price = 100m,
             CategoryId = category.Id
         };
 
-        // Act
-        var response = await _client.PutAsJsonAsync($"/api/Product/{product.Id}", updateCommand);
-
-        // Assert
+        var response = await Client.PutAsJsonAsync($"/api/Product/{product.Id}", command);
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
     public async Task DeleteProduct_WithValidId_ReturnsNoContent()
     {
-        // Arrange - create category and product
-        using var scope = _factory.Services.CreateScope();
+        await ResetDatabaseAsync();
+        using var scope = Factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var category = Category.Create(CreateUniqueCategoryName("Electronics"));
         context.Categories.Add(category);
@@ -271,14 +259,11 @@ public class ProductEndpointsTests : IClassFixture<CustomWebApplicationFactory>,
         context.ProductStocks.Add(product.Stock);
         await context.SaveChangesAsync();
 
-        // Act
-        var response = await _client.DeleteAsync($"/api/Product/{product.Id}");
+        var response = await Client.DeleteAsync($"/api/Product/{product.Id}");
 
-        // Assert - Controller returns 200 (OK) instead of 204 (NoContent)
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        // Verify the product was deleted
-        using var verifyScope = _factory.Services.CreateScope();
+        using var verifyScope = Factory.Services.CreateScope();
         var verifyContext = verifyScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var deletedProduct = await verifyContext.Products.FindAsync(product.Id);
         deletedProduct.Should().BeNull();
@@ -287,15 +272,16 @@ public class ProductEndpointsTests : IClassFixture<CustomWebApplicationFactory>,
     [Fact]
     public async Task DeleteProduct_WithNonExistentId_ReturnsNotFound()
     {
-        var response = await _client.DeleteAsync($"/api/Product/{Guid.NewGuid()}");
+        await ResetDatabaseAsync();
+        var response = await Client.DeleteAsync($"/api/Product/{Guid.NewGuid()}");
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
     public async Task GetProductStockInfo_WithValidId_ReturnsOk()
     {
-        // Arrange - create category and product
-        using var scope = _factory.Services.CreateScope();
+        await ResetDatabaseAsync();
+        using var scope = Factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var category = Category.Create(CreateUniqueCategoryName("Electronics"));
         context.Categories.Add(category);
@@ -306,10 +292,8 @@ public class ProductEndpointsTests : IClassFixture<CustomWebApplicationFactory>,
         context.ProductStocks.Add(product.Stock);
         await context.SaveChangesAsync();
 
-        // Act
-        var response = await _client.GetAsync($"/api/Product/{product.Id}/stock");
+        var response = await Client.GetAsync($"/api/Product/{product.Id}/stock");
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var content = await response.Content.ReadAsStringAsync();
         content.Should().Contain("15");
@@ -318,145 +302,134 @@ public class ProductEndpointsTests : IClassFixture<CustomWebApplicationFactory>,
     [Fact]
     public async Task GetProductStockInfo_WithNonExistentId_ReturnsNotFound()
     {
-        var response = await _client.GetAsync($"/api/Product/{Guid.NewGuid()}/stock");
+        await ResetDatabaseAsync();
+        var response = await Client.GetAsync($"/api/Product/{Guid.NewGuid()}/stock");
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
     public async Task UpdateProductStock_WithValidData_ReturnsOk()
     {
-        // Arrange - create category and product
-        using var scope = _factory.Services.CreateScope();
+        await ResetDatabaseAsync();
+        using var scope = Factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var category = Category.Create(CreateUniqueCategoryName("Electronics"));
         context.Categories.Add(category);
         await context.SaveChangesAsync();
 
-        var product = Product.Create("Stock Update Test", "Product for stock update test", 100m, category.Id, 10);
+        var product = Product.Create("Stock Update", "Product for stock update", 100m, category.Id, 10);
         context.Products.Add(product);
         context.ProductStocks.Add(product.Stock);
         await context.SaveChangesAsync();
 
-        var updateStockCommand = new
+        var updateCommand = new
         {
             Quantity = 25
         };
 
-        // Act
-        var response = await _client.PutAsJsonAsync($"/api/Product/{product.Id}/stock", updateStockCommand);
+        var response = await Client.PutAsJsonAsync($"/api/Product/{product.Id}/stock", updateCommand);
 
-        // Assert - The stock update validation is failing, so we expect BadRequest for now
-        response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.BadRequest);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        if (response.StatusCode == HttpStatusCode.OK)
-        {
-            // Verify the stock was updated
-            using var verifyScope = _factory.Services.CreateScope();
-            var verifyContext = verifyScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            var updatedStock = await verifyContext.ProductStocks.FirstOrDefaultAsync(s => s.ProductId == product.Id);
-            updatedStock.Should().NotBeNull();
-            updatedStock!.Quantity.Should().Be(25);
-        }
+        using var verifyScope = Factory.Services.CreateScope();
+        var verifyContext = verifyScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var updatedProduct = await verifyContext.Products.Include(p => p.Stock).FirstAsync(p => p.Id == product.Id);
+        updatedProduct.Stock.Quantity.Should().Be(25);
     }
 
     [Fact]
     public async Task UpdateProductStock_WithNonExistentId_ReturnsNotFound()
     {
-        var updateStockCommand = new
+        await ResetDatabaseAsync();
+        var command = new
         {
-            Quantity = 25
+            Quantity = 10
         };
 
-        var response = await _client.PutAsJsonAsync($"/api/Product/{Guid.NewGuid()}/stock", updateStockCommand);
-        response.StatusCode.Should().BeOneOf(HttpStatusCode.NotFound, HttpStatusCode.BadRequest);
+        var response = await Client.PutAsJsonAsync($"/api/Product/{Guid.NewGuid()}/stock", command);
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
     public async Task UpdateProductStock_WithNegativeQuantity_ReturnsBadRequest()
     {
-        // Arrange - create category and product
-        using var scope = _factory.Services.CreateScope();
+        await ResetDatabaseAsync();
+        using var scope = Factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var category = Category.Create(CreateUniqueCategoryName("Electronics"));
         context.Categories.Add(category);
         await context.SaveChangesAsync();
 
-        var product = Product.Create("Stock Test", "Product for stock test", 100m, category.Id, 10);
+        var product = Product.Create("Stock Test", "Product for negative stock test", 100m, category.Id, 10);
         context.Products.Add(product);
         context.ProductStocks.Add(product.Stock);
         await context.SaveChangesAsync();
 
-        var updateStockCommand = new
+        var command = new
         {
-            Quantity = -5 // Invalid negative quantity
+            Quantity = -5
         };
 
-        // Act
-        var response = await _client.PutAsJsonAsync($"/api/Product/{product.Id}/stock", updateStockCommand);
+        var response = await Client.PutAsJsonAsync($"/api/Product/{product.Id}/stock", command);
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
     public async Task CreateProduct_WithDuplicateName_ReturnsBadRequest()
     {
-        // Arrange - create category and first product
-        using var scope = _factory.Services.CreateScope();
+        await ResetDatabaseAsync();
+        using var scope = Factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var category = Category.Create(CreateUniqueCategoryName("Electronics"));
         context.Categories.Add(category);
         await context.SaveChangesAsync();
 
-        var firstProduct = Product.Create("Duplicate Name", "First product", 100m, category.Id, 5);
-        context.Products.Add(firstProduct);
-        context.ProductStocks.Add(firstProduct.Stock);
+        var existingProduct = Product.Create("Duplicate Name", "Existing product", 100m, category.Id, 5);
+        context.Products.Add(existingProduct);
+        context.ProductStocks.Add(existingProduct.Stock);
         await context.SaveChangesAsync();
 
         var command = new
         {
-            Name = "Duplicate Name", // Same name as existing product
-            Description = "Second product",
-            Price = 200m,
+            Name = "Duplicate Name",
+            Description = "New product with duplicate name",
+            Price = 150m,
             CategoryId = category.Id,
-            StockQuantity = 10
+            StockQuantity = 3
         };
 
-        // Act
-        var response = await _client.PostAsJsonAsync("/api/Product", command);
+        var response = await Client.PostAsJsonAsync("/api/Product", command);
 
-        // Assert - The validation should catch duplicate names, but if not we expect OK
-        response.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.OK);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
     public async Task UpdateProduct_WithDuplicateName_ReturnsBadRequest()
     {
-        // Arrange - create category and two products
-        using var scope = _factory.Services.CreateScope();
+        await ResetDatabaseAsync();
+        using var scope = Factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var category = Category.Create(CreateUniqueCategoryName("Electronics"));
         context.Categories.Add(category);
         await context.SaveChangesAsync();
 
-        var firstProduct = Product.Create("First Product", "First description", 100m, category.Id, 5);
-        var secondProduct = Product.Create("Second Product", "Second description", 200m, category.Id, 10);
-        context.Products.AddRange(firstProduct, secondProduct);
-        context.ProductStocks.AddRange(firstProduct.Stock, secondProduct.Stock);
+        var product1 = Product.Create("First Product", "First product", 100m, category.Id, 5);
+        var product2 = Product.Create("Second Product", "Second product", 150m, category.Id, 3);
+        context.Products.AddRange(product1, product2);
+        context.ProductStocks.AddRange(product1.Stock, product2.Stock);
         await context.SaveChangesAsync();
 
         var updateCommand = new
         {
-            Name = "First Product", // Same name as existing product
+            Name = "First Product",
             Description = "Updated description",
-            Price = 250m,
+            Price = 200m,
             CategoryId = category.Id
         };
 
-        // Act
-        var response = await _client.PutAsJsonAsync($"/api/Product/{secondProduct.Id}", updateCommand);
+        var response = await Client.PutAsJsonAsync($"/api/Product/{product2.Id}", updateCommand);
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 }

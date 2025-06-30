@@ -13,9 +13,9 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
     public CustomWebApplicationFactory()
     {
         DbContainer = new PostgreSqlBuilder()
-            .WithDatabase("ecommerce")
-            .WithUsername("postgres")
-            .WithPassword("postgres")
+            .WithDatabase("ecommerce_test")
+            .WithUsername("test_user")
+            .WithPassword("test_password")
             .Build();
     }
 
@@ -25,10 +25,22 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
         
         builder.ConfigureAppConfiguration((context, config) =>
         {
+            var testConnectionString = DbContainer.GetConnectionString();
+            
+            if (testConnectionString.Contains("localhost:5432") || 
+                testConnectionString.Contains("Database=ecommerce;") ||
+                testConnectionString.Contains("Database=ecommerce_prod"))
+            {
+                throw new InvalidOperationException("Connection string is not valid!");
+            }
+            
             var overrides = new Dictionary<string, string?>
             {
-                ["ConnectionStrings:PostgreSQL"] = DbContainer.GetConnectionString()
+                ["ConnectionStrings:DefaultConnection"] = testConnectionString,
+                ["ConnectionStrings:PostgreSQL"] = testConnectionString
             };
+            
+            config.Sources.Clear();
             config.AddInMemoryCollection(overrides!);
         });
 
@@ -54,6 +66,12 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
     public async Task InitializeAsync()
     {
         await DbContainer.StartAsync();
+        
+        var connectionString = DbContainer.GetConnectionString();
+        if (!connectionString.Contains("ecommerce_test"))
+        {
+            throw new InvalidOperationException("Test container correctly started!");
+        }
     }
 
     async Task IAsyncLifetime.DisposeAsync()

@@ -24,6 +24,7 @@ public sealed class GetAllCategoriesQueryHandler(
     {
         return await categoryRepository.GetPagedAsync<CategoryDto>(
             orderBy: x => x.ApplyOrderBy(Filter.FromOrderByString(query.OrderBy)),
+            predicate: x => string.IsNullOrEmpty(query.PageableRequestParams.Search) ? true : x.Name.ToLower().Contains(query.PageableRequestParams.Search.ToLower()),
             page: query.PageableRequestParams.Page,
             pageSize: query.PageableRequestParams.PageSize,
             cancellationToken: cancellationToken);
