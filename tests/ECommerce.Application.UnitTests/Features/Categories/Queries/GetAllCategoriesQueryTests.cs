@@ -121,7 +121,7 @@ public sealed class GetAllCategoriesQueryTests : CategoryQueriesTestBase
 
         // Act & Assert
         query.Should().BeAssignableTo<ICacheableRequest>();
-        query.CacheKey.Should().Be("categories:page-1:size-10:order-Name asc");
+        query.CacheKey.Should().Be("categories:page-1:size-10:search-empty:order-Name asc");
         query.CacheDuration.Should().Be(TimeSpan.FromMinutes(30));
     }
 
@@ -133,6 +133,17 @@ public sealed class GetAllCategoriesQueryTests : CategoryQueriesTestBase
         var query = new GetAllCategoriesQuery(pageableParams, null);
 
         // Act & Assert
-        query.CacheKey.Should().Be("categories:page-2:size-5:order-default");
+        query.CacheKey.Should().Be("categories:page-2:size-5:search-empty:order-default");
+    }
+
+    [Fact]
+    public void Query_WithSearch_ShouldIncludeSearchInCacheKey()
+    {
+        // Arrange
+        var pageableParams = new PageableRequestParams(Page: 1, PageSize: 10, Search: "electronics");
+        var query = new GetAllCategoriesQuery(pageableParams, null);
+
+        // Act & Assert
+        query.CacheKey.Should().Contain("search-electronics");
     }
 }

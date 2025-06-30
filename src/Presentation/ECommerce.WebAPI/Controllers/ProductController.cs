@@ -19,12 +19,11 @@ public sealed class ProductController : BaseApiController
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetProducts(
         [FromQuery] PageableRequestParams requestParams, 
-        [FromQuery] bool includeCategory = false,
         [FromQuery] string? orderBy = null,
         [FromQuery] Guid? categoryId = null,
         CancellationToken cancellationToken = default)
     {
-        var result = await Mediator.Send(new GetAllProductsQuery(requestParams, includeCategory, orderBy, categoryId), cancellationToken);
+        var result = await Mediator.Send(new GetAllProductsQuery(requestParams, orderBy, categoryId), cancellationToken);
         return Ok(result);
     }
 

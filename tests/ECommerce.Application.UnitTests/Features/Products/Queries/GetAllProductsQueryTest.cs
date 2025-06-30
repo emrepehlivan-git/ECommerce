@@ -110,49 +110,26 @@ public sealed class GetAllProductsQueryTest : ProductQueriesTestsBase
     }
 
     [Fact]
-    public async Task Handle_WithIncludeCategory_ShouldPassIncludeExpression()
-    {
-        // Arrange
-        var queryWithInclude = new GetAllProductsQuery(new PageableRequestParams(), IncludeCategory: true);
-        var productDtos = new List<ProductDto>();
-        var pagedResult = new PagedResult<List<ProductDto>>(PagedInfo, productDtos);
-
-        ProductRepositoryMock
-            .Setup(x => x.GetPagedAsync<ProductDto>(
-                It.IsAny<Expression<Func<Product, bool>>>(),
-                It.IsAny<Expression<Func<IQueryable<Product>, IOrderedQueryable<Product>>>>(),
-                It.IsAny<Expression<Func<IQueryable<Product>, IQueryable<Product>>>>(),
-                It.IsAny<int>(),
-                It.IsAny<int>(),
-                It.IsAny<bool>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(pagedResult);
-
-        // Act
-        var result = await Handler.Handle(queryWithInclude, CancellationToken.None);
-
-        // Assert
-        result.Should().NotBeNull();
-        ProductRepositoryMock.Verify(x => x.GetPagedAsync<ProductDto>(
-            It.IsAny<Expression<Func<Product, bool>>>(),
-            It.IsAny<Expression<Func<IQueryable<Product>, IOrderedQueryable<Product>>>>(),
-            It.IsAny<Expression<Func<IQueryable<Product>, IQueryable<Product>>>>(),
-            It.IsAny<int>(),
-            It.IsAny<int>(),
-            It.IsAny<bool>(),
-            It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    [Fact]
     public void Query_ShouldImplementICacheableRequest()
     {
         // Arrange
         var pageableParams = new PageableRequestParams(Page: 1, PageSize: 10);
-        var query = new GetAllProductsQuery(pageableParams, IncludeCategory: true, OrderBy: "Name asc");
+        var query = new GetAllProductsQuery(pageableParams, OrderBy: "Name asc");
 
         // Act & Assert
         query.Should().BeAssignableTo<ICacheableRequest>();
-        query.CacheKey.Should().Contain("products:page-1:size-10");
+        query.CacheKey.Should().Contain("products:page-1:size-10:search-empty");
         query.CacheDuration.Should().Be(TimeSpan.FromMinutes(10));
+    }
+
+    [Fact]
+    public void Query_WithSearch_ShouldIncludeSearchInCacheKey()
+    {
+        // Arrange
+        var pageableParams = new PageableRequestParams(Page: 1, PageSize: 10, Search: "test");
+        var query = new GetAllProductsQuery(pageableParams, OrderBy: "Name asc");
+
+        // Act & Assert
+        query.CacheKey.Should().Contain("search-test");
     }
 }
