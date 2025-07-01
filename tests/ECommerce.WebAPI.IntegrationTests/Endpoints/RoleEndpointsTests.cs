@@ -103,4 +103,17 @@ public class RoleEndpointsTests : IClassFixture<CustomWebApplicationFactory>, IA
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
+
+    [Fact]
+    public async Task DeleteRoles_Many_WithoutAuth_ReturnsUnauthorized()
+    {
+        // Arrange
+        var ids = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
+
+        // Act
+        var response = await _client.PostAsJsonAsync("/api/Role/delete-many", ids);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
 } 

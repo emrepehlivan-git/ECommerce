@@ -113,4 +113,16 @@ public sealed class RoleController : BaseApiController
         var result = await Mediator.Send(new RemoveUserFromRoleCommand(userId, roleId), cancellationToken);
         return result.ToActionResult(this);
     }
+
+    [HttpPost("delete-many")]
+    [Authorize(Policy = PermissionConstants.Roles.Delete)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult> DeleteRoles([FromBody] List<Guid> ids, CancellationToken cancellationToken)
+    {
+        var result = await Mediator.Send(new DeleteRolesCommand(ids), cancellationToken);
+        return result.ToActionResult(this);
+    }
 } 

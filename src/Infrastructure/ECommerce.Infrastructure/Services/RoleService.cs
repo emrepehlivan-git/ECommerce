@@ -30,6 +30,11 @@ public sealed class RoleService(UserManager<User> userManager, RoleManager<Role>
             .FirstOrDefaultAsync(r => r.Id == roleId);
     }
 
+    public async Task<List<Role>> FindRolesByIdsAsync(List<Guid> ids, CancellationToken cancellationToken)
+    {
+        return await roleManager.Roles.Where(r => ids.Contains(r.Id)).ToListAsync(cancellationToken);
+    }
+
     public async Task<Role?> FindRoleByNameAsync(string roleName)
     {
         return await roleManager.Roles
@@ -51,6 +56,17 @@ public sealed class RoleService(UserManager<User> userManager, RoleManager<Role>
     public async Task<IdentityResult> DeleteRoleAsync(Role role)
     {
         return await roleManager.DeleteAsync(role);
+    }
+
+    public async Task<IdentityResult> DeleteRolesAsync(List<Role> roles)
+    {
+        foreach (var role in roles)
+        {
+            var result = await DeleteRoleAsync(role);
+            if (!result.Succeeded)
+                return result;
+        }
+        return IdentityResult.Success;
     }
 
     public async Task<PagedResult<List<RoleDto>>> GetAllRolesAsync(int page, int pageSize, string search, bool includePermissions = false)
