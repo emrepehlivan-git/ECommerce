@@ -25,11 +25,11 @@ WORKDIR "/src/src/Infrastructure/ECommerce.AuthServer"
 RUN bun install
 RUN bun run build-css-prod
 
-RUN dotnet build "ECommerce.AuthServer.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "ECommerce.AuthServer.csproj" -c $BUILD_CONFIGURATION -o /app/build --no-restore
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "ECommerce.AuthServer.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "ECommerce.AuthServer.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false --no-restore 
 
 FROM base AS final
 WORKDIR /app
