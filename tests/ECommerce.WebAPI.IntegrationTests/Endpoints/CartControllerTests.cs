@@ -1,5 +1,4 @@
-using ECommerce.Application.Features.Carts.Commands;
-using ECommerce.Application.Features.Carts.DTOs;
+using ECommerce.Application.Features.Carts.V1.Commands;
 using ECommerce.WebAPI.IntegrationTests.Common;
 
 namespace ECommerce.WebAPI.IntegrationTests.Endpoints;

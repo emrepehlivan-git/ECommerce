@@ -13,6 +13,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using OpenIddict.Validation.AspNetCore;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.AspNetCore.Mvc.Versioning;
 
 namespace ECommerce.WebAPI;
 
@@ -46,6 +49,8 @@ public static class DependencyInjection
             .AddInfrastructure(configuration)
             .AddPersistence(configuration);
         services.AddDependencies(typeof(DependencyInjection).Assembly);
+
+        ConfigureApiVersioning(services);
 
         services.AddControllers();
         services.AddEndpointsApiExplorer();
@@ -164,7 +169,7 @@ public static class DependencyInjection
             {
                 Title = "ECommerce API",
                 Version = "v1",
-                Description = "ECommerce API with OpenIddict Authentication"
+                Description = "ECommerce API with OpenIddict Authentication and Versioning"
             });
             
             var authServerUrl = "https://localhost:5002";
@@ -223,6 +228,26 @@ public static class DependencyInjection
             [
                 new AcceptLanguageHeaderRequestCultureProvider()
             ];
+        });
+    }
+
+    private static void ConfigureApiVersioning(IServiceCollection services)
+    {
+        services.AddApiVersioning(options =>
+        {
+            options.AssumeDefaultVersionWhenUnspecified = true;
+            options.DefaultApiVersion = new ApiVersion(1, 0);
+            options.ApiVersionReader = ApiVersionReader.Combine(
+                new UrlSegmentApiVersionReader(),
+                new QueryStringApiVersionReader("version"),
+                new HeaderApiVersionReader("X-Version")
+            );
+        });
+
+        services.AddVersionedApiExplorer(setup =>
+        {
+            setup.GroupNameFormat = "'v'VVV";
+            setup.SubstituteApiVersionInUrl = true;
         });
     }
 }

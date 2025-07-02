@@ -1,7 +1,4 @@
 using ECommerce.Application.Behaviors;
-using ECommerce.Application.Features.Categories.Commands;
-using ECommerce.Application.Features.Categories;
-using ECommerce.Application.Helpers;
 using ECommerce.Application.Mappings;
 using ECommerce.SharedKernel.DependencyInjection;
 using FluentValidation;
@@ -17,7 +14,7 @@ public static class DependencyInjection
         var assembly = typeof(DependencyInjection).Assembly;
         services.AddDependencies(assembly);
 
-        services.AddValidatorsFromAssemblyContaining<CreateCategoryCommandValidator>(includeInternalTypes: true);
+        services.AddValidatorsFromAssembly(assembly, includeInternalTypes: true);
 
         services.AddMediatR(config =>
         {

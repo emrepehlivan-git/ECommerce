@@ -1,27 +1,26 @@
 using System.Text;
 using System.Text.Json;
-using ECommerce.Application.Features.UserAddresses.Commands;
-using ECommerce.Application.Features.UserAddresses.Queries;
+using ECommerce.Application.Features.UserAddresses.V1.Commands;
 using ECommerce.Domain.ValueObjects;
-using ECommerce.WebAPI.Controllers;
+using ECommerce.WebAPI.Controllers.V1;
 
 namespace ECommerce.WebAPI.IntegrationTests.Endpoints;
 
 public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFactory>, IAsyncLifetime
 {
-    private readonly CustomWebApplicationFactory _factory;
-    private HttpClient _client = default!;
-    private User _testUser = default!;
+    private readonly CustomWebApplicationFactory Factory;
+    private HttpClient Client = default!;
+    private User TestUser = default!;
 
     public UserAddressesEndpointsTests(CustomWebApplicationFactory factory)
     {
-        _factory = factory;
+        Factory = factory;
     }
 
     public async Task InitializeAsync()
     {
-        await _factory.InitializeAsync();
-        _client = _factory.CreateClient();
+        await Factory.InitializeAsync();
+        Client = Factory.CreateClient();
         await CreateTestUser();
     }
 
@@ -29,11 +28,11 @@ public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFac
 
     private async Task CreateTestUser()
     {
-        using var scope = _factory.Services.CreateScope();
+        using var scope = Factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        _testUser = User.Create("testuser@example.com", "Test", "User");
-        _testUser.SecurityStamp = Guid.NewGuid().ToString();
-        context.Users.Add(_testUser);
+        TestUser = User.Create("testuser@example.com", "Test", "User");
+        TestUser.SecurityStamp = Guid.NewGuid().ToString();
+        context.Users.Add(TestUser);
         await context.SaveChangesAsync();
     }
 
@@ -41,7 +40,7 @@ public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFac
     public async Task GetUserAddresses_WithValidUserId_ReturnsOk()
     {
         // Act
-        var response = await _client.GetAsync($"/api/UserAddresses/user/{_testUser.Id}");
+        var response = await Client.GetAsync($"/api/UserAddresses/user/{TestUser.Id}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -53,7 +52,7 @@ public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFac
     public async Task GetUserAddresses_WithInvalidUserId_ReturnsOk()
     {
         // Act
-        var response = await _client.GetAsync($"/api/UserAddresses/user/{Guid.Empty}");
+        var response = await Client.GetAsync($"/api/UserAddresses/user/{Guid.Empty}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -66,7 +65,7 @@ public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFac
     {
         // Arrange
         var command = new AddUserAddressCommand(
-            _testUser.Id,
+            TestUser.Id,
             "Home",
             "123 Main St",
             "New York",
@@ -77,7 +76,7 @@ public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFac
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
         // Act
-        var response = await _client.PostAsync("/api/UserAddresses", content);
+        var response = await Client.PostAsync("/api/UserAddresses", content);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -86,10 +85,10 @@ public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFac
         responseContent.Should().NotBeNullOrEmpty();
 
         // Verify the address was created in database
-        using var scope = _factory.Services.CreateScope();
+        using var scope = Factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var userAddress = await context.UserAddresses
-            .FirstOrDefaultAsync(ua => ua.UserId == _testUser.Id && ua.Label == "Home");
+            .FirstOrDefaultAsync(ua => ua.UserId == TestUser.Id && ua.Label == "Home");
         
         userAddress.Should().NotBeNull();
         userAddress!.Address.Street.Should().Be("123 Main St");
@@ -101,7 +100,7 @@ public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFac
     {
         // Arrange
         var command = new AddUserAddressCommand(
-            _testUser.Id,
+            TestUser.Id,
             "", // Invalid empty label
             "123 Main St",
             "New York", 
@@ -112,7 +111,7 @@ public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFac
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
         // Act
-        var response = await _client.PostAsync("/api/UserAddresses", content);
+        var response = await Client.PostAsync("/api/UserAddresses", content);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -122,9 +121,9 @@ public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFac
     public async Task UpdateUserAddress_WithValidData_ReturnsOk()
     {
         // Arrange - First create an address
-        var address = UserAddress.Create(_testUser.Id, "Work", new Address("456 Business Ave", "Boston", "02101", "USA"));
+        var address = UserAddress.Create(TestUser.Id, "Work", new Address("456 Business Ave", "Boston", "02101", "USA"));
         
-        using (var scope = _factory.Services.CreateScope())
+        using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             context.UserAddresses.Add(address);
@@ -133,7 +132,7 @@ public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFac
 
         var updateCommand = new UpdateUserAddressCommand(
             address.Id,
-            _testUser.Id,
+            TestUser.Id,
             "Updated Work",
             "789 Updated Ave",
             "Chicago",
@@ -144,13 +143,13 @@ public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFac
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
         // Act
-        var response = await _client.PutAsync($"/api/UserAddresses/{address.Id}", content);
+        var response = await Client.PutAsync($"/api/UserAddresses/{address.Id}", content);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Verify the address was updated in database
-        using var scope2 = _factory.Services.CreateScope();
+        using var scope2 = Factory.Services.CreateScope();
         var context2 = scope2.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var updatedAddress = await context2.UserAddresses.FindAsync(address.Id);
         
@@ -167,7 +166,7 @@ public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFac
         var nonExistentId = Guid.NewGuid();
         var updateCommand = new UpdateUserAddressCommand(
             nonExistentId,
-            _testUser.Id,
+            TestUser.Id,
             "Updated Work",
             "789 Updated Ave",
             "Chicago",
@@ -178,7 +177,7 @@ public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFac
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
         // Act
-        var response = await _client.PutAsync($"/api/UserAddresses/{nonExistentId}", content);
+        var response = await Client.PutAsync($"/api/UserAddresses/{nonExistentId}", content);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -188,32 +187,32 @@ public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFac
     public async Task SetDefaultUserAddress_WithValidData_ReturnsOk()
     {
         // Arrange - Create two addresses
-        var address1 = UserAddress.Create(_testUser.Id, "Home", new Address("123 Home St", "New York", "10001", "USA"));
-        var address2 = UserAddress.Create(_testUser.Id, "Work", new Address("456 Work Ave", "Boston", "02101", "USA"));
+        var address1 = UserAddress.Create(TestUser.Id, "Home", new Address("123 Home St", "New York", "10001", "USA"));
+        var address2 = UserAddress.Create(TestUser.Id, "Work", new Address("456 Work Ave", "Boston", "02101", "USA"));
         address1.SetAsDefault(); // Set first as default
 
-        using (var scope = _factory.Services.CreateScope())
+        using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             context.UserAddresses.AddRange(address1, address2);
             await context.SaveChangesAsync();
         }
 
-        var setDefaultCommand = new SetDefaultUserAddressCommand(address2.Id, _testUser.Id);
+        var setDefaultCommand = new SetDefaultUserAddressCommand(address2.Id, TestUser.Id);
         var json = JsonSerializer.Serialize(setDefaultCommand);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
         // Act
-        var response = await _client.PatchAsync($"/api/UserAddresses/{address2.Id}/set-default", content);
+        var response = await Client.PatchAsync($"/api/UserAddresses/{address2.Id}/set-default", content);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Verify the default address was changed
-        using var scope2 = _factory.Services.CreateScope();
+        using var scope2 = Factory.Services.CreateScope();
         var context2 = scope2.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var addresses = await context2.UserAddresses
-            .Where(ua => ua.UserId == _testUser.Id)
+            .Where(ua => ua.UserId == TestUser.Id)
             .ToListAsync();
 
         var defaultAddress = addresses.FirstOrDefault(a => a.IsDefault);
@@ -226,12 +225,12 @@ public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFac
     {
         // Arrange
         var nonExistentId = Guid.NewGuid();
-        var setDefaultCommand = new SetDefaultUserAddressCommand(nonExistentId, _testUser.Id);
+        var setDefaultCommand = new SetDefaultUserAddressCommand(nonExistentId, TestUser.Id);
         var json = JsonSerializer.Serialize(setDefaultCommand);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
         // Act
-        var response = await _client.PatchAsync($"/api/UserAddresses/{nonExistentId}/set-default", content);
+        var response = await Client.PatchAsync($"/api/UserAddresses/{nonExistentId}/set-default", content);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -241,11 +240,11 @@ public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFac
     public async Task DeleteUserAddress_WithValidData_ReturnsOk()
     {
         // Arrange - Create two addresses (one default, one not)
-        var address1 = UserAddress.Create(_testUser.Id, "Home", new Address("123 Home St", "New York", "10001", "USA"));
-        var address2 = UserAddress.Create(_testUser.Id, "Work", new Address("456 Work Ave", "Boston", "02101", "USA"));
+        var address1 = UserAddress.Create(TestUser.Id, "Home", new Address("123 Home St", "New York", "10001", "USA"));
+        var address2 = UserAddress.Create(TestUser.Id, "Work", new Address("456 Work Ave", "Boston", "02101", "USA"));
         address1.SetAsDefault(); // Set first as default
 
-        using (var scope = _factory.Services.CreateScope())
+        using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             context.UserAddresses.AddRange(address1, address2);
@@ -253,7 +252,7 @@ public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFac
         }
 
         // Act - Delete the non-default address
-        var deleteRequest = new DeleteUserAddressRequest(_testUser.Id);
+        var deleteRequest = new DeleteUserAddressRequest(TestUser.Id);
         var deleteJson = JsonSerializer.Serialize(deleteRequest);
         var deleteContent = new StringContent(deleteJson, Encoding.UTF8);
         deleteContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
@@ -262,13 +261,13 @@ public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFac
         {
             Content = deleteContent
         };
-        var response = await _client.SendAsync(request);
+        var response = await Client.SendAsync(request);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Verify the address was deactivated
-        using var scope2 = _factory.Services.CreateScope();
+        using var scope2 = Factory.Services.CreateScope();
         var context2 = scope2.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var deletedAddress = await context2.UserAddresses.FindAsync(address2.Id);
         
@@ -280,10 +279,10 @@ public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFac
     public async Task DeleteUserAddress_WithDefaultAddress_ReturnsBadRequest()
     {
         // Arrange - Create a default address
-        var address = UserAddress.Create(_testUser.Id, "Home", new Address("123 Home St", "New York", "10001", "USA"));
+        var address = UserAddress.Create(TestUser.Id, "Home", new Address("123 Home St", "New York", "10001", "USA"));
         address.SetAsDefault();
 
-        using (var scope = _factory.Services.CreateScope())
+        using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             context.UserAddresses.Add(address);
@@ -291,7 +290,7 @@ public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFac
         }
 
         // Act - Try to delete the default address
-        var deleteRequest = new DeleteUserAddressRequest(_testUser.Id);
+        var deleteRequest = new DeleteUserAddressRequest(TestUser.Id);
         var deleteJson = JsonSerializer.Serialize(deleteRequest);
         var deleteContent = new StringContent(deleteJson, Encoding.UTF8);
         deleteContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
@@ -300,13 +299,13 @@ public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFac
         {
             Content = deleteContent
         };
-        var response = await _client.SendAsync(request);
+        var response = await Client.SendAsync(request);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
         // Verify the address is still active
-        using var scope2 = _factory.Services.CreateScope();
+        using var scope2 = Factory.Services.CreateScope();
         var context2 = scope2.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var notDeletedAddress = await context2.UserAddresses.FindAsync(address.Id);
         
@@ -321,7 +320,7 @@ public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFac
         var nonExistentId = Guid.NewGuid();
 
         // Act
-        var deleteRequest = new DeleteUserAddressRequest(_testUser.Id);
+        var deleteRequest = new DeleteUserAddressRequest(TestUser.Id);
         var deleteJson = JsonSerializer.Serialize(deleteRequest);
         var deleteContent = new StringContent(deleteJson, Encoding.UTF8);
         deleteContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
@@ -330,7 +329,7 @@ public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFac
         {
             Content = deleteContent
         };
-        var response = await _client.SendAsync(request);
+        var response = await Client.SendAsync(request);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -340,11 +339,11 @@ public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFac
     public async Task GetUserAddresses_WithActiveOnlyFilter_ReturnsOnlyActiveAddresses()
     {
         // Arrange - Create one active and one inactive address
-        var activeAddress = UserAddress.Create(_testUser.Id, "Home", new Address("123 Home St", "New York", "10001", "USA"));
-        var inactiveAddress = UserAddress.Create(_testUser.Id, "Old Work", new Address("456 Old Ave", "Boston", "02101", "USA"));
+        var activeAddress = UserAddress.Create(TestUser.Id, "Home", new Address("123 Home St", "New York", "10001", "USA"));
+        var inactiveAddress = UserAddress.Create(TestUser.Id, "Old Work", new Address("456 Old Ave", "Boston", "02101", "USA"));
         inactiveAddress.Deactivate();
 
-        using (var scope = _factory.Services.CreateScope())
+        using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             context.UserAddresses.AddRange(activeAddress, inactiveAddress);
@@ -352,7 +351,7 @@ public class UserAddressesEndpointsTests : IClassFixture<CustomWebApplicationFac
         }
 
         // Act
-        var response = await _client.GetAsync($"/api/UserAddresses/user/{_testUser.Id}?activeOnly=true");
+        var response = await Client.GetAsync($"/api/UserAddresses/user/{TestUser.Id}?activeOnly=true");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);

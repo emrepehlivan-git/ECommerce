@@ -1,9 +1,9 @@
-using ECommerce.Application.Features.Carts;
-using ECommerce.Application.Features.Categories;
-using ECommerce.Application.Features.Orders;
-using ECommerce.Application.Features.Products;
-using ECommerce.Application.Features.Roles;
-using ECommerce.Application.Features.UserAddresses;
+using ECommerce.Application.Features.Carts.V1;
+using ECommerce.Application.Features.Categories.V1;
+using ECommerce.Application.Features.Orders.V1;
+using ECommerce.Application.Features.Products.V1;
+using ECommerce.Application.Features.Roles.V1;
+using ECommerce.Application.Features.UserAddresses.V1;
 using Mapster;
 using Microsoft.Extensions.DependencyInjection;
 
