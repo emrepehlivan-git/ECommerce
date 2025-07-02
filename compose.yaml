@@ -166,6 +166,7 @@
       - 5341:80
     environment:
       - ACCEPT_EULA=Y
+      - SEQ_FIRSTRUN_NOAUTHENTICATION=true
     volumes:
       - seqdata:/data
     networks:
