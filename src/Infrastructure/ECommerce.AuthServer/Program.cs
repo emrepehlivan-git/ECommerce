@@ -69,7 +69,12 @@ builder.Services.AddOpenIddict()
     })
     .AddServer(options =>
     {
-        options.SetIssuer("https://ecommerce.authserver:8081/");
+        // Her zaman localhost issuer kullan - port mapping sayesinde çalışacak
+        var issuer = "https://localhost:5002/";
+        
+        Console.WriteLine($"[AUTH-SERVER] Selected Issuer: {issuer}");
+        
+        options.SetIssuer(issuer);
         
         options.SetAuthorizationEndpointUris("/connect/authorize")
                .SetTokenEndpointUris("/connect/token")

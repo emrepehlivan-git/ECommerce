@@ -101,7 +101,7 @@
       - NEXTAUTH_URL=http://localhost:3000
       - AUTH_TRUST_HOST=true
       - INTERNAL_API_URL=http://ecommerce.webapi:8080
-      - INTERNAL_AUTH_SERVER_URL=https://ecommerce.authserver:8081
+      - INTERNAL_AUTH_SERVER_URL=https://ecommerce.authserver:8081/
       - NODE_TLS_REJECT_UNAUTHORIZED=0
     depends_on:
       - ecommerce.authserver

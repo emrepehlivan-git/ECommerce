@@ -142,8 +142,8 @@ public static class DependencyInjection
         services.AddOpenIddict()
             .AddValidation(options =>
             {
-                // Use container network URL for WebAPI - this is where it can actually reach auth server
-                options.SetIssuer(new Uri("https://ecommerce.authserver:8081/"));
+                // Her zaman localhost issuer kullan - AuthServer ile tutarlı olsun
+                options.SetIssuer("https://localhost:5002/");
 
                 options.AddAudiences(configuration["Authentication:Audience"]!);
                 options.SetClientId(configuration["Authentication:ClientId"]!);
