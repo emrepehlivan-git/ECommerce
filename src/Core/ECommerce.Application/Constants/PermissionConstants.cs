@@ -35,6 +35,11 @@ public static class PermissionConstants
         public const string Delete = "Users.Delete";
         public const string Manage = "Users.Manage";
     }
+    
+    public static class AdminPanel
+    {
+        public const string Access = "AdminPanel.Access";
+    }
 
     public static class Roles
     {

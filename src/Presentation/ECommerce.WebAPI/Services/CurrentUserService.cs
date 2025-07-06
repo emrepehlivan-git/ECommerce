@@ -4,7 +4,7 @@ using System.Security.Claims;
 
 namespace ECommerce.WebAPI.Services;
 
-public sealed class CurrentUserService(IHttpContextAccessor httpContextAccessor) : ICurrentUserService, IScopedDependency
+public sealed class CurrentUserService(IHttpContextAccessor httpContextAccessor, IPermissionService permissionService) : ICurrentUserService, IScopedDependency
 {
     public string? UserId
         => httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -16,39 +16,24 @@ public sealed class CurrentUserService(IHttpContextAccessor httpContextAccessor)
             return Enumerable.Empty<string>();
         }
 
-        var permissionClaims = httpContextAccessor.HttpContext.User.Claims
-            .Where(c => c.Type == "permissions")
-            .Select(c => c.Value)
-            .ToList();
-
-        if (!permissionClaims.Any())
+        var userIdClaim = httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        
+        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
         {
-            var resourceAccessClaim = httpContextAccessor.HttpContext.User.Claims
-                .FirstOrDefault(c => c.Type == "resource_access");
-            
-            if (resourceAccessClaim != null)
-            {
-                try
-                {
-                    using var doc = System.Text.Json.JsonDocument.Parse(resourceAccessClaim.Value);
-                    var clientId = "ecommerce-api";
-                    
-                    if (doc.RootElement.TryGetProperty(clientId, out var clientElement) &&
-                        clientElement.TryGetProperty("roles", out var rolesElement))
-                    {
-                        permissionClaims = rolesElement.EnumerateArray()
-                            .Select(role => role.GetString()!)
-                            .Where(role => !string.IsNullOrEmpty(role))
-                            .ToList();
-                    }
-                }
-                catch (System.Text.Json.JsonException)
-                {
-                }
-            }
+            return Enumerable.Empty<string>();
         }
 
-        return permissionClaims;
+        try
+        {
+            // Async method'u sync olarak çağırıyoruz - bu ideal değil ama mevcut interface'i koruyoruz
+            var permissionsTask = permissionService.GetUserPermissionsAsync(userId);
+            var permissions = permissionsTask.GetAwaiter().GetResult();
+            return permissions;
+        }
+        catch (Exception)
+        {
+            return Enumerable.Empty<string>();
+        }
     }
 
     public bool HasPermission(string permission)
