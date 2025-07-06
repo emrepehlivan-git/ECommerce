@@ -13,6 +13,7 @@ public abstract class CartCommandsTestBase
     protected Mock<ICurrentUserService> CurrentUserServiceMock;
     protected Mock<ILazyServiceProvider> LazyServiceProviderMock;
     protected Mock<ILocalizationService> LocalizationServiceMock;
+    protected Mock<ICacheManager> CacheManagerMock;
 
     protected LocalizationHelper Localizer;
 
@@ -23,6 +24,7 @@ public abstract class CartCommandsTestBase
         CurrentUserServiceMock = new Mock<ICurrentUserService>();
         LazyServiceProviderMock = new Mock<ILazyServiceProvider>();
         LocalizationServiceMock = new Mock<ILocalizationService>();
+        CacheManagerMock = new Mock<ICacheManager>();
 
         Localizer = new LocalizationHelper(LocalizationServiceMock.Object);
 

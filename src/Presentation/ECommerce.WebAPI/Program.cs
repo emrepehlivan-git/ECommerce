@@ -1,20 +1,37 @@
 using ECommerce.WebAPI;
 using ECommerce.Application.Common.Logging;
+using ECommerce.Infrastructure.Services;
 
-IECommerLogger<Program>? logger = null;
+IECommerceLogger<Program>? logger = null;
 
 try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    builder.Services.AddPresentation(builder.Configuration);
+    builder.Services.AddApiServices(builder.Configuration);
 
     var app = builder.Build();
 
-    logger = app.Services.GetRequiredService<IECommerLogger<Program>>();
+    logger = app.Services.GetRequiredService<IECommerceLogger<Program>>();
     
     await app.ApplyMigrations();
-    await app.UsePresentation(app.Environment);
+
+    using (var scope = app.Services.CreateScope())
+    {
+        try
+        {
+            var permissionSeedingService = scope.ServiceProvider.GetRequiredService<PermissionSeedingService>();
+            var result = await permissionSeedingService.SeedPermissionsAsync();
+            app.Logger.LogInformation("Permission seeding: {Result}", result);
+        }
+        catch (Exception ex)
+        {
+            app.Logger.LogError(ex, "Permission seeding failed");
+        }
+    }
+
+    app.UsePresentation(app.Environment);
+
 
     app.Run();
 }

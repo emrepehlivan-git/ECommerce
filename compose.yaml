@@ -17,12 +17,12 @@
       - OpenTelemetry__Jaeger__AgentPort=6831
       - OpenTelemetry__Jaeger__Endpoint=http://ecommerce.jaeger:14268/api/traces
       - OpenTelemetry__OTLP__Endpoint=http://ecommerce.jaeger:4317
-      - Authentication__Authority=https://ecommerce.authserver:8081
+      - Keycloak__auth-server-url=http://keycloak:8080/
     depends_on:
       - ecommerce.db
       - ecommerce.redis
       - ecommerce.seq
-      - ecommerce.authserver
+      - keycloak
       - ecommerce.jaeger
       - ecommerce.otel-collector
     ports:
@@ -43,46 +43,21 @@
           path: ./src/Application/
           target: /app
 
-  ecommerce.authserver:
-    container_name: ecommerce.authserver
-    build:
-      context: .
-      dockerfile: src/Infrastructure/ECommerce.AuthServer/Dockerfile
+  keycloak:
+    container_name: keycloak
+    image: quay.io/keycloak/keycloak:latest
+    command: start-dev
     environment:
-      - ConnectionStrings__DefaultConnection=Host=ecommerce.db;Database=ecommerce;Username=postgres;Password=postgres
-      - ASPNETCORE_URLS=http://+:8080;https://+:8081
-      - ASPNETCORE_HTTPS_PORT=8081
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/auth.pfx
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=YourSecurePassword
-      - DOTNET_RUNNING_IN_CONTAINER=true
-      - LoggingOptions__SeqUrl=http://ecommerce.seq:5341
-      - OpenTelemetry__ServiceName=ECommerce.AuthServer
-      - OpenTelemetry__ServiceVersion=1.0.0
-      - OpenTelemetry__Jaeger__AgentHost=ecommerce.jaeger
-      - OpenTelemetry__Jaeger__AgentPort=6831
-      - OpenTelemetry__Jaeger__Endpoint=http://ecommerce.jaeger:14268/api/traces
-      - OpenTelemetry__OTLP__Endpoint=http://ecommerce.jaeger:4317
-    depends_on:
-      - ecommerce.db
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+      - KC_HEALTH_ENABLED=true
+      - KC_METRICS_ENABLED=true
     ports:
-      - 5001:8080
-      - 5002:8081
-    volumes:
-      - keys:/root/.aspnet/DataProtection-Keys
+      - "8088:8080"
     networks:
       - ecommerce-network
-    develop:
-      watch:
-        - action: rebuild
-          path: ./src/Infrastructure/ECommerce.AuthServer/
-          target: /app
-        - action: rebuild
-          path: ./src/Core/
-          target: /app
-        - action: rebuild
-          path: ./src/Application/
-          target: /app
+    volumes:
+      - keycloak_data:/opt/keycloak/data
 
   ecommerce.client:
     container_name: ecommerce.client
@@ -93,18 +68,18 @@
     environment:
       - NODE_ENV=production
       - NEXT_PUBLIC_APP_URL=http://localhost:3000
-      - NEXT_PUBLIC_AUTH_SERVER_URL=https://localhost:5002/
+      - NEXT_PUBLIC_AUTH_SERVER_URL=http://localhost:8088/
       - NEXT_PUBLIC_OPENIDDICT_CLIENT_ID=nextjs-client
+      - KEYCLOAK_CLIENT_SECRET=nextjs-client-secret
       - NEXT_PUBLIC_API_URL=http://localhost:4000
       - AUTH_SECRET=ImlfqyTaDdLdzrqQRLmth4aThtyPcRI8zAQvJjmNtJw=
       - NEXTAUTH_SECRET=ImlfqyTaDdLdzrqQRLmth4aThtyPcRI8zAQvJjmNtJw=
       - NEXTAUTH_URL=http://localhost:3000
       - AUTH_TRUST_HOST=true
       - INTERNAL_API_URL=http://ecommerce.webapi:8080
-      - INTERNAL_AUTH_SERVER_URL=https://ecommerce.authserver:8081/
-      - NODE_TLS_REJECT_UNAUTHORIZED=0
+      - INTERNAL_AUTH_SERVER_URL=http://keycloak:8080/
     depends_on:
-      - ecommerce.authserver
+      - keycloak
       - ecommerce.webapi
     ports:
       - 3000:3000
@@ -207,6 +182,7 @@ volumes:
   seqdata:
   keys:
   pgadmin:
+  keycloak_data:
 
 networks:
   ecommerce-network:

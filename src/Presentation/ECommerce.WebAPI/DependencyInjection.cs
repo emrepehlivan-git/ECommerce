@@ -1,48 +1,49 @@
 using System.Globalization;
-using System;
 using ECommerce.Application;
 using ECommerce.Application.Constants;
+using ECommerce.Application.Services;
 using ECommerce.Infrastructure;
 using ECommerce.Persistence;
 using ECommerce.Persistence.Contexts;
-using ECommerce.Persistence.Seeds;
 using ECommerce.SharedKernel.DependencyInjection;
 using ECommerce.WebAPI.Authorization;
 using ECommerce.WebAPI.Middlewares;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Localization;
-using Microsoft.EntityFrameworkCore;
-using OpenIddict.Validation.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Versioning;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
 namespace ECommerce.WebAPI;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddPresentation(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddApiServices(this IServiceCollection services, IConfiguration configuration)
     {
         ConfigureLocalization(services);
-        
+
         services.AddCors(options =>
         {
-            options.AddPolicy("AllowAllOrigins", builder =>
-            {
-                builder.WithOrigins(
-                    "http://localhost:3000", 
-                    "https://localhost:3000",
-                    "https://localhost:5002",
-                    "http://localhost:5001",
-                    "http://localhost:4000",
-                    "https://localhost:4001"
-                )
-                .AllowAnyMethod()
-                .AllowAnyHeader()
-                .AllowCredentials();
-            });
+            options.AddPolicy("AllowAllOrigins",
+                builder =>
+                {
+                    builder.WithOrigins(
+                            "http://localhost:3000",
+                            "https://localhost:3000",
+                            "http://localhost:8088",
+                            "http://localhost:5001",
+                            "http://localhost:4000",
+                            "https://localhost:4001"
+                        )
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials();
+                });
         });
-        
+
         ConfigureSwagger(services, configuration);
 
         services.AddApplication()
@@ -58,36 +59,63 @@ public static class DependencyInjection
         services.AddProblemDetails();
 
         services.AddAuthentication(options =>
-        {
-            options.DefaultScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
-            options.DefaultAuthenticateScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
-        });
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                var keycloakOptions = configuration.GetSection("Keycloak");
+                var authority = $"{keycloakOptions["auth-server-url"]!}realms/{keycloakOptions["realm"]!}";
 
-        ConfigureOpenIddict(services, configuration);
+                options.Authority = authority;
+                options.Audience = keycloakOptions["client-id"];
+                options.RequireHttpsMetadata = keycloakOptions.GetValue<bool?>("require-https-metadata") ?? false;
+
+                var publicAuthServerUrl = keycloakOptions["public-auth-server-url"] ?? authority;
+
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateAudience = true,
+                    ValidateIssuer = true,
+                    ValidIssuers = [authority, publicAuthServerUrl.TrimEnd('/') + "/realms/" + keycloakOptions["realm"]],
+                    ValidAudiences = [options.Audience, "account"],
+                    ValidateLifetime = true
+                };
+
+                options.Events = new JwtBearerEvents
+                {
+                    OnTokenValidated = async context =>
+                    {
+                        var syncService =
+                            context.HttpContext.RequestServices.GetRequiredService<IUserSynchronizationService>();
+                        await syncService.SyncUserAsync(context.Principal!);
+                    }
+                };
+            });
+
         ConfigureAuthorization(services);
-
-        services.AddAuthorization();
 
         return services;
     }
 
-    public static async Task<WebApplication> UsePresentation(this WebApplication app, IWebHostEnvironment environment)
+    public static WebApplication UsePresentation(this WebApplication app, IWebHostEnvironment environment)
     {
+        app.UseMiddleware<RequestTimingMiddleware>();
+
         app.UseRequestLocalization();
-        
+
         app.UseCors("AllowAllOrigins");
 
         if (environment.IsDevelopment())
         {
-            await app.SeedDatabaseAsync();
-            app.UseSwagger(c => {
-                c.RouteTemplate = "swagger/{documentName}/swagger.json";
-            });
+            app.UseSwagger(c => { c.RouteTemplate = "swagger/{documentName}/swagger.json"; });
             app.UseSwaggerUI(options =>
             {
                 options.SwaggerEndpoint("/swagger/v1/swagger.json", "ECommerce API v1");
-                options.OAuthClientId("swagger-client");
+
+                var keycloakOptions = app.Configuration.GetSection("Keycloak");
+                options.OAuthClientId(keycloakOptions["client-id"]);
                 options.OAuthUsePkce();
                 options.OAuthScopeSeparator(" ");
             });
@@ -104,26 +132,28 @@ public static class DependencyInjection
         return app;
     }
 
-    private static void ConfigureAuthorization(this IServiceCollection services)
+    private static void ConfigureAuthorization(IServiceCollection services)
     {
         services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
         services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
 
         services.AddAuthorization(options =>
         {
+            options.DefaultPolicy = new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme)
+                .RequireAuthenticatedUser()
+                .Build();
+
             var permissionTypes = typeof(PermissionConstants).GetNestedTypes();
             foreach (var type in permissionTypes)
             {
                 var fields = type.GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
                 foreach (var field in fields)
-                {
                     if (field.FieldType == typeof(string))
                     {
                         var permissionValue = (string)field.GetValue(null)!;
                         options.AddPolicy(permissionValue, policy =>
                             policy.AddRequirements(new PermissionRequirement(permissionValue)));
                     }
-                }
             }
         });
     }
@@ -137,75 +167,53 @@ public static class DependencyInjection
             await dbContext.Database.MigrateAsync();
     }
 
-    private static void ConfigureOpenIddict(IServiceCollection services, IConfiguration configuration)
-    {
-        services.AddOpenIddict()
-            .AddValidation(options =>
-            {
-                // Her zaman localhost issuer kullan - AuthServer ile tutarlı olsun
-                options.SetIssuer("https://localhost:5002/");
-
-                options.AddAudiences(configuration["Authentication:Audience"]!);
-                options.SetClientId(configuration["Authentication:ClientId"]!);
-                options.SetClientSecret(configuration["Authentication:ClientSecret"]!);
-
-                options.UseSystemNetHttp(httpOptions =>
-                {
-                    httpOptions.ConfigureHttpClientHandler(handler =>
-                    {
-                        handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true;
-                    });
-                });
-
-                options.UseAspNetCore();
-            });
-    }
-
     private static void ConfigureSwagger(IServiceCollection services, IConfiguration configuration)
     {
         services.AddSwaggerGen(options =>
         {
-            options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+            options.SwaggerDoc("v1", new OpenApiInfo
             {
                 Title = "ECommerce API",
                 Version = "v1",
-                Description = "ECommerce API with OpenIddict Authentication and Versioning"
+                Description = "ECommerce API with Keycloak Authentication and Versioning"
             });
-            
-            var authServerUrl = "https://localhost:5002";
-            
-            options.AddSecurityDefinition("oauth2", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+
+            var keycloakOptions = configuration.GetSection("Keycloak");
+            var authServerUrl = keycloakOptions["public-auth-server-url"] ?? keycloakOptions["auth-server-url"];
+            var realm = keycloakOptions["realm"];
+            var authorizationUrl = $"{authServerUrl}realms/{realm}/protocol/openid-connect/auth";
+            var tokenUrl = $"{authServerUrl}realms/{realm}/protocol/openid-connect/token";
+
+            options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
             {
-                Type = Microsoft.OpenApi.Models.SecuritySchemeType.OAuth2,
-                Flows = new Microsoft.OpenApi.Models.OpenApiOAuthFlows
+                Type = SecuritySchemeType.OAuth2,
+                Flows = new OpenApiOAuthFlows
                 {
-                    AuthorizationCode = new Microsoft.OpenApi.Models.OpenApiOAuthFlow
+                    AuthorizationCode = new OpenApiOAuthFlow
                     {
-                        AuthorizationUrl = new Uri($"{authServerUrl}/connect/authorize"),
-                        TokenUrl = new Uri($"{authServerUrl}/connect/token"),
+                        AuthorizationUrl = new Uri(authorizationUrl),
+                        TokenUrl = new Uri(tokenUrl),
                         Scopes = new Dictionary<string, string>
                         {
                             { "api", "API Access" },
-                            { "openid", "OpenID" },
-                            { "profile", "Profile" },
-                            { "email", "Email" }
+                            { "openid", "OpenID" }
                         }
                     }
                 }
             });
-            
-            options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+
+            options.AddSecurityRequirement(new OpenApiSecurityRequirement
             {
                 {
-                    new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                    new OpenApiSecurityScheme
                     {
-                        Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                        Reference = new OpenApiReference
                         {
-                            Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                            Type = ReferenceType.SecurityScheme,
                             Id = "oauth2"
                         }
                     },
-                    new[] { "api" , "openid" , "profile" , "email" , "address" , "phone" , "roles" }
+                    new[] { "api", "openid" }
                 }
             });
         });
@@ -216,7 +224,7 @@ public static class DependencyInjection
         var supportedCultures = new[]
         {
             new CultureInfo("en-US"),
-            new CultureInfo("tr-TR"),
+            new CultureInfo("tr-TR")
         };
 
         services.Configure<RequestLocalizationOptions>(options =>

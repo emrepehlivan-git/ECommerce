@@ -1,7 +1,6 @@
 using ECommerce.Application.Services;
 using ECommerce.Domain.Entities;
 using ECommerce.Persistence.Contexts;
-using ECommerce.Persistence.Seeds;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -69,8 +68,7 @@ public sealed class PermissionService(
     /// <inheritdoc />
     public Task<IReadOnlyList<(string PermissionName, string Module, string Action)>> GetAllPermissionConstantsAsync(CancellationToken cancellationToken = default)
     {
-        var permissions = DatabaseSeeder.GetAllPermissionConstants();
-        return Task.FromResult<IReadOnlyList<(string, string, string)>>(permissions.AsReadOnly());
+        return Task.FromResult<IReadOnlyList<(string, string, string)>>(new List<(string, string, string)>().AsReadOnly());
     }
 
     /// <inheritdoc />
@@ -117,7 +115,7 @@ public sealed class PermissionService(
     {
         _logger.LogInformation("Syncing permissions...");
 
-        var permissionDefinitions = DatabaseSeeder.GetAllPermissionConstants();
+        var permissionDefinitions = new List<(string, string, string)>();
         var existingPermissions = await _context.Permissions
             .AsNoTracking()
             .Select(p => p.Name)

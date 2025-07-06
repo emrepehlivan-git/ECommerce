@@ -6,7 +6,7 @@ using FluentValidation;
 
 namespace ECommerce.WebAPI.Middlewares;
 
-public sealed class GlobalExceptionHandlerMiddleware(RequestDelegate next, Application.Common.Logging.IECommerLogger<GlobalExceptionHandlerMiddleware> logger)
+public sealed class GlobalExceptionHandlerMiddleware(RequestDelegate next, Application.Common.Logging.IECommerceLogger<GlobalExceptionHandlerMiddleware> logger)
 {
     public async Task InvokeAsync(HttpContext context)
     {

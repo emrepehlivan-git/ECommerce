@@ -13,7 +13,8 @@ public class AddToCartCommandHandlerTests : CartCommandsTestBase
             CartRepositoryMock.Object,
             ProductRepositoryMock.Object,
             CurrentUserServiceMock.Object,
-            LazyServiceProviderMock.Object
+            LazyServiceProviderMock.Object,
+            CacheManagerMock.Object
         );
         _validator = new AddToCartCommandValidator(Localizer);
     }

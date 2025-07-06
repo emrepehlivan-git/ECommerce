@@ -10,6 +10,7 @@ using OpenTelemetry.Metrics;
 using Microsoft.AspNetCore.Http;
 using System.Diagnostics;
 using StackExchange.Redis;
+using ECommerce.Infrastructure.Services;
 
 namespace ECommerce.Infrastructure;
 
@@ -20,15 +21,47 @@ public static class DependencyInjection
         services.AddDependencies(typeof(DependencyInjection).Assembly);
         services.AddLogging(configuration);
         services.AddObservability(configuration);
+        services.AddHttpClient();
+        
+        services.AddScoped<Application.Services.IKeycloakPermissionSyncService, Services.KeycloakPermissionSyncService>();
+        services.AddScoped<Application.Services.IPermissionService, Services.PermissionService>();
+        services.AddScoped<PermissionSeedingService>();
 
         services.AddMemoryCache();
         services.AddStackExchangeRedisCache(options =>
         {
             options.Configuration = configuration.GetConnectionString("Redis");
+            options.InstanceName = "ECommerce";
+            options.ConfigurationOptions = new StackExchange.Redis.ConfigurationOptions
+            {
+                EndPoints = { configuration.GetConnectionString("Redis")! },
+                ConnectTimeout = 5000, // 5 saniye bağlantı timeout
+                SyncTimeout = 1000, // 1 saniye sync timeout
+                AsyncTimeout = 5000, // 5 saniye async timeout
+                AbortOnConnectFail = false,
+                ConnectRetry = 3,
+                ReconnectRetryPolicy = new StackExchange.Redis.ExponentialRetry(1000),
+                KeepAlive = 60,
+                DefaultDatabase = 0
+            };
         });
 
         services.AddSingleton<IConnectionMultiplexer>(sp => 
-            ConnectionMultiplexer.Connect(configuration.GetConnectionString("Redis")!));
+        {
+            var config = new StackExchange.Redis.ConfigurationOptions
+            {
+                EndPoints = { configuration.GetConnectionString("Redis")! },
+                ConnectTimeout = 5000,
+                SyncTimeout = 1000,
+                AsyncTimeout = 5000,
+                AbortOnConnectFail = false,
+                ConnectRetry = 3,
+                ReconnectRetryPolicy = new StackExchange.Redis.ExponentialRetry(1000),
+                KeepAlive = 60,
+                DefaultDatabase = 0
+            };
+            return ConnectionMultiplexer.Connect(config);
+        });
 
         return services;
     }
@@ -53,7 +86,7 @@ public static class DependencyInjection
         
         services.AddSingleton<Serilog.ILogger>(Log.Logger);
         
-        services.AddSingleton(typeof(Application.Common.Logging.IECommerLogger<>),
+        services.AddSingleton(typeof(Application.Common.Logging.IECommerceLogger<>),
                   typeof(SerilogLogger<>));
     }
 

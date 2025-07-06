@@ -1,4 +1,5 @@
 using Ardalis.Result;
+using ECommerce.Application.Common.Logging;
 using ECommerce.Application.Extensions;
 using ECommerce.Application.Features.Roles.V1.DTOs;
 using ECommerce.Application.Parameters;
@@ -10,7 +11,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Infrastructure.Services;
 
-public sealed class RoleService(UserManager<User> userManager, RoleManager<Role> roleManager) : IRoleService, IScopedDependency
+public sealed class RoleService(
+    UserManager<User> userManager, 
+    RoleManager<Role> roleManager,
+    IKeycloakPermissionSyncService keycloakSyncService,
+    IPermissionService permissionService,
+    IECommerceLogger<RoleService> logger) : IRoleService, IScopedDependency
 {
     public async Task<IList<string>> GetRolesAsync()
     {
@@ -80,7 +86,7 @@ public sealed class RoleService(UserManager<User> userManager, RoleManager<Role>
         }
 
         if (!string.IsNullOrEmpty(search))
-            query = query.Where(r => r.Name.ToLower().Contains(search.ToLower()));
+            query = query.Where(r => r.Name != null && r.Name.ToLower().Contains(search.ToLower()));
 
         return await query.ApplyPagingAsync<Role, RoleDto>(new PageableRequestParams(page, pageSize), cancellationToken: CancellationToken.None);
     }
@@ -92,11 +98,39 @@ public sealed class RoleService(UserManager<User> userManager, RoleManager<Role>
 
     public async Task<IdentityResult> AddToRoleAsync(User user, string role)
     {
-        return await userManager.AddToRoleAsync(user, role);
+        var result = await userManager.AddToRoleAsync(user, role);
+        
+        if (result.Succeeded)
+        {
+            await SyncUserPermissionsToKeycloakAsync(user.Id);
+        }
+        
+        return result;
     }
 
     public async Task<IdentityResult> RemoveFromRoleAsync(User user, string role)
     {
-        return await userManager.RemoveFromRoleAsync(user, role);
+        var result = await userManager.RemoveFromRoleAsync(user, role);
+        
+        if (result.Succeeded)
+        {
+            await SyncUserPermissionsToKeycloakAsync(user.Id);
+        }
+        
+        return result;
+    }
+
+    private async Task SyncUserPermissionsToKeycloakAsync(Guid userId)
+    {
+        try
+        {
+            var userPermissions = await permissionService.GetUserPermissionsAsync(userId);
+            await keycloakSyncService.AssignPermissionsToKeycloakUserAsync(userId.ToString(), userPermissions);
+            logger.LogDebug("User {UserId} permissions synced to Keycloak", userId);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Keycloak permission sync error for user {UserId}", userId);
+        }
     }
 } 

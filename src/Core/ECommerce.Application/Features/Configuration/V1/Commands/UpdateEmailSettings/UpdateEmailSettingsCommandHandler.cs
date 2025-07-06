@@ -12,7 +12,7 @@ public sealed class UpdateEmailSettingsCommandHandler(ILazyServiceProvider lazyS
     {
         try
         {
-            var logger = LazyServiceProvider.LazyGetRequiredService<IECommerLogger<UpdateEmailSettingsCommandHandler>>();
+            var logger = LazyServiceProvider.LazyGetRequiredService<IECommerceLogger<UpdateEmailSettingsCommandHandler>>();
             
             logger.LogInformation("Email ayarları güncelleniyor - SMTP Host: {SmtpHost}, Port: {SmtpPort}, User: {SmtpUser}", 
                 request.SmtpHost, request.SmtpPort, request.SmtpUser);
@@ -35,7 +35,7 @@ public sealed class UpdateEmailSettingsCommandHandler(ILazyServiceProvider lazyS
         }
         catch (Exception ex)
         {
-            var logger = LazyServiceProvider.LazyGetRequiredService<IECommerLogger<UpdateEmailSettingsCommandHandler>>();
+            var logger = LazyServiceProvider.LazyGetRequiredService<IECommerceLogger<UpdateEmailSettingsCommandHandler>>();
             logger.LogError(ex, "Email ayarları güncellenirken hata oluştu: {Message}", ex.Message);
             return Task.FromResult(new UpdateEmailSettingsResponse(false, $"Hata: {ex.Message}"));
         }

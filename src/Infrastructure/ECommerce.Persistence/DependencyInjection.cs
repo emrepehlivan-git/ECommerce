@@ -1,7 +1,6 @@
 using ECommerce.Domain.Entities;
 using ECommerce.Persistence.Contexts;
 using ECommerce.Persistence.Interceptors;
-using ECommerce.Persistence.Seeds;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -18,7 +17,6 @@ public static class DependencyInjection
         ConfigureDbContext(services, configuration);
         ConfigureIdentity(services);
         services.AddDependencies(typeof(DependencyInjection).Assembly);
-        services.AddDatabaseSeeder();
 
         return services;
     }
@@ -27,13 +25,20 @@ public static class DependencyInjection
     {
         services.AddDbContextPool<ApplicationDbContext>((serviceProvider, options) =>
         {
-            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"));
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
+            options.UseNpgsql(connectionString, npgsqlOptions =>
+            {
+                npgsqlOptions.CommandTimeout(30); // 30 saniye timeout
+                npgsqlOptions.EnableRetryOnFailure(3, TimeSpan.FromSeconds(2), null);
+            });
             options.UseSnakeCaseNamingConvention();
-            options.UseOpenIddict();
+            options.EnableSensitiveDataLogging(false);
+            options.EnableServiceProviderCaching();
+            options.EnableDetailedErrors(false);
 
             var httpContextAccessor = serviceProvider.GetRequiredService<IHttpContextAccessor>();
             options.AddInterceptors(new AuditEntityInterceptor(httpContextAccessor));
-        });
+        }, poolSize: 32); // Connection pool boyutunu artır
     }
 
     private static void ConfigureIdentity(IServiceCollection services)

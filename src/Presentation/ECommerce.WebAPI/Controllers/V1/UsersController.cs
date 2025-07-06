@@ -4,7 +4,8 @@ using ECommerce.Application.Features.Users.V1.Commands;
 using ECommerce.Application.Parameters;
 using ECommerce.Application.Features.Users.V1.DTOs;
 using Ardalis.Result.AspNetCore;
-
+using Microsoft.AspNetCore.Authorization;
+using ECommerce.Application.Services;
 namespace ECommerce.WebAPI.Controllers.V1;
 
 public sealed class UsersController : BaseApiV1Controller
@@ -68,4 +69,21 @@ public sealed class UsersController : BaseApiV1Controller
         var result = await Mediator.Send(new UpdateUserBirthdayCommand(id, birthday), cancellationToken);
         return result.ToActionResult(this);
     }
+
+    [HttpGet("permissions")]
+    [Authorize]
+    [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<IEnumerable<string>>> GetCurrentUserPermissions(
+        [FromServices] ICurrentUserService currentUserService,
+        [FromServices] IPermissionService permissionService)
+    {
+        var userIdString = currentUserService.UserId;
+        if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out var userId))
+            return Unauthorized();
+
+        var permissions = await permissionService.GetUserPermissionsAsync(userId);
+        return Ok(permissions);
+    }
+
 } 

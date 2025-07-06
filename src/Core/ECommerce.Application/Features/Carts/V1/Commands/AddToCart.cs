@@ -37,7 +37,8 @@ public sealed class AddToCartCommandHandler(
     ICartRepository cartRepository,
     IProductRepository productRepository,
     ICurrentUserService currentUserService,
-    ILazyServiceProvider lazyServiceProvider) : BaseHandler<AddToCartCommand, Result<CartSummaryDto>>(lazyServiceProvider), IRequestHandler<AddToCartCommand, Result<CartSummaryDto>>
+    ILazyServiceProvider lazyServiceProvider,
+    ICacheManager cacheManager) : BaseHandler<AddToCartCommand, Result<CartSummaryDto>>(lazyServiceProvider), IRequestHandler<AddToCartCommand, Result<CartSummaryDto>>
 {
     public override async Task<Result<CartSummaryDto>> Handle(AddToCartCommand request, CancellationToken cancellationToken)
     {
@@ -79,7 +80,9 @@ public sealed class AddToCartCommandHandler(
         if (cart.TotalAmount > CartConsts.MaxTotalAmount)
             return Result<CartSummaryDto>.Error(string.Format(Localizer[CartConsts.ErrorMessages.MaxTotalAmountExceeded], CartConsts.MaxTotalAmount));
 
-        var summary = new CartSummaryDto(cart.Id, cart.TotalItems, cart.TotalAmount);
-        return Result<CartSummaryDto>.Success(summary);
+
+        await cacheManager.RemoveAsync("cart:current_user", cancellationToken);
+
+        return Result<CartSummaryDto>.Success(new CartSummaryDto(cart.Id, cart.TotalItems, cart.TotalAmount));
     }
 } 

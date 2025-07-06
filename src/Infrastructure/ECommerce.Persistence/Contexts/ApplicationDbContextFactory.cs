@@ -14,7 +14,6 @@ public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<Applicati
         var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
         optionsBuilder.UseNpgsql(configuration.GetConnectionString("DefaultConnection"));
         optionsBuilder.UseSnakeCaseNamingConvention();
-        optionsBuilder.UseOpenIddict();
 
         return new(optionsBuilder.Options);
     }

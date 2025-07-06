@@ -1,7 +1,7 @@
 using Ardalis.Result;
+using ECommerce.Application.Behaviors;
 using ECommerce.Application.CQRS;
 using ECommerce.Application.Features.Carts.V1.DTOs;
-using ECommerce.Application.Features.Users;
 using ECommerce.Application.Repositories;
 using ECommerce.Application.Services;
 using ECommerce.SharedKernel.DependencyInjection;
@@ -10,7 +10,11 @@ using MediatR;
 
 namespace ECommerce.Application.Features.Carts.V1.Queries;
 
-public sealed record GetCartQuery() : IRequest<Result<CartDto>>;
+public sealed record GetCartQuery() : IRequest<Result<CartDto>>, ICacheableRequest
+{
+    public string CacheKey => "cart:current_user";
+    public TimeSpan CacheDuration => TimeSpan.FromMinutes(2);
+}
 
 public sealed class GetCartQueryHandler(
     ICartRepository cartRepository,

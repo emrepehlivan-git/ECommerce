@@ -2,7 +2,7 @@ using System.Diagnostics;
 
 namespace ECommerce.Infrastructure.Logging;
 
-public sealed class SerilogLogger<T>(Serilog.ILogger logger) : Application.Common.Logging.IECommerLogger<T>
+public sealed class SerilogLogger<T>(Serilog.ILogger logger) : Application.Common.Logging.IECommerceLogger<T>
 {
     public void LogInformation(string message, params object[] args)
     {
