@@ -42,6 +42,11 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
             .HasForeignKey<ProductStock>(ps => ps.ProductId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.HasMany(p => p.Images)
+            .WithOne(pi => pi.Product)
+            .HasForeignKey(pi => pi.ProductId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         builder.HasIndex(p => p.CategoryId);
         builder.HasIndex(p => p.IsActive);
     }

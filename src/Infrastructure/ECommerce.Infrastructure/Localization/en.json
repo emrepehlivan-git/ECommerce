@@ -34,6 +34,25 @@
     },
     "StockQuantity": {
       "MustBeGreaterThanZero": "Product stock quantity must be greater than 0."
+    },
+    "Image": {
+      "NotFound": "Product image not found.",
+      "UploadFailed": "Image upload failed.",
+      "DeleteFailed": "Image deletion failed.",
+      "MaxImagesExceeded": "Maximum {0} images allowed per product.",
+      "InvalidFormat": "Invalid image format.",
+      "TooLarge": "Image file is too large.",
+      "NormalizeMaxLength": "Image file name is too long.",
+      "FileNameRequired": "Image file name is required.",
+      "StreamRequired": "Image file content is required.",
+      "DisplayOrderInvalid": "Invalid image display order.",
+      "ContentTypeInvalid": "Invalid file type.",
+      "AtLeastOneImageRequired": "At least one image is required.",
+      "TypeRequired": "Image type is required.",
+      "AltTextTooLong": "Alt text is too long (maximum {0} characters).",
+      "CloudinaryUploadError": "Cloud storage upload error.",
+      "DatabaseSaveError": "Database save error.",
+      "CleanupFailed": "Image cleanup failed."
     }
   },
   "Category": {

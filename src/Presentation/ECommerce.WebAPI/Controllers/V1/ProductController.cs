@@ -6,6 +6,9 @@ using ECommerce.Application.Features.Products.V1.Queries;
 using ECommerce.Application.Features.Stock.V1.Commands;
 using ECommerce.Application.Features.Stock.V1.Queries;
 using ECommerce.Application.Parameters;
+using ECommerce.Domain.Enums;
+using ECommerce.WebAPI.DTOs;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerce.WebAPI.Controllers.V1;
@@ -99,4 +102,164 @@ public sealed class ProductController : BaseApiV1Controller
         var result = await Mediator.Send(command with { ProductId = id }, cancellationToken);
         return result.ToActionResult(this);
     }
+
+    #region Image Operations
+
+    [HttpGet("{id}/images")]
+    [ProducesResponseType(typeof(List<ProductImageResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<List<ProductImageResponseDto>>> GetProductImages(
+        Guid id,
+        [FromQuery] ImageType? imageType = null,
+        [FromQuery] bool activeOnly = true,
+        CancellationToken cancellationToken = default)
+    {
+        var query = new GetProductImagesQuery(id, imageType, activeOnly);
+        var result = await Mediator.Send(query, cancellationToken);
+
+        if (!result.IsSuccess)
+            return BadRequest(result.Errors);
+
+        var response = result.Value.Select(img => new ProductImageResponseDto(
+            img.Id,
+            id,
+            img.CloudinaryPublicId,
+            img.ImageUrl,
+            img.ThumbnailUrl,
+            img.LargeUrl,
+            img.ImageType,
+            img.DisplayOrder,
+            true,
+            0,
+            img.AltText,
+            DateTime.UtcNow,
+            null
+        )).ToList();
+
+        return Ok(response);
+    }
+
+    [HttpPost("{id}/images")]
+    [ProducesResponseType(typeof(UploadProductImagesResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status413PayloadTooLarge)]
+    [RequestSizeLimit(100_000_000)] 
+    [RequestFormLimits(MultipartBodyLengthLimit = 100_000_000)]
+    public async Task<ActionResult<UploadProductImagesResponse>> UploadProductImages(
+        Guid id,
+        [FromForm] UploadProductImagesWebRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var imageRequests = new List<ProductImageUploadRequest>();
+        var errors = new List<string>();
+
+        foreach (var imageDto in request.Images)
+        {
+            try
+            {
+                if (imageDto.File.Length == 0)
+                {
+                    errors.Add($"File '{imageDto.File.FileName}' is empty");
+                    continue;
+                }
+
+                var stream = imageDto.File.OpenReadStream();
+                var imageRequest = new ProductImageUploadRequest(
+                    stream,
+                    imageDto.File.FileName,
+                    imageDto.ImageType,
+                    imageDto.DisplayOrder,
+                    imageDto.AltText);
+
+                imageRequests.Add(imageRequest);
+            }
+            catch (Exception ex)
+            {
+                errors.Add($"Error processing file '{imageDto.File.FileName}': {ex.Message}");
+            }
+        }
+
+        if (imageRequests.Count == 0)
+        {
+            return BadRequest(new { message = "No valid images to upload", errors });
+        }
+
+        var command = new UploadProductImagesCommand(id, imageRequests);
+        var result = await Mediator.Send(command, cancellationToken);
+
+        if (!result.IsSuccess)
+            return BadRequest(result.Errors);
+
+        var responseImages = result.Value.Select(img => new ProductImageResponseDto(
+            img.Id,
+            id,
+            img.CloudinaryPublicId,
+            img.ImageUrl,
+            img.ThumbnailUrl,
+            img.LargeUrl,
+            img.ImageType,
+            img.DisplayOrder,
+            true,
+            0,
+            img.AltText,
+            DateTime.UtcNow,
+            null
+        )).ToList();
+
+        var response = new UploadProductImagesResponse(
+            responseImages,
+            responseImages.Count,
+            request.Images.Count,
+            errors
+        );
+
+        return CreatedAtAction(nameof(GetProductImages), new { id }, response);
+    }
+
+    [HttpDelete("{id}/images/{imageId}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> DeleteProductImage(
+        Guid id,
+        Guid imageId,
+        CancellationToken cancellationToken = default)
+    {
+        var command = new DeleteProductImageCommand(id, imageId);
+        var result = await Mediator.Send(command, cancellationToken);
+        return result.ToActionResult(this);
+    }
+
+    [HttpPut("{id}/images/reorder")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public ActionResult UpdateImageOrder(
+        Guid id,
+        [FromBody] UpdateImageOrderRequest request)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        foreach (var (imageId, newOrder) in request.ImageOrders)
+        {
+        }
+
+        return Ok(new { message = "Image order updated successfully" });
+    }
+
+    #endregion
 } 

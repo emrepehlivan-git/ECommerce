@@ -1,4 +1,5 @@
 using ECommerce.Domain.ValueObjects;
+using ECommerce.Domain.Enums;
 
 namespace ECommerce.Domain.Entities;
 
@@ -12,6 +13,9 @@ public sealed class Product : AuditableEntity
 
     public Guid CategoryId { get; private set; }
     public Category Category { get; set; } = null!;
+    
+    private readonly List<ProductImage> _images = new();
+    public IReadOnlyCollection<ProductImage> Images => _images.AsReadOnly();
 
     internal Product()
     {
@@ -82,6 +86,78 @@ public sealed class Product : AuditableEntity
             throw new ArgumentException("Description cannot be longer than 500 characters.", nameof(description));
 
         Description = description;
+    }
+
+    public void AddImage(ProductImage image)
+    {
+        if (image == null)
+            throw new ArgumentNullException(nameof(image));
+
+        if (image.ProductId != Id)
+            throw new ArgumentException("Image does not belong to this product.", nameof(image));
+
+        if (_images.Any(i => i.CloudinaryPublicId == image.CloudinaryPublicId))
+            throw new ArgumentException("Image with this Cloudinary ID already exists.", nameof(image));
+
+        _images.Add(image);
+    }
+
+    public void RemoveImage(ProductImage image)
+    {
+        if (image == null)
+            throw new ArgumentNullException(nameof(image));
+
+        _images.Remove(image);
+    }
+
+    public void RemoveImage(Guid imageId)
+    {
+        var image = _images.FirstOrDefault(i => i.Id == imageId);
+        if (image != null)
+        {
+            _images.Remove(image);
+        }
+    }
+
+    public ProductImage? GetMainImage()
+    {
+        return _images
+            .Where(i => i.IsActive && i.ImageType == ImageType.Main)
+            .OrderBy(i => i.DisplayOrder)
+            .FirstOrDefault();
+    }
+
+    public IEnumerable<ProductImage> GetGalleryImages()
+    {
+        return _images
+            .Where(i => i.IsActive && i.ImageType == ImageType.Gallery)
+            .OrderBy(i => i.DisplayOrder);
+    }
+
+    public IEnumerable<ProductImage> GetActiveImages()
+    {
+        return _images
+            .Where(i => i.IsActive)
+            .OrderBy(i => i.DisplayOrder);
+    }
+
+    public void ReorderImages(Dictionary<Guid, int> imageOrders)
+    {
+        foreach (var (imageId, order) in imageOrders)
+        {
+            var image = _images.FirstOrDefault(i => i.Id == imageId);
+            image?.UpdateDisplayOrder(order);
+        }
+    }
+
+    public int GetImagesCount()
+    {
+        return _images.Count(i => i.IsActive);
+    }
+
+    public bool HasImages()
+    {
+        return _images.Any(i => i.IsActive);
     }
 }
 

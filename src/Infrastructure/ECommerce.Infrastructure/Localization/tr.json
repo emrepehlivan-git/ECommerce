@@ -34,6 +34,25 @@
     },
     "StockQuantity": {
       "MustBeGreaterThanZero": "Ürün stok miktarı sıfırdan büyük olmalıdır."
+    },
+    "Image": {
+      "NotFound": "Ürün görseli bulunamadı.",
+      "UploadFailed": "Görsel yüklenemedi.",
+      "DeleteFailed": "Görsel silinemedi.",
+      "MaxImagesExceeded": "Bir ürün için maksimum {0} görsel yüklenebilir.",
+      "InvalidFormat": "Geçersiz görsel formatı.",
+      "TooLarge": "Görsel dosyası çok büyük.",
+      "NormalizeMaxLength": "Görsel dosya adı çok uzun.",
+      "FileNameRequired": "Görsel dosya adı gereklidir.",
+      "StreamRequired": "Görsel dosya içeriği gereklidir.",
+      "DisplayOrderInvalid": "Geçersiz görsel sıralama değeri.",
+      "ContentTypeInvalid": "Geçersiz dosya tipi.",
+      "AtLeastOneImageRequired": "En az bir görsel gereklidir.",
+      "TypeRequired": "Görsel tipi gereklidir.",
+      "AltTextTooLong": "Alt metin çok uzun (maksimum {0} karakter).",
+      "CloudinaryUploadError": "Bulut depolama yükleme hatası.",
+      "DatabaseSaveError": "Veritabanı kaydetme hatası.",
+      "CleanupFailed": "Görsel temizleme işlemi başarısız."
     }
   },
   "Category": {

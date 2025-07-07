@@ -1,3 +1,4 @@
+using ECommerce.Application.Common.Logging;
 using ECommerce.Application.Features.Roles.V1.DTOs;
 using Microsoft.AspNetCore.Identity;
 using MockQueryable.Moq;
@@ -6,24 +7,36 @@ namespace ECommerce.Infrastructure.IntegrationTests.Services;
 
 public sealed class RoleServiceTests
 {
-    private readonly Mock<UserManager<User>> _userManagerMock;
-    private readonly Mock<RoleManager<Role>> _roleManagerMock;
-    private readonly RoleService _roleService;
+    private readonly Mock<UserManager<User>> UserManagerMock;
+    private readonly Mock<RoleManager<Role>> RoleManagerMock;
+    private readonly Mock<IKeycloakPermissionSyncService> KeycloakSyncServiceMock;
+    private readonly Mock<IPermissionService> PermissionServiceMock;
+    private readonly Mock<IECommerceLogger<RoleService>> LoggerMock;
+    private readonly RoleService RoleService;
 
     public RoleServiceTests()
     {
         var userStore = new Mock<IUserStore<User>>();
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-        _userManagerMock = new Mock<UserManager<User>>(
+        UserManagerMock = new Mock<UserManager<User>>(
             userStore.Object, null, null, null, null, null, null, null, null);
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
         var roleStore = new Mock<IRoleStore<Role>>();
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-        _roleManagerMock = new Mock<RoleManager<Role>>(
+        RoleManagerMock = new Mock<RoleManager<Role>>(
             roleStore.Object, null, null, null, null);
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 
-        _roleService = new RoleService(_userManagerMock.Object, _roleManagerMock.Object);
+        KeycloakSyncServiceMock = new Mock<IKeycloakPermissionSyncService>();
+        PermissionServiceMock = new Mock<IPermissionService>();
+        LoggerMock = new Mock<IECommerceLogger<RoleService>>();
+
+        RoleService = new RoleService(
+            UserManagerMock.Object, 
+            RoleManagerMock.Object,
+            KeycloakSyncServiceMock.Object,
+            PermissionServiceMock.Object,
+            LoggerMock.Object);
     }
 
     [Fact]
@@ -36,10 +49,10 @@ public sealed class RoleServiceTests
             Role.Create("User")
         }.AsQueryable().BuildMock();
 
-        _roleManagerMock.Setup(m => m.Roles).Returns(roles);
+        RoleManagerMock.Setup(m => m.Roles).Returns(roles);
 
         // Act
-        var result = await _roleService.GetAllRolesAsync(1, 10, string.Empty);
+        var result = await RoleService.GetAllRolesAsync(1, 10, string.Empty);
 
         // Assert
         result.Should().NotBeNull();
@@ -59,11 +72,11 @@ public sealed class RoleServiceTests
         };
 
         var mockQueryable = roles.AsQueryable().BuildMock();
-        _roleManagerMock.Setup(x => x.Roles)
+        RoleManagerMock.Setup(x => x.Roles)
                         .Returns(mockQueryable);
 
         // Act
-        var result = await _roleService.GetRolesAsync();
+        var result = await RoleService.GetRolesAsync();
 
         // Assert
         result.Should().NotBeNull();
@@ -79,18 +92,18 @@ public sealed class RoleServiceTests
         var user = User.Create("test@example.com", "Test", "User");
         var userRoles = new List<string> { "Admin", "User" };
 
-        _userManagerMock.Setup(x => x.GetRolesAsync(user))
+        UserManagerMock.Setup(x => x.GetRolesAsync(user))
                         .ReturnsAsync(userRoles);
 
         // Act
-        var result = await _roleService.GetUserRolesAsync(user);
+        var result = await RoleService.GetUserRolesAsync(user);
 
         // Assert
         result.Should().NotBeNull();
         result.Should().HaveCount(2);
         result.Should().Contain("Admin");
         result.Should().Contain("User");
-        _userManagerMock.Verify(x => x.GetRolesAsync(user), Times.Once);
+        UserManagerMock.Verify(x => x.GetRolesAsync(user), Times.Once);
     }
 
     [Fact]
@@ -103,11 +116,11 @@ public sealed class RoleServiceTests
         var roles = new List<Role> { role };
 
         var mockQueryable = roles.AsQueryable().BuildMock();
-        _roleManagerMock.Setup(x => x.Roles)
+        RoleManagerMock.Setup(x => x.Roles)
                         .Returns(mockQueryable);
 
         // Act
-        var result = await _roleService.FindRoleByIdAsync(roleId);
+        var result = await RoleService.FindRoleByIdAsync(roleId);
 
         // Assert
         // Mock'ta gerçek ID eşleşmesi olmadığı için null olacak
@@ -123,11 +136,11 @@ public sealed class RoleServiceTests
         var roles = new List<Role> { role };
 
         var mockQueryable = roles.AsQueryable().BuildMock();
-        _roleManagerMock.Setup(x => x.Roles)
+        RoleManagerMock.Setup(x => x.Roles)
                         .Returns(mockQueryable);
 
         // Act
-        var result = await _roleService.FindRoleByNameAsync(roleName);
+        var result = await RoleService.FindRoleByNameAsync(roleName);
 
         // Assert
         result.Should().NotBeNull();
@@ -141,16 +154,16 @@ public sealed class RoleServiceTests
         var role = Role.Create("NewRole");
         var identityResult = IdentityResult.Success;
 
-        _roleManagerMock.Setup(x => x.CreateAsync(role))
+        RoleManagerMock.Setup(x => x.CreateAsync(role))
                         .ReturnsAsync(identityResult);
 
         // Act
-        var result = await _roleService.CreateRoleAsync(role);
+        var result = await RoleService.CreateRoleAsync(role);
 
         // Assert
         result.Should().Be(identityResult);
         result.Succeeded.Should().BeTrue();
-        _roleManagerMock.Verify(x => x.CreateAsync(role), Times.Once);
+        RoleManagerMock.Verify(x => x.CreateAsync(role), Times.Once);
     }
 
     [Fact]
@@ -160,16 +173,16 @@ public sealed class RoleServiceTests
         var role = Role.Create("UpdatedRole");
         var identityResult = IdentityResult.Success;
 
-        _roleManagerMock.Setup(x => x.UpdateAsync(role))
+        RoleManagerMock.Setup(x => x.UpdateAsync(role))
                         .ReturnsAsync(identityResult);
 
         // Act
-        var result = await _roleService.UpdateRoleAsync(role);
+        var result = await RoleService.UpdateRoleAsync(role);
 
         // Assert
         result.Should().Be(identityResult);
         result.Succeeded.Should().BeTrue();
-        _roleManagerMock.Verify(x => x.UpdateAsync(role), Times.Once);
+        RoleManagerMock.Verify(x => x.UpdateAsync(role), Times.Once);
     }
 
     [Fact]
@@ -179,16 +192,16 @@ public sealed class RoleServiceTests
         var role = Role.Create("RoleToDelete");
         var identityResult = IdentityResult.Success;
 
-        _roleManagerMock.Setup(x => x.DeleteAsync(role))
+        RoleManagerMock.Setup(x => x.DeleteAsync(role))
                         .ReturnsAsync(identityResult);
 
         // Act
-        var result = await _roleService.DeleteRoleAsync(role);
+        var result = await RoleService.DeleteRoleAsync(role);
 
         // Assert
         result.Should().Be(identityResult);
         result.Succeeded.Should().BeTrue();
-        _roleManagerMock.Verify(x => x.DeleteAsync(role), Times.Once);
+        RoleManagerMock.Verify(x => x.DeleteAsync(role), Times.Once);
     }
 
     [Fact]
@@ -197,15 +210,15 @@ public sealed class RoleServiceTests
         // Arrange
         var roleName = "ExistingRole";
 
-        _roleManagerMock.Setup(x => x.RoleExistsAsync(roleName))
+        RoleManagerMock.Setup(x => x.RoleExistsAsync(roleName))
                         .ReturnsAsync(true);
 
         // Act
-        var result = await _roleService.RoleExistsAsync(roleName);
+        var result = await RoleService.RoleExistsAsync(roleName);
 
         // Assert
         result.Should().BeTrue();
-        _roleManagerMock.Verify(x => x.RoleExistsAsync(roleName), Times.Once);
+        RoleManagerMock.Verify(x => x.RoleExistsAsync(roleName), Times.Once);
     }
 
     [Fact]
@@ -214,15 +227,15 @@ public sealed class RoleServiceTests
         // Arrange
         var roleName = "NonExistentRole";
 
-        _roleManagerMock.Setup(x => x.RoleExistsAsync(roleName))
+        RoleManagerMock.Setup(x => x.RoleExistsAsync(roleName))
                         .ReturnsAsync(false);
 
         // Act
-        var result = await _roleService.RoleExistsAsync(roleName);
+        var result = await RoleService.RoleExistsAsync(roleName);
 
         // Assert
         result.Should().BeFalse();
-        _roleManagerMock.Verify(x => x.RoleExistsAsync(roleName), Times.Once);
+        RoleManagerMock.Verify(x => x.RoleExistsAsync(roleName), Times.Once);
     }
 
     [Fact]
@@ -233,16 +246,16 @@ public sealed class RoleServiceTests
         var roleName = "Admin";
         var identityResult = IdentityResult.Success;
 
-        _userManagerMock.Setup(x => x.AddToRoleAsync(user, roleName))
+        UserManagerMock.Setup(x => x.AddToRoleAsync(user, roleName))
                         .ReturnsAsync(identityResult);
 
         // Act
-        var result = await _roleService.AddToRoleAsync(user, roleName);
+        var result = await RoleService.AddToRoleAsync(user, roleName);
 
         // Assert
         result.Should().Be(identityResult);
         result.Succeeded.Should().BeTrue();
-        _userManagerMock.Verify(x => x.AddToRoleAsync(user, roleName), Times.Once);
+        UserManagerMock.Verify(x => x.AddToRoleAsync(user, roleName), Times.Once);
     }
 
     [Fact]
@@ -253,15 +266,15 @@ public sealed class RoleServiceTests
         var roleName = "Admin";
         var identityResult = IdentityResult.Success;
 
-        _userManagerMock.Setup(x => x.RemoveFromRoleAsync(user, roleName))
+        UserManagerMock.Setup(x => x.RemoveFromRoleAsync(user, roleName))
                         .ReturnsAsync(identityResult);
 
         // Act
-        var result = await _roleService.RemoveFromRoleAsync(user, roleName);
+        var result = await RoleService.RemoveFromRoleAsync(user, roleName);
 
         // Assert
         result.Should().Be(identityResult);
         result.Succeeded.Should().BeTrue();
-        _userManagerMock.Verify(x => x.RemoveFromRoleAsync(user, roleName), Times.Once);
+        UserManagerMock.Verify(x => x.RemoveFromRoleAsync(user, roleName), Times.Once);
     }
 } 

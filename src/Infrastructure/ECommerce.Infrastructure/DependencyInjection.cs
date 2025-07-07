@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Http;
 using System.Diagnostics;
 using StackExchange.Redis;
 using ECommerce.Infrastructure.Services;
+using ECommerce.Infrastructure.Configuration;
 
 namespace ECommerce.Infrastructure;
 
@@ -26,21 +27,24 @@ public static class DependencyInjection
         services.AddScoped<Application.Services.IKeycloakPermissionSyncService, Services.KeycloakPermissionSyncService>();
         services.AddScoped<Application.Services.IPermissionService, Services.PermissionService>();
         services.AddScoped<PermissionSeedingService>();
+        
+        services.Configure<CloudinarySettings>(configuration.GetSection(CloudinarySettings.SectionName));
+        services.AddScoped<Application.Services.ICloudinaryService, Services.CloudinaryService>();
 
         services.AddMemoryCache();
         services.AddStackExchangeRedisCache(options =>
         {
             options.Configuration = configuration.GetConnectionString("Redis");
             options.InstanceName = "ECommerce";
-            options.ConfigurationOptions = new StackExchange.Redis.ConfigurationOptions
+                options.ConfigurationOptions = new ConfigurationOptions
             {
                 EndPoints = { configuration.GetConnectionString("Redis")! },
-                ConnectTimeout = 5000, // 5 saniye bağlantı timeout
-                SyncTimeout = 1000, // 1 saniye sync timeout
-                AsyncTimeout = 5000, // 5 saniye async timeout
+                ConnectTimeout = 5000, 
+                SyncTimeout = 1000, 
+                AsyncTimeout = 5000, 
                 AbortOnConnectFail = false,
                 ConnectRetry = 3,
-                ReconnectRetryPolicy = new StackExchange.Redis.ExponentialRetry(1000),
+                ReconnectRetryPolicy = new ExponentialRetry(1000),
                 KeepAlive = 60,
                 DefaultDatabase = 0
             };
@@ -48,7 +52,7 @@ public static class DependencyInjection
 
         services.AddSingleton<IConnectionMultiplexer>(sp => 
         {
-            var config = new StackExchange.Redis.ConfigurationOptions
+            var config = new ConfigurationOptions
             {
                 EndPoints = { configuration.GetConnectionString("Redis")! },
                 ConnectTimeout = 5000,
@@ -56,7 +60,7 @@ public static class DependencyInjection
                 AsyncTimeout = 5000,
                 AbortOnConnectFail = false,
                 ConnectRetry = 3,
-                ReconnectRetryPolicy = new StackExchange.Redis.ExponentialRetry(1000),
+                ReconnectRetryPolicy = new ExponentialRetry(1000),
                 KeepAlive = 60,
                 DefaultDatabase = 0
             };
@@ -84,7 +88,7 @@ public static class DependencyInjection
 
         Log.Logger = loggerConfig.CreateLogger();
         
-        services.AddSingleton<Serilog.ILogger>(Log.Logger);
+        services.AddSingleton(Log.Logger);
         
         services.AddSingleton(typeof(Application.Common.Logging.IECommerceLogger<>),
                   typeof(SerilogLogger<>));
@@ -126,7 +130,6 @@ public static class DependencyInjection
                     })
                     .AddSource("ECommerce.*");
 
-                // Add exporters based on configuration
                 var jaegerEndpoint = configuration["OpenTelemetry:Jaeger:Endpoint"];
                 if (!string.IsNullOrEmpty(jaegerEndpoint))
                 {
@@ -168,7 +171,6 @@ public static class DependencyInjection
 
     private static bool FilterRequests(HttpContext context)
     {
-        // Filter out health checks and swagger endpoints
         var path = context.Request.Path.Value;
         return !string.IsNullOrEmpty(path) &&
                !path.StartsWith("/health") &&

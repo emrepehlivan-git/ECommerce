@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="CloudinaryDotNet" />
       <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
       <PackageReference Include="Microsoft.AspNetCore.Identity" />
       <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
