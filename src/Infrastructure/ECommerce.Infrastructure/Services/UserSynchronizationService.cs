@@ -5,15 +5,16 @@ using ECommerce.Application.Services;
 using ECommerce.Domain.Entities;
 using ECommerce.SharedKernel.DependencyInjection;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection; 
 using System.Security.Claims;
 
 namespace ECommerce.Infrastructure.Services;
 
-public class UserSynchronizationService(
+public sealed class UserSynchronizationService(
     UserManager<User> userManager,
     IECommerceLogger<UserSynchronizationService> logger,
-    IServiceProvider serviceProvider) : IUserSynchronizationService, IScopedDependency
+    IServiceProvider serviceProvider,
+    IKeycloakRoleSyncService keycloakRoleSyncService) : IUserSynchronizationService, IScopedDependency
 {
     public async Task<Result<User>> SyncUserAsync(ClaimsPrincipal principal, CancellationToken cancellationToken)
     {
@@ -27,6 +28,12 @@ public class UserSynchronizationService(
 
         if (user is not null)
         {
+            var existingUserRoleSyncResult = await keycloakRoleSyncService.SyncUserRolesFromTokenAsync(user, principal, cancellationToken);
+            if (!existingUserRoleSyncResult.IsSuccess)
+            {
+                logger.LogWarning("User {UserId} rol senkronizasyonu başarısız: {Error}", user.Id, string.Join(", ", existingUserRoleSyncResult.Errors));
+            }
+            
             return Result<User>.Success(user);
         }
 
@@ -79,6 +86,12 @@ public class UserSynchronizationService(
         }
         
         logger.LogInformation("Successfully created and provisioned user {Email} with ID {UserId}", email, newUser.Id);
+
+        var roleSyncResult = await keycloakRoleSyncService.SyncUserRolesFromTokenAsync(newUser, principal, cancellationToken);
+        if (!roleSyncResult.IsSuccess)
+        {
+            logger.LogWarning("User {UserId} rol senkronizasyonu başarısız: {Error}", newUser.Id, string.Join(", ", roleSyncResult.Errors));
+        }
 
         await SyncUserPermissionsToKeycloakAsync(newUser.Id.ToString());
         

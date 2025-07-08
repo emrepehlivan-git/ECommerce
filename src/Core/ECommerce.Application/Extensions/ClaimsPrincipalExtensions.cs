@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace ECommerce.Application.Extensions;
 
@@ -36,5 +37,60 @@ public static class ClaimsPrincipalExtensions
         }
 
         return $"{firstName} {lastName}";
+    }
+
+    public static List<string> GetRealmRoles(this ClaimsPrincipal principal)
+    {
+        var realmAccessClaim = principal.FindFirstValue("realm_access");
+        if (string.IsNullOrEmpty(realmAccessClaim))
+            return [];
+
+        try
+        {
+            using var doc = JsonDocument.Parse(realmAccessClaim);
+            if (doc.RootElement.TryGetProperty("roles", out var rolesElement))
+            {
+                return [.. rolesElement.EnumerateArray()
+                    .Where(role => role.ValueKind == JsonValueKind.String)
+                    .Select(role => role.GetString()!)
+                    .Where(role => !string.IsNullOrEmpty(role))];
+            }
+        }
+        catch (JsonException)
+        {
+        }
+
+        return [];
+    }
+
+    public static List<string> GetClientRoles(this ClaimsPrincipal principal, string clientId = "nextjs-client")
+    {
+        var resourceAccessClaim = principal.FindFirstValue("resource_access");
+        if (string.IsNullOrEmpty(resourceAccessClaim))
+            return [];
+
+        try
+        {
+            using var doc = JsonDocument.Parse(resourceAccessClaim);
+            if (doc.RootElement.TryGetProperty(clientId, out var clientElement) &&
+                clientElement.TryGetProperty("roles", out var rolesElement))
+            {
+                return [.. rolesElement.EnumerateArray()
+                    .Where(role => role.ValueKind == JsonValueKind.String)
+                    .Select(role => role.GetString()!)
+                    .Where(role => !string.IsNullOrEmpty(role))];
+            }
+        }
+        catch (JsonException)
+        {
+        }
+
+        return [];
+    }
+
+    public static List<string> GetAllKeycloakRoles(this ClaimsPrincipal principal, string clientId = "nextjs-client")
+    {
+        // Sadece client rollerini döndür
+        return principal.GetClientRoles(clientId);
     }
 } 

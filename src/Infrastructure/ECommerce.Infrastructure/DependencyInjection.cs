@@ -24,12 +24,13 @@ public static class DependencyInjection
         services.AddObservability(configuration);
         services.AddHttpClient();
         
-        services.AddScoped<Application.Services.IKeycloakPermissionSyncService, Services.KeycloakPermissionSyncService>();
-        services.AddScoped<Application.Services.IPermissionService, Services.PermissionService>();
+        services.AddScoped<Application.Services.IKeycloakPermissionSyncService, KeycloakPermissionSyncService>();
+        services.AddScoped<Application.Services.IKeycloakRoleSyncService, KeycloakRoleSyncService>();
+        services.AddScoped<Application.Services.IPermissionService, PermissionService>();
         services.AddScoped<PermissionSeedingService>();
         
         services.Configure<CloudinarySettings>(configuration.GetSection(CloudinarySettings.SectionName));
-        services.AddScoped<Application.Services.ICloudinaryService, Services.CloudinaryService>();
+        services.AddScoped<Application.Services.ICloudinaryService, CloudinaryService>();
 
         services.AddMemoryCache();
         services.AddStackExchangeRedisCache(options =>
