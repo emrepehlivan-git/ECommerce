@@ -81,15 +81,6 @@ public static class QueryableExtensions
         return new PagedResult<List<TDestination>>(pageInfo, items);
     }
 
-
-    public static IQueryable<T> IncludeIf<T>(this IQueryable<T> query,
-    bool condition,
-    Expression<Func<T, object>> include)
-    where T : class
-    {
-        return condition ? query.Include(include) : query;
-    }
-
     public static IOrderedQueryable<T> ApplyOrderBy<T>(this IQueryable<T> query, Filter filter)
     {
         if (filter.OrderByFields.Count == 0)
