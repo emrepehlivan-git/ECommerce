@@ -2,7 +2,7 @@ using Ardalis.Result;
 using ECommerce.Application.Behaviors;
 using ECommerce.Application.Common.CQRS;
 using ECommerce.Application.Features.Carts.V1.DTOs;
-using ECommerce.Application.Helpers;
+using ECommerce.Application.Interfaces;
 using ECommerce.Application.Repositories;
 using ECommerce.Application.Services;
 using ECommerce.SharedKernel.DependencyInjection;
@@ -16,7 +16,7 @@ public sealed record RemoveFromCartCommand(
 
 public sealed class RemoveFromCartCommandValidator : AbstractValidator<RemoveFromCartCommand>
 {
-    public RemoveFromCartCommandValidator(LocalizationHelper localizer)
+    public RemoveFromCartCommandValidator(ILocalizationHelper localizer)
     {
         RuleFor(x => x.ProductId)
             .NotEmpty()

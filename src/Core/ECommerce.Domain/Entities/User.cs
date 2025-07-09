@@ -14,7 +14,7 @@ public sealed class User : IdentityUser<Guid>
     
     public IReadOnlyCollection<UserAddress> Addresses => _addresses.AsReadOnly();
 
-    internal User()
+    public User()
     {
     }
 

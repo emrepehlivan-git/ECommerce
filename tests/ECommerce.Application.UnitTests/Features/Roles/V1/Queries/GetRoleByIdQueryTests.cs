@@ -18,7 +18,7 @@ public sealed class GetRoleByIdQueryTests : RoleTestBase
             RoleServiceMock.Object,
             LazyServiceProviderMock.Object);
 
-        Validator = new GetRoleByIdQueryValidator(Localizer);
+        Validator = new GetRoleByIdQueryValidator(LocalizerMock.Object);
     }
 
     [Fact]
@@ -52,7 +52,7 @@ public sealed class GetRoleByIdQueryTests : RoleTestBase
         // Assert
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain(Localizer[RoleConsts.RoleNotFound]);
+        result.Errors.Should().Contain(LocalizerMock.Object[RoleConsts.RoleNotFound]);
 
         RoleServiceMock.Verify(x => x.FindRoleByIdAsync(RoleId), Times.Once);
     }
@@ -95,7 +95,7 @@ public sealed class GetRoleByIdQueryTests : RoleTestBase
 
         // Assert
         validationResult.IsValid.Should().BeFalse();
-        validationResult.Errors.Should().Contain(x => x.ErrorMessage == Localizer[RoleConsts.RoleNotFound]);
+        validationResult.Errors.Should().Contain(x => x.ErrorMessage == LocalizerMock.Object[RoleConsts.RoleNotFound]);
     }
 
     [Fact]

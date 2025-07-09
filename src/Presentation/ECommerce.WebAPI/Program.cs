@@ -14,20 +14,10 @@ try
 
     logger = app.Services.GetRequiredService<IECommerceLogger<Program>>();
     
-    await app.ApplyMigrations();
-
-    using (var scope = app.Services.CreateScope())
+    if (!app.Environment.IsEnvironment("Testing"))
     {
-        try
-        {
-            var permissionSeedingService = scope.ServiceProvider.GetRequiredService<PermissionSeedingService>();
-            var result = await permissionSeedingService.SeedPermissionsAsync();
-            app.Logger.LogInformation("Permission seeding: {Result}", result);
-        }
-        catch (Exception ex)
-        {
-            app.Logger.LogError(ex, "Permission seeding failed");
-        }
+        await app.ApplyMigrations();
+        await app.ConfigurePermissions();
     }
 
     app.UsePresentation(app.Environment);

@@ -7,6 +7,7 @@ using ECommerce.Application.Repositories;
 using ECommerce.SharedKernel;
 using FluentValidation;
 using MediatR;
+using ECommerce.Application.Interfaces;
 
 namespace ECommerce.Application.Features.UserAddresses.V1.Commands;
 
@@ -18,13 +19,8 @@ public sealed class DeleteUserAddressCommandValidator : AbstractValidator<Delete
 {
     public DeleteUserAddressCommandValidator(
         IUserAddressRepository userAddressRepository,
-        LocalizationHelper localizer)
+        ILocalizationHelper localizer)
     {
-        RuleFor(x => x.Id)
-            .MustAsync(async (command, id, ct) =>
-                await userAddressRepository.AnyAsync(x => x.Id == id && x.UserId == command.UserId && x.IsActive, ct))
-            .WithMessage(localizer[UserAddressConsts.NotFound]);
-
         RuleFor(x => x.Id)
             .MustAsync(async (command, id, ct) =>
             {

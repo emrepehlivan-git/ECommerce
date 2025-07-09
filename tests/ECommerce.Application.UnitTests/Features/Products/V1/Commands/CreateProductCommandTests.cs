@@ -25,6 +25,7 @@ public sealed class CreateProductCommandTests : ProductCommandsTestBase
 
         Validator = new CreateProductCommandValidator(
             CategoryRepositoryMock.Object,
+            ProductRepositoryMock.Object,
             Localizer);
     }
 

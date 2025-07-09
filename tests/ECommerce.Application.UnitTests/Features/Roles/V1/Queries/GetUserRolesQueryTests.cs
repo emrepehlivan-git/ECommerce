@@ -19,7 +19,7 @@ public sealed class GetUserRolesQueryTests : RoleTestBase
             UserServiceMock.Object,
             LazyServiceProviderMock.Object);
 
-        Validator = new GetUserRolesQueryValidator(Localizer);
+        Validator = new GetUserRolesQueryValidator(LocalizerMock.Object);
     }
 
     [Fact]
@@ -85,7 +85,7 @@ public sealed class GetUserRolesQueryTests : RoleTestBase
         // Assert
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain(Localizer[RoleConsts.UserNotFound]);
+        result.Errors.Should().Contain(LocalizerMock.Object[RoleConsts.UserNotFound]);
 
         UserServiceMock.Verify(x => x.FindByIdAsync(UserId), Times.Once);
     }
@@ -132,7 +132,7 @@ public sealed class GetUserRolesQueryTests : RoleTestBase
 
         // Assert
         validationResult.IsValid.Should().BeFalse();
-        validationResult.Errors.Should().Contain(x => x.ErrorMessage == Localizer[RoleConsts.UserNotFound]);
+        validationResult.Errors.Should().Contain(x => x.ErrorMessage == LocalizerMock.Object[RoleConsts.UserNotFound]);
     }
 
     [Fact]

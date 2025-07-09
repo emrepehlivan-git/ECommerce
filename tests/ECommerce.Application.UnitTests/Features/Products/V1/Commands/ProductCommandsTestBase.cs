@@ -1,5 +1,6 @@
 using ECommerce.Application.Services;
 using ECommerce.Application.Helpers;
+using ECommerce.Application.Interfaces;
 
 namespace ECommerce.Application.UnitTests.Features.Products.V1.Commands;
 
@@ -14,7 +15,7 @@ public abstract class ProductCommandsTestBase
     protected Mock<ILocalizationService> LocalizationServiceMock;
     protected Mock<ICacheManager> CacheManagerMock;
 
-    protected LocalizationHelper Localizer;
+    protected ILocalizationHelper Localizer;
 
     protected ProductCommandsTestBase()
     {
@@ -26,7 +27,7 @@ public abstract class ProductCommandsTestBase
         Localizer = new LocalizationHelper(LocalizationServiceMock.Object);
 
         LazyServiceProviderMock
-            .Setup(x => x.LazyGetRequiredService<LocalizationHelper>())
+            .Setup(x => x.LazyGetRequiredService<ILocalizationHelper>())
             .Returns(Localizer);
 
         SetupDefaultLocalizationMessages();

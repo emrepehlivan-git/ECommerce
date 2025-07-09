@@ -61,6 +61,9 @@ public sealed class CartController : BaseApiV1Controller
     public async Task<ActionResult> ClearCart()
     {
         var result = await Mediator.Send(new ClearCartCommand());
+        if (result.Status == Ardalis.Result.ResultStatus.Ok)
+            return NoContent();
+        
         return result.ToActionResult(this);
     }
 } 

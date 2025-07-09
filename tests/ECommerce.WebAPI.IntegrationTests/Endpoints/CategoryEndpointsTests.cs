@@ -19,7 +19,7 @@ public class CategoryEndpointsTests : BaseIntegrationTest, IAsyncLifetime
     public async Task GetCategories_ReturnsOk()
     {
         await ResetDatabaseAsync();
-        var response = await Client.GetAsync("/api/Category");
+        var response = await Client.GetAsync("/api/v1/Category");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
@@ -33,7 +33,7 @@ public class CategoryEndpointsTests : BaseIntegrationTest, IAsyncLifetime
         context.Categories.Add(category);
         await context.SaveChangesAsync();
 
-        var response = await Client.GetAsync($"/api/Category/{category.Id}");
+        var response = await Client.GetAsync($"/api/v1/Category/{category.Id}");
         response.EnsureSuccessStatusCode();
     }
 
@@ -42,7 +42,7 @@ public class CategoryEndpointsTests : BaseIntegrationTest, IAsyncLifetime
     {
         await ResetDatabaseAsync();
         var command = new { Name = "New Category" };
-        var response = await Client.PostAsJsonAsync("/api/Category", command);
+        var response = await Client.PostAsJsonAsync("/api/v1/Category", command);
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
@@ -51,7 +51,7 @@ public class CategoryEndpointsTests : BaseIntegrationTest, IAsyncLifetime
     {
         await ResetDatabaseAsync();
         var command = new { Name = "Updated" };
-        var response = await Client.PutAsJsonAsync($"/api/Category/{Guid.NewGuid()}", command);
+        var response = await Client.PutAsJsonAsync($"/api/v1/Category/{Guid.NewGuid()}", command);
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
@@ -59,7 +59,7 @@ public class CategoryEndpointsTests : BaseIntegrationTest, IAsyncLifetime
     public async Task DeleteCategory_RequiresAuthorization()
     {
         await ResetDatabaseAsync();
-        var response = await Client.DeleteAsync($"/api/Category/{Guid.NewGuid()}");
+        var response = await Client.DeleteAsync($"/api/v1/Category/{Guid.NewGuid()}");
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 }

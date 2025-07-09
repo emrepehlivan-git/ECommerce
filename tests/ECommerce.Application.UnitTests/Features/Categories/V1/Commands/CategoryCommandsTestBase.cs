@@ -1,5 +1,5 @@
 using ECommerce.Application.Features.Categories.V1;
-using ECommerce.Application.Helpers;
+using ECommerce.Application.Interfaces;
 using ECommerce.Application.Services;
 
 namespace ECommerce.Application.UnitTests.Features.Categories.V1.Commands;
@@ -10,42 +10,39 @@ public abstract class CategoryCommandsTestBase
 
     protected Mock<ICategoryRepository> CategoryRepositoryMock;
     protected Mock<ILazyServiceProvider> LazyServiceProviderMock;
-    protected Mock<ILocalizationService> LocalizationServiceMock;
     protected Mock<ICacheManager> CacheManagerMock;
 
-    protected LocalizationHelper Localizer;
-
+    protected Mock<ILocalizationHelper> LocalizerMock;
     protected CategoryCommandsTestBase()
     {
         CategoryRepositoryMock = new Mock<ICategoryRepository>();
         LazyServiceProviderMock = new Mock<ILazyServiceProvider>();
-        LocalizationServiceMock = new Mock<ILocalizationService>();
         CacheManagerMock = new Mock<ICacheManager>();
-        Localizer = new LocalizationHelper(LocalizationServiceMock.Object);
+        LocalizerMock = new Mock<ILocalizationHelper>();
 
         LazyServiceProviderMock
-            .Setup(x => x.LazyGetRequiredService<LocalizationHelper>())
-            .Returns(Localizer);
+            .Setup(x => x.LazyGetRequiredService<ILocalizationHelper>())
+            .Returns(LocalizerMock.Object);
 
         SetupDefaultLocalizationMessages();
     }
 
     protected void SetupDefaultLocalizationMessages()
     {
-        LocalizationServiceMock
-            .Setup(x => x.GetLocalizedString(CategoryConsts.NameMustBeAtLeastCharacters))
+        LocalizerMock
+            .Setup(x => x[CategoryConsts.NameMustBeAtLeastCharacters])
             .Returns("Category name must be at least 3 characters long");
-        LocalizationServiceMock
-            .Setup(x => x.GetLocalizedString(CategoryConsts.NameMustBeLessThanCharacters))
+        LocalizerMock
+            .Setup(x => x[CategoryConsts.NameMustBeLessThanCharacters])
             .Returns("Category name must be less than 100 characters long");
-        LocalizationServiceMock
-            .Setup(x => x.GetLocalizedString(CategoryConsts.NameExists))
+        LocalizerMock
+            .Setup(x => x[CategoryConsts.NameExists])
             .Returns("Category with this name already exists");
-        LocalizationServiceMock
-            .Setup(x => x.GetLocalizedString(CategoryConsts.NotFound))
+        LocalizerMock
+            .Setup(x => x[CategoryConsts.NotFound])
             .Returns("Category not found");
-        LocalizationServiceMock
-            .Setup(x => x.GetLocalizedString(CategoryConsts.NameIsRequired))
+        LocalizerMock
+            .Setup(x => x[CategoryConsts.NameIsRequired])
             .Returns("Category name is required");
     }
 
@@ -72,8 +69,8 @@ public abstract class CategoryCommandsTestBase
 
     protected void SetupLocalizedMessage(string message)
     {
-        LocalizationServiceMock
-            .Setup(x => x.GetLocalizedString(message))
+        LocalizerMock
+            .Setup(x => x[message])
             .Returns(message);
     }
 }

@@ -1,6 +1,6 @@
 using ECommerce.Application.Features.Carts.V1;
 using ECommerce.Application.Features.Carts.V1.Queries;
-using ECommerce.Application.Helpers;
+using ECommerce.Application.Interfaces;
 
 namespace ECommerce.Application.UnitTests.Features.Carts.Queries;
 
@@ -51,10 +51,13 @@ public sealed class GetCartQueryTest : CartQueriesTestsBase
 
         // Assert
         result.Should().NotBeNull();
-        result.IsSuccess.Should().BeFalse();
-        result.Status.Should().Be(ResultStatus.NotFound);
-        result.Errors.Should().ContainSingle()
-            .Which.Should().Be(Localizer[CartConsts.ErrorMessages.CartNotFound]);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeNull();
+        result.Value.Id.Should().Be(Guid.Empty);
+        result.Value.UserId.Should().Be(Guid.Empty);
+        result.Value.Items.Should().BeEmpty();
+        result.Value.TotalItems.Should().Be(0);
+        result.Value.TotalAmount.Should().Be(0m);
     }
 
     [Fact]
@@ -182,9 +185,12 @@ public sealed class GetCartQueryTest : CartQueriesTestsBase
 
         // Assert
         result.Should().NotBeNull();
-        result.IsSuccess.Should().BeFalse();
-        LazyServiceProviderMock.Verify(
-            x => x.LazyGetRequiredService<LocalizationHelper>(),
-            Times.Once);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeNull();
+        result.Value.Id.Should().Be(Guid.Empty);
+        result.Value.UserId.Should().Be(Guid.Empty);
+        result.Value.Items.Should().BeEmpty();
+        result.Value.TotalItems.Should().Be(0);
+        result.Value.TotalAmount.Should().Be(0m);
     }
 } 

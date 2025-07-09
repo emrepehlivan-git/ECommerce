@@ -65,7 +65,7 @@ public sealed class DeactivateUserCommandTests : UserCommandsTestBase
         result.IsSuccess.Should().BeFalse();
         result.Status.Should().Be(ResultStatus.NotFound);
         result.Errors.Should().ContainSingle()
-            .Which.Should().Be(UserConsts.NotFound);
+            .Which.Should().Be(LocalizerMock.Object[UserConsts.NotFound]);
     }
 
     [Fact]

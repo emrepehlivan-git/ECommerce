@@ -1,4 +1,4 @@
-using ECommerce.Application.Helpers;
+using ECommerce.Application.Interfaces;
 using ECommerce.Application.Services;
 using Microsoft.AspNetCore.Identity;
 using Mapster;
@@ -13,66 +13,55 @@ public abstract class RoleTestBase
     protected Mock<IRoleService> RoleServiceMock;
     protected Mock<IUserService> UserServiceMock;
     protected Mock<ILazyServiceProvider> LazyServiceProviderMock;
-    protected Mock<ILocalizationService> LocalizationServiceMock;
     protected Mock<ICacheManager> CacheManagerMock;
-
-    protected LocalizationHelper Localizer;
+    protected Mock<ILocalizationHelper> LocalizerMock;
 
     protected RoleTestBase()
     {
         RoleServiceMock = new Mock<IRoleService>();
         UserServiceMock = new Mock<IUserService>();
         LazyServiceProviderMock = new Mock<ILazyServiceProvider>();
-        LocalizationServiceMock = new Mock<ILocalizationService>();
         CacheManagerMock = new Mock<ICacheManager>();
+        LocalizerMock = new Mock<ILocalizationHelper>();
         
-        Localizer = new LocalizationHelper(LocalizationServiceMock.Object);
-
         LazyServiceProviderMock
-            .Setup(x => x.LazyGetRequiredService<LocalizationHelper>())
-            .Returns(Localizer);
+            .Setup(x => x.LazyGetRequiredService<ILocalizationHelper>())
+            .Returns(LocalizerMock.Object);
 
         SetupDefaultLocalizationMessages();
     }
 
     protected void SetupDefaultLocalizationMessages()
     {
-        LocalizationServiceMock
-            .Setup(x => x.GetLocalizedString(RoleConsts.NameIsRequired))
-            .Returns("Role name is required.");
-
-        LocalizationServiceMock
-            .Setup(x => x.GetLocalizedString(RoleConsts.NameExists))
-            .Returns("Role name already exists.");
-
-        LocalizationServiceMock
-            .Setup(x => x.GetLocalizedString(RoleConsts.NameMustBeAtLeastCharacters, RoleConsts.NameMinLength.ToString()))
-            .Returns("Role name must be at least {0} characters long.");
-
-        LocalizationServiceMock
-            .Setup(x => x.GetLocalizedString(RoleConsts.NameMustBeLessThanCharacters, RoleConsts.NameMaxLength.ToString()))
-            .Returns("Role name must be less than {0} characters long.");
-
-        LocalizationServiceMock
-            .Setup(x => x.GetLocalizedString(RoleConsts.RoleNotFound))
-            .Returns("Role not found.");
-
-        LocalizationServiceMock
-            .Setup(x => x.GetLocalizedString(RoleConsts.UserNotFound))
-            .Returns("User not found.");
-
-        LocalizationServiceMock
-            .Setup(x => x.GetLocalizedString(RoleConsts.UserAlreadyInRole))
-            .Returns("User already has this role.");
-
-        LocalizationServiceMock
-            .Setup(x => x.GetLocalizedString(RoleConsts.UserNotInRole))
-            .Returns("User does not have this role.");
-        
-        // UserConsts için de setup ekle
-        LocalizationServiceMock
-            .Setup(x => x.GetLocalizedString(UserConsts.NotFound))
-            .Returns("User not found.");
+        var translations = new Dictionary<string, string>
+        {
+            [RoleConsts.NameIsRequired] = "Role name is required.",
+            [RoleConsts.NameExists] = "Role name already exists.",
+            [RoleConsts.NameMustBeAtLeastCharacters] = "Role name must be at least {0} characters long.",
+            [RoleConsts.NameMustBeLessThanCharacters] = "Role name must be less than {0} characters long.",
+            [RoleConsts.RoleNotFound] = "Role not found.",
+            [RoleConsts.UserNotFound] = "User not found.",
+            [RoleConsts.UserAlreadyInRole] = "User already has this role.",
+            [RoleConsts.UserNotInRole] = "User does not have this role.",
+            [UserConsts.NotFound] = "User not found."
+        };
+    
+        LocalizerMock.Setup(x => x[It.IsAny<string>()])
+            .Returns((string key) => translations.TryGetValue(key, out var res) ? res : key);
+    
+        LocalizerMock.Setup(x => x[It.IsAny<string>(), It.IsAny<string>()])
+            .Returns((string key, string arg) =>
+            {
+                var value = translations.TryGetValue(key, out var res) ? res : key;
+                try
+                {
+                    return string.Format(value, arg);
+                }
+                catch (FormatException)
+                {
+                    return value;
+                }
+            });
     }
 
     protected void SetupRoleServiceCreateAsync(IdentityResult? result = null)

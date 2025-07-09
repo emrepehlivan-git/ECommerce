@@ -1,7 +1,7 @@
 using Ardalis.Result;
 using ECommerce.Application.Behaviors;
 using ECommerce.Application.Common.CQRS;
-using ECommerce.Application.Helpers;
+using ECommerce.Application.Interfaces;
 using ECommerce.Application.Repositories;
 using ECommerce.Domain.Enums;
 using ECommerce.SharedKernel;
@@ -21,7 +21,7 @@ public sealed class OrderItemRemoveCommandValidator : AbstractValidator<OrderIte
     public OrderItemRemoveCommandValidator(
         IOrderRepository orderRepository,
         IOrderItemRepository orderItemRepository,
-        LocalizationHelper localizer)
+        ILocalizationHelper localizer)
     {
         RuleFor(x => x.OrderId)
             .MustAsync(async (id, ct) =>

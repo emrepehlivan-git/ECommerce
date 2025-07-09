@@ -1,6 +1,7 @@
 using ECommerce.Domain.Enums;
 using FluentValidation;
 using ECommerce.Application.Helpers;
+using ECommerce.Application.Interfaces;
 
 namespace ECommerce.Application.Features.Products.V1.DTOs;
 
@@ -66,7 +67,7 @@ public sealed record ImageUploadResultDto(
 // Validators
 public sealed class ImageUploadDtoValidator : AbstractValidator<ImageUploadDto>
 {
-    public ImageUploadDtoValidator(LocalizationHelper localizer)
+    public ImageUploadDtoValidator(ILocalizationHelper localizer)
     {
         RuleFor(x => x.FileName)
             .NotEmpty()
@@ -126,7 +127,7 @@ public sealed class ImageUploadDtoValidator : AbstractValidator<ImageUploadDto>
 
 public sealed class ImageReorderDtoValidator : AbstractValidator<ImageReorderDto>
 {
-    public ImageReorderDtoValidator(LocalizationHelper localizer)
+    public ImageReorderDtoValidator(ILocalizationHelper localizer)
     {
         RuleFor(x => x.ImageId)
             .NotEmpty()

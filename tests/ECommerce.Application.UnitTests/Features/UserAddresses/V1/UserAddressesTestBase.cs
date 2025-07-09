@@ -1,6 +1,6 @@
 using ECommerce.Application.Features.UserAddresses.V1;
 using ECommerce.Application.Features.UserAddresses.V1.DTOs;
-using ECommerce.Application.Helpers;
+using ECommerce.Application.Interfaces;
 using ECommerce.Application.Services;
 using ECommerce.Domain.ValueObjects;
 using Mapster;
@@ -17,22 +17,18 @@ public abstract class UserAddressesTestBase
     protected Mock<IUserAddressRepository> UserAddressRepositoryMock;
     protected Mock<IUserService> UserServiceMock;
     protected Mock<ILazyServiceProvider> LazyServiceProviderMock;
-    protected Mock<ILocalizationService> LocalizationServiceMock;
-
-    protected LocalizationHelper Localizer;
+    protected Mock<ILocalizationHelper> LocalizerMock;
 
     protected UserAddressesTestBase()
     {
         UserAddressRepositoryMock = new Mock<IUserAddressRepository>();
         UserServiceMock = new Mock<IUserService>();
         LazyServiceProviderMock = new Mock<ILazyServiceProvider>();
-        LocalizationServiceMock = new Mock<ILocalizationService>();
-
-        Localizer = new LocalizationHelper(LocalizationServiceMock.Object);
+        LocalizerMock = new Mock<ILocalizationHelper>();
 
         LazyServiceProviderMock
-            .Setup(x => x.LazyGetRequiredService<LocalizationHelper>())
-            .Returns(Localizer);
+            .Setup(x => x.LazyGetRequiredService<ILocalizationHelper>())
+            .Returns(LocalizerMock.Object);
 
         SetupDefaultLocalizationMessages();
         ConfigureMapster();
@@ -54,29 +50,29 @@ public abstract class UserAddressesTestBase
 
     protected void SetupDefaultLocalizationMessages()
     {
-        LocalizationServiceMock
-            .Setup(x => x.GetLocalizedString(UserAddressConsts.NotFound))
+        LocalizerMock
+            .Setup(x => x[UserAddressConsts.NotFound])
             .Returns("User address not found");
-        LocalizationServiceMock
-            .Setup(x => x.GetLocalizedString(UserAddressConsts.UserNotFound))
+        LocalizerMock
+            .Setup(x => x[UserAddressConsts.UserNotFound])
             .Returns("User not found for this address");
-        LocalizationServiceMock
-            .Setup(x => x.GetLocalizedString(UserAddressConsts.LabelRequired))
+        LocalizerMock
+            .Setup(x => x[UserAddressConsts.LabelRequired])
             .Returns("Address label is required");
-        LocalizationServiceMock
-            .Setup(x => x.GetLocalizedString(UserAddressConsts.LabelMinLength))
+        LocalizerMock
+            .Setup(x => x[UserAddressConsts.LabelMinLength])
             .Returns("Address label must be at least {0} characters long");
-        LocalizationServiceMock
-            .Setup(x => x.GetLocalizedString(UserAddressConsts.LabelMaxLength))
+        LocalizerMock
+            .Setup(x => x[UserAddressConsts.LabelMaxLength])
             .Returns("Address label cannot be longer than {0} characters");
-        LocalizationServiceMock
-            .Setup(x => x.GetLocalizedString(UserAddressConsts.AddressRequired))
+        LocalizerMock
+            .Setup(x => x[UserAddressConsts.AddressRequired])
             .Returns("Address information is required");
-        LocalizationServiceMock
-            .Setup(x => x.GetLocalizedString(UserAddressConsts.DefaultAddressCannotBeDeleted))
+        LocalizerMock
+            .Setup(x => x[UserAddressConsts.DefaultAddressCannotBeDeleted])
             .Returns("Default address cannot be deleted");
-        LocalizationServiceMock
-            .Setup(x => x.GetLocalizedString(UserAddressConsts.AddressAlreadyDefault))
+        LocalizerMock
+            .Setup(x => x[UserAddressConsts.AddressAlreadyDefault])
             .Returns("This address is already set as default");
     }
 
@@ -118,8 +114,8 @@ public abstract class UserAddressesTestBase
 
     protected void SetupLocalizedMessage(string message)
     {
-        LocalizationServiceMock
-            .Setup(x => x.GetLocalizedString(message))
+        LocalizerMock
+            .Setup(x => x[message])
             .Returns(message);
     }
 } 

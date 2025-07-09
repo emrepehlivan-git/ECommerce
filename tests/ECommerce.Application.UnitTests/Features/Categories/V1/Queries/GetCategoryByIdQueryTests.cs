@@ -55,7 +55,7 @@ public sealed class GetCategoryByIdQueryTests : CategoryQueriesTestBase
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeFalse();
         result.Errors.Should().ContainSingle()
-            .Which.Should().Be(Localizer[CategoryConsts.NotFound]);
+            .Which.Should().Be(LocalizerMock.Object[CategoryConsts.NotFound]);
     }
 
     [Fact]

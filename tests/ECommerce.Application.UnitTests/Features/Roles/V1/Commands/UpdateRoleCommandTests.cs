@@ -20,7 +20,7 @@ public sealed class UpdateRoleCommandTests : RoleTestBase
             LazyServiceProviderMock.Object);
 
         Validator = new UpdateRoleCommandValidator(
-            LocalizationServiceMock.Object,
+            LocalizerMock.Object,
             RoleServiceMock.Object
             );
     }
@@ -77,7 +77,7 @@ public sealed class UpdateRoleCommandTests : RoleTestBase
 
         // Assert
         validationResult.IsValid.Should().BeFalse();
-        validationResult.Errors.Should().Contain(x => x.ErrorMessage == Localizer[RoleConsts.RoleNotFound]);
+        validationResult.Errors.Should().Contain(x => x.ErrorMessage == LocalizerMock.Object[RoleConsts.RoleNotFound]);
     }
 
     [Fact]
@@ -107,7 +107,7 @@ public sealed class UpdateRoleCommandTests : RoleTestBase
 
         // Assert
         validationResult.IsValid.Should().BeFalse();
-        validationResult.Errors.Should().Contain(x => x.ErrorMessage == Localizer[RoleConsts.NameExists]);
+        validationResult.Errors.Should().Contain(x => x.ErrorMessage == LocalizerMock.Object[RoleConsts.NameExists]);
     }
 
     [Fact]
@@ -139,7 +139,7 @@ public sealed class UpdateRoleCommandTests : RoleTestBase
 
         // Assert
         validationResult.IsValid.Should().BeFalse();
-        validationResult.Errors.Should().Contain(x => x.ErrorMessage == Localizer[RoleConsts.NameIsRequired]);
+        validationResult.Errors.Should().Contain(x => x.ErrorMessage == LocalizerMock.Object[RoleConsts.NameIsRequired]);
     }
 
     [Fact]
@@ -154,6 +154,6 @@ public sealed class UpdateRoleCommandTests : RoleTestBase
 
         // Assert
         validationResult.IsValid.Should().BeFalse();
-        validationResult.Errors.Should().Contain(x => x.ErrorMessage == Localizer[RoleConsts.NameMustBeAtLeastCharacters, RoleConsts.NameMinLength.ToString()]);
+        validationResult.Errors.Should().Contain(x => x.ErrorMessage == LocalizerMock.Object[RoleConsts.NameMustBeAtLeastCharacters, RoleConsts.NameMinLength.ToString()]);
     }
 } 

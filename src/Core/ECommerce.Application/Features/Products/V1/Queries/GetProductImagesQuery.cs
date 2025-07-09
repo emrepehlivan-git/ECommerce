@@ -1,7 +1,7 @@
 using Ardalis.Result;
 using ECommerce.Application.Common.CQRS;
 using ECommerce.Application.Features.Products.V1.Commands;
-using ECommerce.Application.Helpers;
+using ECommerce.Application.Interfaces;
 using ECommerce.Application.Repositories;
 using ECommerce.Domain.Enums;
 using ECommerce.SharedKernel.DependencyInjection;
@@ -20,7 +20,7 @@ public sealed class GetProductImagesQueryValidator : AbstractValidator<GetProduc
 {
     public GetProductImagesQueryValidator(
         IProductRepository productRepository,
-        LocalizationHelper localizer)
+        ILocalizationHelper localizer)
     {
         RuleFor(x => x.ProductId)
             .MustAsync(async (id, ct) => await productRepository.AnyAsync(x => x.Id == id, cancellationToken: ct))

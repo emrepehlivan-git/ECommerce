@@ -1,5 +1,5 @@
 using System.Reflection;
-using ECommerce.Application.Helpers;
+using ECommerce.Application.Interfaces;
 using ECommerce.Application.Services;
 
 namespace ECommerce.Application.UnitTests.Features.Carts.Queries;
@@ -9,12 +9,11 @@ public abstract class CartQueriesTestsBase
     protected readonly Mock<ICartRepository> CartRepositoryMock;
     protected readonly Mock<ICurrentUserService> CurrentUserServiceMock;
     protected readonly Mock<ILazyServiceProvider> LazyServiceProviderMock;
-    protected readonly Mock<ILocalizationService> LocalizationServiceMock;
     protected readonly Cart DefaultCart;
     protected readonly Product DefaultProduct;
     protected readonly Category DefaultCategory;
     protected readonly User DefaultUser;
-    protected readonly LocalizationHelper Localizer;
+    protected readonly Mock<ILocalizationHelper> LocalizerMock;
     protected readonly Guid DefaultUserId = Guid.Parse("047e47c3-1680-4118-9894-76fd3f3bb6c1");
 
     protected CartQueriesTestsBase()
@@ -22,13 +21,11 @@ public abstract class CartQueriesTestsBase
         CartRepositoryMock = new Mock<ICartRepository>();
         CurrentUserServiceMock = new Mock<ICurrentUserService>();
         LazyServiceProviderMock = new Mock<ILazyServiceProvider>();
-        LocalizationServiceMock = new Mock<ILocalizationService>();
+        LocalizerMock = new Mock<ILocalizationHelper>();
 
-        LocalizationServiceMock
-            .Setup(x => x.GetLocalizedString(It.IsAny<string>()))
+        LocalizerMock
+            .Setup(x => x[It.IsAny<string>()])
             .Returns((string key) => $"Test message for {key}");
-
-        Localizer = new LocalizationHelper(LocalizationServiceMock.Object);
 
         DefaultCategory = Category.Create("Test Category");
         // Set Category Id manually for testing
@@ -45,8 +42,8 @@ public abstract class CartQueriesTestsBase
         DefaultCart = Cart.Create(DefaultUserId);
 
         LazyServiceProviderMock
-            .Setup(x => x.LazyGetRequiredService<LocalizationHelper>())
-            .Returns(Localizer);
+            .Setup(x => x.LazyGetRequiredService<ILocalizationHelper>())
+            .Returns(LocalizerMock.Object);
 
         CurrentUserServiceMock
             .Setup(x => x.UserId)

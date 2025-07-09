@@ -22,7 +22,7 @@ public class RoleEndpointsTests : IClassFixture<CustomWebApplicationFactory>, IA
     public async Task GetRoles_WithoutAuth_ReturnsUnauthorized()
     {
         // Act
-        var response = await _client.GetAsync("/api/Role");
+        var response = await _client.GetAsync("/api/v1/Role");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
@@ -32,7 +32,7 @@ public class RoleEndpointsTests : IClassFixture<CustomWebApplicationFactory>, IA
     public async Task GetRoleById_WithoutAuth_ReturnsUnauthorized()
     {
         // Act
-        var response = await _client.GetAsync($"/api/Role/{Guid.NewGuid()}");
+        var response = await _client.GetAsync($"/api/v1/Role/{Guid.NewGuid()}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
@@ -42,7 +42,7 @@ public class RoleEndpointsTests : IClassFixture<CustomWebApplicationFactory>, IA
     public async Task GetUserRoles_WithoutAuth_ReturnsUnauthorized()
     {
         // Act
-        var response = await _client.GetAsync($"/api/Role/user/{Guid.NewGuid()}");
+        var response = await _client.GetAsync($"/api/v1/Role/user/{Guid.NewGuid()}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
@@ -55,7 +55,7 @@ public class RoleEndpointsTests : IClassFixture<CustomWebApplicationFactory>, IA
         var command = new { Name = "TestRole" };
 
         // Act
-        var response = await _client.PostAsJsonAsync("/api/Role", command);
+        var response = await _client.PostAsJsonAsync("/api/v1/Role", command);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
@@ -68,7 +68,7 @@ public class RoleEndpointsTests : IClassFixture<CustomWebApplicationFactory>, IA
         var command = new { Name = "UpdatedRole" };
 
         // Act
-        var response = await _client.PutAsJsonAsync($"/api/Role/{Guid.NewGuid()}", command);
+        var response = await _client.PutAsJsonAsync($"/api/v1/Role/{Guid.NewGuid()}", command);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
@@ -78,7 +78,7 @@ public class RoleEndpointsTests : IClassFixture<CustomWebApplicationFactory>, IA
     public async Task DeleteRole_WithoutAuth_ReturnsUnauthorized()
     {
         // Act
-        var response = await _client.DeleteAsync($"/api/Role/{Guid.NewGuid()}");
+        var response = await _client.DeleteAsync($"/api/v1/Role/{Guid.NewGuid()}");
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
@@ -88,7 +88,7 @@ public class RoleEndpointsTests : IClassFixture<CustomWebApplicationFactory>, IA
     public async Task AddUserToRole_WithoutAuth_ReturnsUnauthorized()
     {
         // Act
-        var response = await _client.PostAsJsonAsync($"/api/Role/user/{Guid.NewGuid()}/add-role", new { roleId = Guid.NewGuid()});
+        var response = await _client.PostAsJsonAsync($"/api/v1/Role/user/{Guid.NewGuid()}/add-role", new { roleId = Guid.NewGuid()});
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
@@ -98,7 +98,7 @@ public class RoleEndpointsTests : IClassFixture<CustomWebApplicationFactory>, IA
     public async Task RemoveUserFromRole_WithoutAuth_ReturnsUnauthorized()
     {
         // Act
-        var response = await _client.PostAsJsonAsync($"/api/Role/user/{Guid.NewGuid()}/remove-role", new { roleId = Guid.NewGuid()});
+        var response = await _client.PostAsJsonAsync($"/api/v1/Role/user/{Guid.NewGuid()}/remove-role", new { roleId = Guid.NewGuid()});
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
@@ -111,7 +111,7 @@ public class RoleEndpointsTests : IClassFixture<CustomWebApplicationFactory>, IA
         var ids = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
 
         // Act
-        var response = await _client.PostAsJsonAsync("/api/Role/delete-many", ids);
+        var response = await _client.PostAsJsonAsync("/api/v1/Role/delete-many", ids);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);

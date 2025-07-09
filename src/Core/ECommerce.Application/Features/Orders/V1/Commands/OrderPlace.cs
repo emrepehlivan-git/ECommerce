@@ -2,15 +2,12 @@ using Ardalis.Result;
 using ECommerce.Application.Behaviors;
 using ECommerce.Application.Common.CQRS;
 using ECommerce.SharedKernel.DependencyInjection;
-using ECommerce.Application.Helpers;
 using ECommerce.Application.Interfaces;
 using ECommerce.Application.Repositories;
-using ECommerce.Application.Exceptions;
 using ECommerce.Domain.Entities;
 using FluentValidation;
 using MediatR;
 using ECommerce.Domain.ValueObjects;
-using Microsoft.EntityFrameworkCore;
 using ECommerce.Application.Features.Orders.V1.Specifications;
 using ECommerce.Application.Services;
 
@@ -35,7 +32,7 @@ public sealed class OrderPlaceCommandValidator : AbstractValidator<OrderPlaceCom
         IProductRepository productRepository,
         IUserService userService,
         IUserAddressRepository userAddressRepository,
-        LocalizationHelper localizer)
+        ILocalizationHelper localizer)
     {
         RuleFor(x => x.UserId)
             .MustAsync(async (id, ct) =>

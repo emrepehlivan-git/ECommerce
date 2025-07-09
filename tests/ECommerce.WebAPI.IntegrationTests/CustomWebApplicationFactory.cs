@@ -1,8 +1,11 @@
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Testcontainers.PostgreSql;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.AspNetCore.Authentication;
+using ECommerce.WebAPI.IntegrationTests.Common;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace ECommerce.WebAPI.IntegrationTests;
 
@@ -21,39 +24,42 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.UseEnvironment("Testing");
-        
-        builder.ConfigureAppConfiguration((context, config) =>
-        {
-            var testConnectionString = DbContainer.GetConnectionString();
-            
-            if (testConnectionString.Contains("localhost:5432") || 
-                testConnectionString.Contains("Database=ecommerce;") ||
-                testConnectionString.Contains("Database=ecommerce_prod"))
-            {
-                throw new InvalidOperationException("Connection string is not valid!");
-            }
-            
-            var overrides = new Dictionary<string, string?>
-            {
-                ["ConnectionStrings:DefaultConnection"] = testConnectionString,
-                ["ConnectionStrings:PostgreSQL"] = testConnectionString
-            };
-            
-            config.Sources.Clear();
-            config.AddInMemoryCollection(overrides!);
-        });
-
         builder.ConfigureTestServices(services =>
         {
-            services.AddAuthentication(options =>
-                {
-                    options.DefaultAuthenticateScheme = TestAuthHandler.AuthenticationScheme;
-                    options.DefaultScheme = TestAuthHandler.AuthenticationScheme;
-                    options.DefaultChallengeScheme = TestAuthHandler.AuthenticationScheme;
-                })
+            // Remove the existing DbContext registration
+            var descriptor = services.SingleOrDefault(
+                d => d.ServiceType ==
+                     typeof(DbContextOptions<ApplicationDbContext>));
+
+            if (descriptor != null)
+            {
+                services.Remove(descriptor);
+            }
+
+            // Add DbContext using an in-memory database for testing
+            services.AddDbContextPool<ApplicationDbContext>(options =>
+            {
+                options.UseNpgsql(DbContainer.GetConnectionString());
+            });
+
+            var serviceProvider = services.BuildServiceProvider();
+
+            using var scope = serviceProvider.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            context.Database.EnsureCreated();
+
+            services.AddAuthentication(defaultScheme: TestAuthHandler.AuthenticationScheme)
                 .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(TestAuthHandler.AuthenticationScheme, _ => { });
+
+            services.AddAuthorization(options =>
+            {
+                options.DefaultPolicy = new AuthorizationPolicyBuilder(TestAuthHandler.AuthenticationScheme)
+                    .RequireAuthenticatedUser()
+                    .Build();
+            });
         });
+
+        builder.UseEnvironment("Testing");
     }
 
     public async Task ApplyMigrations()

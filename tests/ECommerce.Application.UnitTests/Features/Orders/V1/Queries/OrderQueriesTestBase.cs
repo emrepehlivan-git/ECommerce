@@ -1,10 +1,7 @@
-using ECommerce.Application.Helpers;
 using ECommerce.Application.Services;
-using ECommerce.Application.Repositories;
 using ECommerce.Domain.ValueObjects;
-using ECommerce.Domain.Entities;
-using ECommerce.Application.Features.Orders.V1;
-using ECommerce.SharedKernel.DependencyInjection;
+using ECommerce.Application.Interfaces;
+using ECommerce.Application.Helpers;
 
 namespace ECommerce.Application.UnitTests.Features.Orders.Queries;
 
@@ -13,7 +10,7 @@ public abstract class OrderQueriesTestBase
     protected readonly Mock<IOrderRepository> OrderRepositoryMock;
     protected readonly Mock<ILazyServiceProvider> LazyServiceProviderMock;
     protected readonly Mock<ILocalizationService> LocalizationServiceMock;
-    protected readonly LocalizationHelper Localizer;
+    protected readonly ILocalizationHelper Localizer;
     protected readonly Order DefaultOrder;
     protected readonly User DefaultUser;
     protected readonly Category DefaultCategory;
@@ -29,7 +26,7 @@ public abstract class OrderQueriesTestBase
         Localizer = new LocalizationHelper(LocalizationServiceMock.Object);
 
         LazyServiceProviderMock
-            .Setup(x => x.LazyGetRequiredService<LocalizationHelper>())
+            .Setup(x => x.LazyGetRequiredService<ILocalizationHelper>())
             .Returns(Localizer);
 
         DefaultUser = User.Create("test@example.com", "Test User", "Password123!");

@@ -1,12 +1,10 @@
 using Ardalis.Result;
 using ECommerce.Application.Behaviors;
 using ECommerce.Application.Common.CQRS;
+using ECommerce.Application.Interfaces;
 using ECommerce.SharedKernel.DependencyInjection;
-using ECommerce.Application.Helpers;
 using ECommerce.Application.Repositories;
-using ECommerce.Domain.Entities;
-using ECommerce.Domain.Enums;
-using ECommerce.SharedKernel;
+using ECommerce.Domain.Enums;       
 using FluentValidation;
 using MediatR;
 
@@ -20,7 +18,7 @@ public sealed class OrderStatusUpdateCommandValidator : AbstractValidator<OrderS
 {
     public OrderStatusUpdateCommandValidator(
         IOrderRepository orderRepository,
-        LocalizationHelper localizer)
+        ILocalizationHelper localizer)
     {
         RuleFor(x => x.OrderId)
             .MustAsync(async (id, ct) =>

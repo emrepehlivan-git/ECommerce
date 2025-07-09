@@ -21,7 +21,7 @@ public class UsersEndpointsTests : IClassFixture<CustomWebApplicationFactory>, I
     [Fact]
     public async Task GetUsers_ReturnsOk()
     {
-        var response = await _client.GetAsync("/api/Users");
+        var response = await _client.GetAsync("/api/v1/Users");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
@@ -35,7 +35,7 @@ public class UsersEndpointsTests : IClassFixture<CustomWebApplicationFactory>, I
         context.Users.Add(user);
         await context.SaveChangesAsync();
 
-        var response = await _client.GetAsync($"/api/Users/{user.Id}");
+        var response = await _client.GetAsync($"/api/v1/Users/{user.Id}");
         response.EnsureSuccessStatusCode();
     }
 
@@ -49,7 +49,7 @@ public class UsersEndpointsTests : IClassFixture<CustomWebApplicationFactory>, I
         context.Users.Add(user);
         await context.SaveChangesAsync();
 
-        var response = await _client.PostAsync($"/api/Users/activate/{user.Id}", null);
+        var response = await _client.PostAsync($"/api/v1/Users/activate/{user.Id}", null);
         if (!response.IsSuccessStatusCode)
         {
             var content = await response.Content.ReadAsStringAsync();
@@ -71,7 +71,7 @@ public class UsersEndpointsTests : IClassFixture<CustomWebApplicationFactory>, I
         context.Users.Add(user);
         await context.SaveChangesAsync();
 
-        var response = await _client.PostAsync($"/api/Users/deactivate/{user.Id}", null);
+        var response = await _client.PostAsync($"/api/v1/Users/deactivate/{user.Id}", null);
         if (!response.IsSuccessStatusCode)
         {
             var content = await response.Content.ReadAsStringAsync();

@@ -29,7 +29,7 @@ public sealed class CloudinaryServiceTests
     public void ValidateImageFile_WithValidJpegFile_ShouldReturnTrue()
     {
         // Arrange
-        var mockService = new Mock<CloudinaryService>();
+        var mockService = new Mock<ICloudinaryService>();
         var imageStream = CreateMockImageStream();
         var fileName = "test.jpg";
         var fileSize = 1024;

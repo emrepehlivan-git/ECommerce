@@ -4,6 +4,7 @@ using ECommerce.Persistence.Contexts;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Reflection;
 
 namespace ECommerce.Infrastructure.Services;
 
@@ -68,7 +69,26 @@ public sealed class PermissionService(
     /// <inheritdoc />
     public Task<IReadOnlyList<(string PermissionName, string Module, string Action)>> GetAllPermissionConstantsAsync(CancellationToken cancellationToken = default)
     {
-        return Task.FromResult<IReadOnlyList<(string, string, string)>>(new List<(string, string, string)>().AsReadOnly());
+        var permissions = new List<(string, string, string)>();
+        var modules = typeof(Application.Common.Constants.PermissionConstants).GetNestedTypes(BindingFlags.Public | BindingFlags.Static);
+
+        foreach (var module in modules)
+        {
+            var fields = module.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
+            
+            foreach (var field in fields)
+            {
+                if (field.IsLiteral && !field.IsInitOnly && field.FieldType == typeof(string))
+                {
+                    var permissionName = (string)field.GetValue(null)!;
+                    var moduleName = module.Name;
+                    var actionName = field.Name;
+                    permissions.Add((permissionName, moduleName, actionName));
+                }
+            }
+        }
+        
+        return Task.FromResult<IReadOnlyList<(string, string, string)>>(permissions.AsReadOnly());
     }
 
     /// <inheritdoc />
@@ -115,7 +135,7 @@ public sealed class PermissionService(
     {
         _logger.LogInformation("Syncing permissions...");
 
-        var permissionDefinitions = new List<(string, string, string)>();
+        var permissionDefinitions = await GetAllPermissionConstantsAsync(cancellationToken);
         var existingPermissions = await _context.Permissions
             .AsNoTracking()
             .Select(p => p.Name)

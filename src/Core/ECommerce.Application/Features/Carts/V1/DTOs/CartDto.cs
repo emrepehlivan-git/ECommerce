@@ -7,7 +7,19 @@ public sealed record CartDto(
     decimal TotalAmount,
     int TotalItems,
     DateTime CreatedAt,
-    DateTime? UpdatedAt);
+    DateTime? UpdatedAt)
+{
+    public CartDto() : this(
+        Id: Guid.Empty,
+        UserId: Guid.Empty,
+        Items: [],
+        TotalAmount: 0,
+        TotalItems: 0,
+        CreatedAt: DateTime.UtcNow,
+        UpdatedAt: null)
+    {
+    }
+}
 
 public sealed record CartItemDto(
     Guid Id,

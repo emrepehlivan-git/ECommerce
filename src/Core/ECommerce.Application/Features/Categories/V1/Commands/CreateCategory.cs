@@ -1,7 +1,7 @@
 using Ardalis.Result;
 using ECommerce.Application.Behaviors;
 using ECommerce.Application.Common.CQRS;
-using ECommerce.Application.Helpers;
+using ECommerce.Application.Interfaces;
 using ECommerce.Application.Repositories;
 using ECommerce.Application.Services;
 using ECommerce.Domain.Entities;
@@ -15,7 +15,7 @@ public sealed record CreateCategoryCommand(string Name) : IRequest<Result<Guid>>
 
 public sealed class CreateCategoryCommandValidator : AbstractValidator<CreateCategoryCommand>
 {
-    public CreateCategoryCommandValidator(CategoryBusinessRules categoryBusinessRules, LocalizationHelper localizer)
+    public CreateCategoryCommandValidator(CategoryBusinessRules categoryBusinessRules, ILocalizationHelper localizer)
     {
 
         RuleFor(x => x.Name)

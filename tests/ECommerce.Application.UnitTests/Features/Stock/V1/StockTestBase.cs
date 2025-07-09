@@ -1,5 +1,5 @@
 using ECommerce.Application.Features.Products.V1;
-using ECommerce.Application.Helpers;
+using ECommerce.Application.Interfaces;
 using ECommerce.Application.Services;
 
 namespace ECommerce.Application.UnitTests.Features.Stock.V1;
@@ -9,8 +9,7 @@ public abstract class StockTestBase
     protected readonly Mock<IStockRepository> StockRepositoryMock;
     protected readonly Mock<IProductRepository> ProductRepositoryMock;
     protected readonly Mock<ILazyServiceProvider> LazyServiceProviderMock;
-    protected readonly Mock<ILocalizationService> LocalizationServiceMock;
-    protected readonly LocalizationHelper Localizer;
+    protected readonly Mock<ILocalizationHelper> LocalizerMock;
 
     protected readonly ProductStock DefaultStock;
     protected readonly Product DefaultProduct;
@@ -24,8 +23,7 @@ public abstract class StockTestBase
         DefaultProduct.Stock = DefaultStock;
         ProductRepositoryMock = new Mock<IProductRepository>();
         LazyServiceProviderMock = new Mock<ILazyServiceProvider>();
-        LocalizationServiceMock = new Mock<ILocalizationService>();
-        Localizer = new LocalizationHelper(LocalizationServiceMock.Object);
+        LocalizerMock = new Mock<ILocalizationHelper>();
         SetupLocalizationHelper();
         SetupDefaultLocalizationMessages();
     }
@@ -33,8 +31,8 @@ public abstract class StockTestBase
     protected void SetupLocalizationHelper()
     {
         LazyServiceProviderMock
-            .Setup(x => x.LazyGetRequiredService<LocalizationHelper>())
-            .Returns(Localizer);
+            .Setup(x => x.LazyGetRequiredService<ILocalizationHelper>())
+            .Returns(LocalizerMock.Object);
     }
 
     protected void SetupStockRepositoryReserveStock()
@@ -90,12 +88,12 @@ public abstract class StockTestBase
 
     protected void SetupDefaultLocalizationMessages()
     {
-        LocalizationServiceMock
-            .Setup(x => x.GetLocalizedString(ProductConsts.NotFound))
+        LocalizerMock
+            .Setup(x => x[ProductConsts.NotFound])
             .Returns("Product not found.");
 
-        LocalizationServiceMock
-            .Setup(x => x.GetLocalizedString(ProductConsts.StockQuantityMustBeGreaterThanZero))
+        LocalizerMock
+            .Setup(x => x[ProductConsts.StockQuantityMustBeGreaterThanZero])
             .Returns("Stock quantity must be greater than zero.");
     }
 }

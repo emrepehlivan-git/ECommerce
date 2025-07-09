@@ -1,4 +1,4 @@
-using ECommerce.Application.Helpers;
+using ECommerce.Application.Interfaces;
 using ECommerce.SharedKernel.DependencyInjection;
 using MediatR;
 
@@ -9,7 +9,7 @@ public abstract class BaseHandler<TRequest, TResponse>(ILazyServiceProvider lazy
 {
     protected ILazyServiceProvider LazyServiceProvider { get; } = lazyServiceProvider;
 
-    protected LocalizationHelper Localizer => LazyServiceProvider.LazyGetRequiredService<LocalizationHelper>();
+    protected ILocalizationHelper Localizer => LazyServiceProvider.LazyGetRequiredService<ILocalizationHelper>();
 
     public abstract Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken);
 

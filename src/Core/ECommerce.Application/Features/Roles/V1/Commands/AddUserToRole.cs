@@ -2,7 +2,7 @@ using Ardalis.Result;
 using ECommerce.Application.Behaviors;
 using ECommerce.Application.Common.CQRS;
 using ECommerce.Application.Features.Users;
-using ECommerce.Application.Helpers;
+using ECommerce.Application.Interfaces;
 using ECommerce.Application.Services;
 using ECommerce.SharedKernel.DependencyInjection;
 using FluentValidation;
@@ -14,7 +14,7 @@ public sealed record AddUserToRoleCommand(Guid UserId, Guid RoleId) : IRequest<R
 
 public sealed class AddUserToRoleCommandValidator : AbstractValidator<AddUserToRoleCommand>
 {
-    public AddUserToRoleCommandValidator(LocalizationHelper localizer, IUserService userService, IRoleService roleService)
+    public AddUserToRoleCommandValidator(ILocalizationHelper localizer, IUserService userService, IRoleService roleService)
     {
         RuleFor(x => x.UserId)
             .MustAsync(async (userId, cancellationToken) => await userService.FindByIdAsync(userId) != null)

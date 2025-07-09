@@ -35,11 +35,13 @@ public sealed class GetUserByIdQueryTests : UserQueriesTestBase
     public async Task Handle_WithInvalidQuery_ShouldReturnNotFound()
     {
         SetupUserExists(false);
+        LocalizerMock.Setup(x => x[UserConsts.NotFound]).Returns("User not found");
 
         var result = await Handler.Handle(Query, CancellationToken.None);
 
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeFalse();
         result.Status.Should().Be(ResultStatus.NotFound);
+        result.Errors.Should().Contain(LocalizerMock.Object[UserConsts.NotFound]);
     }
 }

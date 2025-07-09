@@ -20,65 +20,65 @@ public class OrderEndpointsTests : BaseIntegrationTest, IAsyncLifetime
     public async Task GetOrders_ReturnsOk()
     {
         await ResetDatabaseAsync();
-        var response = await Client.GetAsync("/api/Order");
+        var response = await Client.GetAsync("/api/v1/Order");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
-    private async Task<(Guid orderId, User user, Product product)> CreateOrderAsync()
+    private async Task<(Guid orderId, Guid productId)> CreateOrderAsync()
     {
         using var scope = Factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         
-        var uniqueId = Guid.NewGuid().ToString("N")[..8];
-        var user = User.Create($"order{uniqueId}@example.com", "Order", "User");
-        var uniqueCategoryName = $"Orders_{uniqueId}";
-        var category = Category.Create(uniqueCategoryName);
-        category.Id = Guid.NewGuid();
-        
-        context.Users.Add(user);
-        context.Categories.Add(category);
-        await context.SaveChangesAsync();
+        var userId = Guid.Parse(TestAuthHandler.TestUserId);
 
-        var product = Product.Create($"Item_{uniqueId}", "desc", 10m, category.Id, 5);
+        var user = await context.Users.FindAsync(userId);
+        if (user == null)
+        {
+            user = User.Create("test@test.com", "test", "user");
+            user.Id = userId;
+            context.Users.Add(user);
+        }
+
+        var uniqueCategoryName = $"Category-{Guid.NewGuid()}";
+        var category = await context.Categories.FirstOrDefaultAsync(c => c.Name == uniqueCategoryName);
+        if (category == null)
+        {
+            category = Category.Create(uniqueCategoryName);
+            context.Categories.Add(category);
+        }
+
+        var product = Product.Create($"Product-{Guid.NewGuid()}", "desc", 10m, category.Id, 5);
         context.Products.Add(product);
-        context.ProductStocks.Add(product.Stock);
         await context.SaveChangesAsync();
 
         var address = new
         {
             Street = "Test Street",
             City = "Test City",
-            State = "Test State",
             ZipCode = "12345",
             Country = "Test Country"
         };
         var command = new
         {
-            UserId = user.Id,
+            UserId = userId,
             ShippingAddress = address,
             BillingAddress = address,
             Items = new[] { new { ProductId = product.Id, Quantity = 1 } }
         };
 
-        var response = await Client.PostAsJsonAsync("/api/Order", command);
-        if (!response.IsSuccessStatusCode)
-        {
-            var content = await response.Content.ReadAsStringAsync();
-            throw new Exception($"CreateOrderAsync response: {content}");
-        }
+        var response = await Client.PostAsJsonAsync("/api/v1/Order", command);
         response.EnsureSuccessStatusCode();
 
-        var order = await context.Orders
-            .Where(o => o.UserId == user.Id)
-            .FirstAsync();
-        return (order.Id, user, product);
+        var createdOrderId = await response.Content.ReadFromJsonAsync<Guid>();
+        
+        return (createdOrderId, product.Id);
     }
 
     [Fact]
     public async Task PlaceOrder_PersistsOrder()
     {
         await ResetDatabaseAsync();
-        var (orderId, user, product) = await CreateOrderAsync();
+        var (orderId, _) = await CreateOrderAsync();
         using var scope = Factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var order = await context.Orders.Include(o => o.Items).FirstOrDefaultAsync(o => o.Id == orderId);
@@ -90,8 +90,8 @@ public class OrderEndpointsTests : BaseIntegrationTest, IAsyncLifetime
     public async Task GetOrderById_ReturnsOk()
     {
         await ResetDatabaseAsync();
-        var (orderId, _, _) = await CreateOrderAsync();
-        var response = await Client.GetAsync($"/api/Order/{orderId}");
+        var (orderId, _) = await CreateOrderAsync();
+        var response = await Client.GetAsync($"/api/v1/Order/{orderId}");
         response.EnsureSuccessStatusCode();
     }
 
@@ -99,8 +99,8 @@ public class OrderEndpointsTests : BaseIntegrationTest, IAsyncLifetime
     public async Task GetOrdersByUser_ReturnsOk()
     {
         await ResetDatabaseAsync();
-        var (orderId, user, _) = await CreateOrderAsync();
-        var response = await Client.GetAsync($"/api/Order/user/{user.Id}");
+        await CreateOrderAsync();
+        var response = await Client.GetAsync($"/api/v1/Order/user/{TestAuthHandler.TestUserId}");
         response.EnsureSuccessStatusCode();
     }
 
@@ -108,16 +108,16 @@ public class OrderEndpointsTests : BaseIntegrationTest, IAsyncLifetime
     public async Task AddOrderItem_AddsItem()
     {
         await ResetDatabaseAsync();
-        var (orderId, _, product) = await CreateOrderAsync();
+        var (orderId, _) = await CreateOrderAsync();
         using var scope = Factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        var categoryId = product.CategoryId;
-        var secondProduct = Product.Create("Second", "desc", 5m, categoryId, 5);
+        
+        var category = await context.Categories.FirstAsync();
+        var secondProduct = Product.Create($"Second-{Guid.NewGuid()}", "desc", 5m, category.Id, 5);
         context.Products.Add(secondProduct);
-        context.ProductStocks.Add(secondProduct.Stock);
         await context.SaveChangesAsync();
 
-        var response = await Client.PostAsJsonAsync($"/api/Order/{orderId}/items", new { ProductId = secondProduct.Id, Quantity = 2 });
+        var response = await Client.PostAsJsonAsync($"/api/v1/Order/{orderId}/items", new { ProductId = secondProduct.Id, Quantity = 2 });
         response.EnsureSuccessStatusCode();
 
         var order = await context.Orders.Include(o => o.Items).FirstAsync(o => o.Id == orderId);
@@ -128,8 +128,8 @@ public class OrderEndpointsTests : BaseIntegrationTest, IAsyncLifetime
     public async Task RemoveOrderItem_RemovesItem()
     {
         await ResetDatabaseAsync();
-        var (orderId, _, product) = await CreateOrderAsync();
-        var response = await Client.DeleteAsync($"/api/Order/{orderId}/items/{product.Id}");
+        var (orderId, productId) = await CreateOrderAsync();
+        var response = await Client.DeleteAsync($"/api/v1/Order/{orderId}/items/{productId}");
         if (!response.IsSuccessStatusCode)
         {
             var content = await response.Content.ReadAsStringAsync();
@@ -147,8 +147,8 @@ public class OrderEndpointsTests : BaseIntegrationTest, IAsyncLifetime
     public async Task CancelOrder_ChangesStatus()
     {
         await ResetDatabaseAsync();
-        var (orderId, _, _) = await CreateOrderAsync();
-        var response = await Client.GetAsync($"/api/Order/cancel/{orderId}");
+        var (orderId, _) = await CreateOrderAsync();
+        var response = await Client.GetAsync($"/api/v1/Order/cancel/{orderId}");
         response.EnsureSuccessStatusCode();
 
         using var scope = Factory.Services.CreateScope();
@@ -161,8 +161,8 @@ public class OrderEndpointsTests : BaseIntegrationTest, IAsyncLifetime
     public async Task UpdateOrderStatus_UpdatesStatus()
     {
         await ResetDatabaseAsync();
-        var (orderId, _, _) = await CreateOrderAsync();
-        var response = await Client.PostAsJsonAsync($"/api/Order/status/{orderId}", new { NewStatus = (byte)OrderStatus.Processing });
+        var (orderId, _) = await CreateOrderAsync();
+        var response = await Client.PostAsJsonAsync($"/api/v1/Order/status/{orderId}", new { NewStatus = (byte)OrderStatus.Processing });
         response.EnsureSuccessStatusCode();
 
         using var scope = Factory.Services.CreateScope();

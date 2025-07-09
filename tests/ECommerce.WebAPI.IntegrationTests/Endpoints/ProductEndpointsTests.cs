@@ -21,7 +21,7 @@ public class ProductEndpointsTests : BaseIntegrationTest, IAsyncLifetime
     public async Task GetProducts_ReturnsOk()
     {
         await ResetDatabaseAsync();
-        var response = await Client.GetAsync("/api/Product");
+        var response = await Client.GetAsync("/api/v1/Product");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
@@ -29,7 +29,7 @@ public class ProductEndpointsTests : BaseIntegrationTest, IAsyncLifetime
     public async Task GetProducts_WithPagination_ReturnsOk()
     {
         await ResetDatabaseAsync();
-        var response = await Client.GetAsync("/api/Product?page=1&pageSize=10");
+        var response = await Client.GetAsync("/api/v1/Product?page=1&pageSize=10");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
@@ -37,7 +37,7 @@ public class ProductEndpointsTests : BaseIntegrationTest, IAsyncLifetime
     public async Task GetProducts_WithIncludeCategory_ReturnsOk()
     {
         await ResetDatabaseAsync();
-        var response = await Client.GetAsync("/api/Product?includeCategory=true");
+        var response = await Client.GetAsync("/api/v1/Product?includeCategory=true");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
@@ -45,7 +45,7 @@ public class ProductEndpointsTests : BaseIntegrationTest, IAsyncLifetime
     public async Task GetProducts_WithOrderBy_ReturnsOk()
     {
         await ResetDatabaseAsync();
-        var response = await Client.GetAsync("/api/Product?orderBy=name");
+        var response = await Client.GetAsync("/api/v1/Product?orderBy=name");
         response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.BadRequest);
     }
 
@@ -64,7 +64,7 @@ public class ProductEndpointsTests : BaseIntegrationTest, IAsyncLifetime
         context.ProductStocks.Add(product.Stock);
         await context.SaveChangesAsync();
 
-        var response = await Client.GetAsync($"/api/Product/{product.Id}");
+        var response = await Client.GetAsync($"/api/v1/Product/{product.Id}");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var content = await response.Content.ReadAsStringAsync();
@@ -76,7 +76,7 @@ public class ProductEndpointsTests : BaseIntegrationTest, IAsyncLifetime
     public async Task GetProductById_WithInvalidId_ReturnsNotFound()
     {
         await ResetDatabaseAsync();
-        var response = await Client.GetAsync($"/api/Product/{Guid.NewGuid()}");
+        var response = await Client.GetAsync($"/api/v1/Product/{Guid.NewGuid()}");
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
@@ -99,7 +99,7 @@ public class ProductEndpointsTests : BaseIntegrationTest, IAsyncLifetime
             StockQuantity = 3
         };
 
-        var response = await Client.PostAsJsonAsync("/api/Product", command);
+        var response = await Client.PostAsJsonAsync("/api/v1/Product", command);
         response.EnsureSuccessStatusCode();
 
         var product = await context.Products.Include(p => p.Stock).FirstOrDefaultAsync(p => p.Name == "Phone");
@@ -121,7 +121,7 @@ public class ProductEndpointsTests : BaseIntegrationTest, IAsyncLifetime
             StockQuantity = 3
         };
 
-        var response = await Client.PostAsJsonAsync("/api/Product", command);
+        var response = await Client.PostAsJsonAsync("/api/v1/Product", command);
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
@@ -144,7 +144,7 @@ public class ProductEndpointsTests : BaseIntegrationTest, IAsyncLifetime
             StockQuantity = 3
         };
 
-        var response = await Client.PostAsJsonAsync("/api/Product", command);
+        var response = await Client.PostAsJsonAsync("/api/v1/Product", command);
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
@@ -161,7 +161,7 @@ public class ProductEndpointsTests : BaseIntegrationTest, IAsyncLifetime
             StockQuantity = 3
         };
 
-        var response = await Client.PostAsJsonAsync("/api/Product", command);
+        var response = await Client.PostAsJsonAsync("/api/v1/Product", command);
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
@@ -188,7 +188,7 @@ public class ProductEndpointsTests : BaseIntegrationTest, IAsyncLifetime
             CategoryId = category.Id
         };
 
-        var response = await Client.PutAsJsonAsync($"/api/Product/{product.Id}", updateCommand);
+        var response = await Client.PutAsJsonAsync($"/api/v1/Product/{product.Id}", updateCommand);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
@@ -205,15 +205,21 @@ public class ProductEndpointsTests : BaseIntegrationTest, IAsyncLifetime
     public async Task UpdateProduct_WithNonExistentId_ReturnsNotFound()
     {
         await ResetDatabaseAsync();
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var category = Category.Create(CreateUniqueCategoryName("Electronics"));
+        context.Categories.Add(category);
+        await context.SaveChangesAsync();
+        
         var command = new
         {
             Name = "Test Product",
             Description = "Test description",
             Price = 100m,
-            CategoryId = Guid.NewGuid()
+            CategoryId = category.Id
         };
 
-        var response = await Client.PutAsJsonAsync($"/api/Product/{Guid.NewGuid()}", command);
+        var response = await Client.PutAsJsonAsync($"/api/v1/Product/{Guid.NewGuid()}", command);
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
@@ -240,7 +246,7 @@ public class ProductEndpointsTests : BaseIntegrationTest, IAsyncLifetime
             CategoryId = category.Id
         };
 
-        var response = await Client.PutAsJsonAsync($"/api/Product/{product.Id}", command);
+        var response = await Client.PutAsJsonAsync($"/api/v1/Product/{product.Id}", command);
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
@@ -259,7 +265,7 @@ public class ProductEndpointsTests : BaseIntegrationTest, IAsyncLifetime
         context.ProductStocks.Add(product.Stock);
         await context.SaveChangesAsync();
 
-        var response = await Client.DeleteAsync($"/api/Product/{product.Id}");
+        var response = await Client.DeleteAsync($"/api/v1/Product/{product.Id}");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
@@ -273,7 +279,7 @@ public class ProductEndpointsTests : BaseIntegrationTest, IAsyncLifetime
     public async Task DeleteProduct_WithNonExistentId_ReturnsNotFound()
     {
         await ResetDatabaseAsync();
-        var response = await Client.DeleteAsync($"/api/Product/{Guid.NewGuid()}");
+        var response = await Client.DeleteAsync($"/api/v1/Product/{Guid.NewGuid()}");
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
@@ -292,7 +298,7 @@ public class ProductEndpointsTests : BaseIntegrationTest, IAsyncLifetime
         context.ProductStocks.Add(product.Stock);
         await context.SaveChangesAsync();
 
-        var response = await Client.GetAsync($"/api/Product/{product.Id}/stock");
+        var response = await Client.GetAsync($"/api/v1/Product/{product.Id}/stock");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var content = await response.Content.ReadAsStringAsync();
@@ -303,7 +309,7 @@ public class ProductEndpointsTests : BaseIntegrationTest, IAsyncLifetime
     public async Task GetProductStockInfo_WithNonExistentId_ReturnsNotFound()
     {
         await ResetDatabaseAsync();
-        var response = await Client.GetAsync($"/api/Product/{Guid.NewGuid()}/stock");
+        var response = await Client.GetAsync($"/api/v1/Product/{Guid.NewGuid()}/stock");
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
@@ -324,10 +330,10 @@ public class ProductEndpointsTests : BaseIntegrationTest, IAsyncLifetime
 
         var updateCommand = new
         {
-            Quantity = 25
+            stockQuantity = 25
         };
 
-        var response = await Client.PutAsJsonAsync($"/api/Product/{product.Id}/stock", updateCommand);
+        var response = await Client.PutAsJsonAsync($"/api/v1/Product/{product.Id}/stock", updateCommand);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
@@ -343,10 +349,10 @@ public class ProductEndpointsTests : BaseIntegrationTest, IAsyncLifetime
         await ResetDatabaseAsync();
         var command = new
         {
-            Quantity = 10
+            stockQuantity = 20
         };
 
-        var response = await Client.PutAsJsonAsync($"/api/Product/{Guid.NewGuid()}/stock", command);
+        var response = await Client.PutAsJsonAsync($"/api/v1/Product/{Guid.NewGuid()}/stock", command);
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
@@ -367,10 +373,10 @@ public class ProductEndpointsTests : BaseIntegrationTest, IAsyncLifetime
 
         var command = new
         {
-            Quantity = -5
+            stockQuantity = -5
         };
 
-        var response = await Client.PutAsJsonAsync($"/api/Product/{product.Id}/stock", command);
+        var response = await Client.PutAsJsonAsync($"/api/v1/Product/{product.Id}/stock", command);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
@@ -385,21 +391,17 @@ public class ProductEndpointsTests : BaseIntegrationTest, IAsyncLifetime
         context.Categories.Add(category);
         await context.SaveChangesAsync();
 
-        var existingProduct = Product.Create("Duplicate Name", "Existing product", 100m, category.Id, 5);
-        context.Products.Add(existingProduct);
-        context.ProductStocks.Add(existingProduct.Stock);
-        await context.SaveChangesAsync();
-
         var command = new
         {
-            Name = "Duplicate Name",
-            Description = "New product with duplicate name",
-            Price = 150m,
+            Name = "Duplicate Product",
+            Description = "Test description",
+            Price = 100m,
             CategoryId = category.Id,
-            StockQuantity = 3
+            StockQuantity = 5
         };
-
-        var response = await Client.PostAsJsonAsync("/api/Product", command);
+        
+        await Client.PostAsJsonAsync("/api/v1/Product", command);
+        var response = await Client.PostAsJsonAsync("/api/v1/Product", command);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
@@ -410,12 +412,12 @@ public class ProductEndpointsTests : BaseIntegrationTest, IAsyncLifetime
         await ResetDatabaseAsync();
         using var scope = Factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        var category = Category.Create(CreateUniqueCategoryName("Electronics"));
-        context.Categories.Add(category);
+        var firstCategory = Category.Create(CreateUniqueCategoryName("Electronics"));
+        context.Categories.Add(firstCategory);
         await context.SaveChangesAsync();
 
-        var product1 = Product.Create("First Product", "First product", 100m, category.Id, 5);
-        var product2 = Product.Create("Second Product", "Second product", 150m, category.Id, 3);
+        var product1 = Product.Create("First Product", "First product", 100m, firstCategory.Id, 5);
+        var product2 = Product.Create("Second Product", "Second product", 150m, firstCategory.Id, 3);
         context.Products.AddRange(product1, product2);
         context.ProductStocks.AddRange(product1.Stock, product2.Stock);
         await context.SaveChangesAsync();
@@ -425,10 +427,10 @@ public class ProductEndpointsTests : BaseIntegrationTest, IAsyncLifetime
             Name = "First Product",
             Description = "Updated description",
             Price = 200m,
-            CategoryId = category.Id
+            CategoryId = firstCategory.Id
         };
 
-        var response = await Client.PutAsJsonAsync($"/api/Product/{product2.Id}", updateCommand);
+        var response = await Client.PutAsJsonAsync($"/api/v1/Product/{product2.Id}", updateCommand);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }

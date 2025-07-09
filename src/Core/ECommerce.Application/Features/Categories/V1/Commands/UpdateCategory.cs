@@ -1,7 +1,7 @@
 using Ardalis.Result;
 using ECommerce.Application.Behaviors;
 using ECommerce.Application.Common.CQRS;
-using ECommerce.Application.Helpers;
+using ECommerce.Application.Interfaces;
 using ECommerce.Application.Repositories;
 using ECommerce.Application.Services;
 using ECommerce.SharedKernel.DependencyInjection;
@@ -14,7 +14,7 @@ public sealed record UpdateCategoryCommand(Guid Id, string Name) : IRequest<Resu
 
 public sealed class UpdateCategoryCommandValidator : AbstractValidator<UpdateCategoryCommand>
 {
-    public UpdateCategoryCommandValidator(CategoryBusinessRules categoryBusinessRules, ICategoryRepository categoryRepository, LocalizationHelper localizer)
+    public UpdateCategoryCommandValidator(CategoryBusinessRules categoryBusinessRules, ICategoryRepository categoryRepository, ILocalizationHelper localizer)
     {
         RuleFor(x => x.Id)
             .MustAsync(async (command, id, ct) => await categoryRepository.GetByIdAsync(id, cancellationToken: ct) is not null)

@@ -21,7 +21,7 @@ public sealed class AddUserToRoleCommandTests : RoleTestBase
             LazyServiceProviderMock.Object);
 
         Validator = new AddUserToRoleCommandValidator(
-            Localizer,
+            LocalizerMock.Object,
             UserServiceMock.Object,
             RoleServiceMock.Object);
     }
@@ -67,7 +67,7 @@ public sealed class AddUserToRoleCommandTests : RoleTestBase
         // Assert
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeFalse();
-        result.Errors.Should().Contain(Localizer[RoleConsts.UserAlreadyInRole]);
+        result.Errors.Should().Contain(LocalizerMock.Object[RoleConsts.UserAlreadyInRole]);
     }
 
     [Fact]
@@ -105,7 +105,7 @@ public sealed class AddUserToRoleCommandTests : RoleTestBase
 
         // Assert
         validationResult.IsValid.Should().BeFalse();
-        validationResult.Errors.Should().Contain(x => x.ErrorMessage == Localizer[UserConsts.NotFound]);
+        validationResult.Errors.Should().Contain(x => x.ErrorMessage == LocalizerMock.Object[UserConsts.NotFound]);
     }
 
     [Fact]
@@ -120,7 +120,7 @@ public sealed class AddUserToRoleCommandTests : RoleTestBase
 
         // Assert
         validationResult.IsValid.Should().BeFalse();
-        validationResult.Errors.Should().Contain(x => x.ErrorMessage == Localizer[RoleConsts.RoleNotFound]);
+        validationResult.Errors.Should().Contain(x => x.ErrorMessage == LocalizerMock.Object[RoleConsts.RoleNotFound]);
     }
 
     [Fact]
@@ -150,6 +150,6 @@ public sealed class AddUserToRoleCommandTests : RoleTestBase
 
         // Assert
         validationResult.IsValid.Should().BeFalse();
-        validationResult.Errors.Should().Contain(x => x.ErrorMessage == Localizer[RoleConsts.RoleNotFound]);
+        validationResult.Errors.Should().Contain(x => x.ErrorMessage == LocalizerMock.Object[RoleConsts.RoleNotFound]);
     }
 } 

@@ -2,7 +2,7 @@ using Ardalis.Result;
 using ECommerce.Application.Behaviors;
 using ECommerce.Application.Common.CQRS;
 using ECommerce.Application.Features.Users;
-using ECommerce.Application.Helpers;
+using ECommerce.Application.Interfaces;
 using ECommerce.Application.Services;
 using ECommerce.SharedKernel.DependencyInjection;
 using FluentValidation;
@@ -14,7 +14,7 @@ public sealed record RemoveUserFromRoleCommand(Guid UserId, Guid RoleId) : IRequ
 
 public sealed class RemoveUserFromRoleCommandValidator : AbstractValidator<RemoveUserFromRoleCommand>
 {
-    public RemoveUserFromRoleCommandValidator(LocalizationHelper localizer, IUserService userService, IRoleService roleService)
+    public RemoveUserFromRoleCommandValidator(ILocalizationHelper localizer, IUserService userService, IRoleService roleService)
     {
         RuleFor(x => x.UserId)
             .MustAsync(async (userId, cancellationToken) => await userService.FindByIdAsync(userId) != null)

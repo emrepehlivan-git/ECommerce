@@ -1,6 +1,7 @@
 using ECommerce.Application.Helpers;
 using ECommerce.Application.Services;
 using ECommerce.Application.Behaviors;
+using ECommerce.Application.Interfaces;
 
 namespace ECommerce.Application.UnitTests.Features.Products.V1.Queries;
 
@@ -12,7 +13,7 @@ public abstract class ProductQueriesTestsBase
     protected readonly Mock<ILocalizationService> LocalizationServiceMock;
     protected readonly Product DefaultProduct;
     protected readonly Category DefaultCategory;
-    protected readonly LocalizationHelper Localizer;
+    protected readonly ILocalizationHelper Localizer;
 
     protected ProductQueriesTestsBase()
     {
@@ -33,7 +34,7 @@ public abstract class ProductQueriesTestsBase
         DefaultProduct.Category = DefaultCategory;
 
         LazyServiceProviderMock
-            .Setup(x => x.LazyGetRequiredService<LocalizationHelper>())
+            .Setup(x => x.LazyGetRequiredService<ILocalizationHelper>())
             .Returns(Localizer);
     }
 

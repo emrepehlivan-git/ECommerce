@@ -1,5 +1,6 @@
 using ECommerce.Domain.Entities;
 using ECommerce.Persistence.Contexts;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -8,14 +9,13 @@ namespace ECommerce.WebAPI.IntegrationTests.Common;
 public abstract class BaseIntegrationTest : IClassFixture<CustomWebApplicationFactory>
 {
     protected readonly CustomWebApplicationFactory Factory;
-    protected readonly HttpClient Client;
+    protected HttpClient Client { get; set; } = default!;
 
     protected BaseIntegrationTest(CustomWebApplicationFactory factory)
     {
         Factory = factory;
-        Client = factory.CreateClient();
+        Client = Factory.CreateClient();
         
-        // GÜVENLİK KONTROLÜ: Gerçek veritabanına bağlanmayı engelle
         VerifyTestDatabase();
     }
     
@@ -25,7 +25,6 @@ public abstract class BaseIntegrationTest : IClassFixture<CustomWebApplicationFa
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var connectionString = context.Database.GetConnectionString();
         
-        // ASLA gerçek veritabanına bağlanmamalı
         if (connectionString != null &&
             (connectionString.Contains("Database=ecommerce;") ||
              connectionString.Contains("localhost:5432") ||
@@ -43,37 +42,39 @@ public abstract class BaseIntegrationTest : IClassFixture<CustomWebApplicationFa
         using var scope = Factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         
-        // Bir kez daha güvenlik kontrolü
         VerifyTestDatabase();
         
-        // Testcontainer ile çalışırken database'i tamamen temizleyip yeniden oluşturuyoruz
         await context.Database.EnsureDeletedAsync();
+        
         await context.Database.EnsureCreatedAsync();
         
-        // Migration'ları uygula
-        await context.Database.MigrateAsync();
+        await CreateTestUserAsync();
     }
-    
-    protected async Task<User> CreateUserAsync(string email = "testuser@example.com")
+
+    private async Task CreateTestUserAsync()
     {
         using var scope = Factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
 
-        var userId = Guid.Parse(TestAuthHandler.UserId);
-        
-        // Önce kullanıcının var olup olmadığını kontrol et
-        var existingUser = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
-        if (existingUser != null)
+        var user = new User
         {
-            return existingUser;
-        }
+            Id = Guid.Parse(TestAuthHandler.TestUserId),
+            UserName = "testuser",
+            NormalizedUserName = "TESTUSER",
+            Email = "testuser@example.com",
+            NormalizedEmail = "TESTUSER@EXAMPLE.COM",
+            EmailConfirmed = true,
+            SecurityStamp = Guid.NewGuid().ToString()
+        };
+        user.UpdateName("Test", "User");
+        user.Activate();
+        
+        var result = await userManager.CreateAsync(user, "Password123!");
 
-        var user = User.Create(email, "Test", "User");
-        user.Id = userId;
-        
-        context.Users.Add(user);
-        await context.SaveChangesAsync();
-        
-        return user;
+        if (!result.Succeeded)
+        {
+            throw new InvalidOperationException($"Unable to create test user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+        }
     }
 } 

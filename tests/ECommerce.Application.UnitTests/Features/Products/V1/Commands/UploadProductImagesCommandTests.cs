@@ -1,4 +1,4 @@
-using ECommerce.Application.Helpers;
+using ECommerce.Application.Interfaces;
 using ECommerce.Application.Services;
 using ECommerce.Domain.Enums;
 using FluentValidation.TestHelper;
@@ -11,7 +11,7 @@ public class UploadProductImagesCommandTests
     private readonly Mock<IProductImageRepository> ProductImageRepositoryMock;
     private readonly Mock<ICloudinaryService> CloudinaryServiceMock;
     private readonly Mock<ILazyServiceProvider> LazyServiceProviderMock;
-    private readonly Mock<LocalizationHelper> LocalizerMock;
+    private readonly Mock<ILocalizationHelper> LocalizerMock;
     private readonly UploadProductImagesHandler Handler;
     private readonly UploadProductImagesValidator Validator;
 
@@ -21,10 +21,12 @@ public class UploadProductImagesCommandTests
         ProductImageRepositoryMock = new Mock<IProductImageRepository>();
         CloudinaryServiceMock = new Mock<ICloudinaryService>();
         LazyServiceProviderMock = new Mock<ILazyServiceProvider>();
-        LocalizerMock = new Mock<LocalizationHelper>();
+        LocalizerMock = new Mock<ILocalizationHelper>();
+        
+        LocalizerMock.Setup(x => x[It.IsAny<string>()]).Returns("some-string");
 
         LazyServiceProviderMock
-            .Setup(x => x.LazyGetRequiredService<LocalizationHelper>())
+            .Setup(x => x.LazyGetRequiredService<ILocalizationHelper>())
             .Returns(LocalizerMock.Object);
 
         Handler = new UploadProductImagesHandler(
@@ -32,7 +34,7 @@ public class UploadProductImagesCommandTests
             ProductImageRepositoryMock.Object,
             CloudinaryServiceMock.Object,
             LazyServiceProviderMock.Object);
-
+        
         Validator = new UploadProductImagesValidator(LocalizerMock.Object);
     }
 
@@ -72,7 +74,7 @@ public class UploadProductImagesCommandTests
 
         ProductImageRepositoryMock
             .Setup(x => x.AddAsync(It.IsAny<ProductImage>(), default))
-            .ReturnsAsync((ProductImage img) => img);
+            .ReturnsAsync((ProductImage img, CancellationToken _) => img);
 
         var result = await Handler.Handle(command, default);
 

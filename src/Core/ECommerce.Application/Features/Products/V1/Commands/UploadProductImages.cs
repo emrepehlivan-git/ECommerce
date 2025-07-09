@@ -3,7 +3,7 @@ using ECommerce.Application.Behaviors;
 using ECommerce.Application.Common.CQRS;
 using ECommerce.Application.Repositories;
 using ECommerce.Application.Services;
-using ECommerce.Application.Helpers;
+using ECommerce.Application.Interfaces;
 using ECommerce.Domain.Entities;
 using ECommerce.Domain.Enums;
 using ECommerce.SharedKernel.DependencyInjection;
@@ -38,7 +38,7 @@ public sealed record ProductImageResponse(
 
 public sealed class UploadProductImagesValidator : AbstractValidator<UploadProductImagesCommand>
 {
-    public UploadProductImagesValidator(LocalizationHelper localizer)
+    public UploadProductImagesValidator(ILocalizationHelper localizer)
     {
         RuleFor(x => x.ProductId)
             .NotEmpty()
@@ -56,7 +56,7 @@ public sealed class UploadProductImagesValidator : AbstractValidator<UploadProdu
 
 public sealed class ProductImageUploadRequestValidator : AbstractValidator<ProductImageUploadRequest>
 {
-    public ProductImageUploadRequestValidator(LocalizationHelper localizer)
+    public ProductImageUploadRequestValidator(ILocalizationHelper localizer)
     {
         RuleFor(x => x.FileName)
             .NotEmpty()

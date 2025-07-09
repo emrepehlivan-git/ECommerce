@@ -1,4 +1,6 @@
 using ECommerce.Application.Features.Categories.V1;
+using ECommerce.Application.Interfaces;
+using ECommerce.Application.Helpers;
 
 namespace ECommerce.Application.UnitTests.Features.Categories.V1.Commands;
 
@@ -19,7 +21,7 @@ public sealed class CreateCategoryCommandTests : CategoryCommandsTestBase
 
         Validator = new CreateCategoryCommandValidator(
             new CategoryBusinessRules(CategoryRepositoryMock.Object),
-            Localizer);
+            LocalizerMock.Object);
     }
 
     [Fact]

@@ -1,7 +1,7 @@
 using Ardalis.Result;
 using ECommerce.Application.Behaviors;
 using ECommerce.Application.Common.CQRS;
-using ECommerce.Application.Helpers;
+using ECommerce.Application.Interfaces;
 using ECommerce.Application.Repositories;
 using ECommerce.Application.Services;
 using ECommerce.Domain.Entities;
@@ -11,7 +11,7 @@ using MediatR;
 
 namespace ECommerce.Application.Features.Products.V1.Commands;
 
-public sealed record CreateProductCommand(
+    public sealed record CreateProductCommand(
     string Name,
     string? Description,
     decimal Price,
@@ -22,13 +22,16 @@ public sealed class CreateProductCommandValidator : AbstractValidator<CreateProd
 {
     public CreateProductCommandValidator(
         ICategoryRepository categoryRepository,
-        LocalizationHelper localizer)
+        IProductRepository productRepository,
+        ILocalizationHelper localizer)
     {
         RuleFor(x => x.Name)
             .MinimumLength(ProductConsts.NameMinLength)
             .WithMessage(string.Format(localizer[ProductConsts.NameMustBeAtLeastCharacters], ProductConsts.NameMinLength))
             .MaximumLength(ProductConsts.NameMaxLength)
-            .WithMessage(string.Format(localizer[ProductConsts.NameMustBeLessThanCharacters], ProductConsts.NameMaxLength));
+            .WithMessage(string.Format(localizer[ProductConsts.NameMustBeLessThanCharacters], ProductConsts.NameMaxLength))
+            .MustAsync(async (name, ct) => !await productRepository.AnyAsync(p => p.Name == name, ct))
+            .WithMessage(localizer[ProductConsts.NameExists]);
 
         RuleFor(x => x.Price)
             .GreaterThan(0)

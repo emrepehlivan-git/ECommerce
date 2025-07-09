@@ -1,4 +1,4 @@
-using ECommerce.Application.Helpers;
+using ECommerce.Application.Interfaces;
 using ECommerce.Application.Services;
 using ECommerce.Domain.Enums;
 using FluentValidation.TestHelper;
@@ -10,7 +10,7 @@ public class DeleteProductImageCommandTests
     private readonly Mock<IProductImageRepository> ProductImageRepositoryMock;
     private readonly Mock<ICloudinaryService> CloudinaryServiceMock;
     private readonly Mock<ILazyServiceProvider> LazyServiceProviderMock;
-    private readonly Mock<LocalizationHelper> LocalizerMock;
+    private readonly Mock<ILocalizationHelper> LocalizerMock;
     private readonly DeleteProductImageCommandHandler Handler;
     private readonly DeleteProductImageCommandValidator Validator;
     private readonly Mock<IProductRepository> ProductRepositoryMock;
@@ -20,11 +20,13 @@ public class DeleteProductImageCommandTests
         ProductImageRepositoryMock = new Mock<IProductImageRepository>();
         CloudinaryServiceMock = new Mock<ICloudinaryService>();
         LazyServiceProviderMock = new Mock<ILazyServiceProvider>();
-        LocalizerMock = new Mock<LocalizationHelper>();
+        LocalizerMock = new Mock<ILocalizationHelper>();
         ProductRepositoryMock = new Mock<IProductRepository>();
 
+        LocalizerMock.Setup(x => x[It.IsAny<string>()]).Returns("some-string");
+
         LazyServiceProviderMock
-            .Setup(x => x.LazyGetRequiredService<LocalizationHelper>())
+            .Setup(x => x.LazyGetRequiredService<ILocalizationHelper>())
             .Returns(LocalizerMock.Object);
 
         Handler = new DeleteProductImageCommandHandler(
@@ -172,7 +174,7 @@ public class DeleteProductImageCommandTests
     }
 
     [Fact]
-    public void Validator_ValidCommand_ShouldNotHaveValidationErrors()
+    public async Task Validator_ValidCommand_ShouldNotHaveValidationErrors()
     {
         var productId = Guid.NewGuid();
         var imageId = Guid.NewGuid();
@@ -195,13 +197,13 @@ public class DeleteProductImageCommandTests
                 1024000,
                 null));
 
-        var result = Validator.TestValidate(command);
+        var result = await Validator.TestValidateAsync(command);
 
         result.ShouldNotHaveAnyValidationErrors();
     }
 
     [Fact]
-    public void Validator_EmptyProductId_ShouldHaveValidationError()
+    public async Task Validator_EmptyProductId_ShouldHaveValidationError()
     {
         var command = new DeleteProductImageCommand(Guid.Empty, Guid.NewGuid());
 
@@ -209,13 +211,13 @@ public class DeleteProductImageCommandTests
             .Setup(x => x[ProductConsts.NotFound])
             .Returns("Product not found");
 
-        var result = Validator.TestValidate(command);
+        var result = await Validator.TestValidateAsync(command);
 
         result.ShouldHaveValidationErrorFor(x => x.ProductId);
     }
 
     [Fact]
-    public void Validator_EmptyImageId_ShouldHaveValidationError()
+    public async Task Validator_EmptyImageId_ShouldHaveValidationError()
     {
         var command = new DeleteProductImageCommand(Guid.NewGuid(), Guid.Empty);
 
@@ -223,7 +225,7 @@ public class DeleteProductImageCommandTests
             .Setup(x => x[ProductConsts.ImageNotFound])
             .Returns("Image not found");
 
-        var result = Validator.TestValidate(command);
+        var result = await Validator.TestValidateAsync(command);
 
         result.ShouldHaveValidationErrorFor(x => x.ImageId);
     }

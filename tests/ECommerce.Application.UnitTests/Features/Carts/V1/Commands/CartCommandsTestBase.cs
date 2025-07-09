@@ -1,4 +1,5 @@
 using ECommerce.Application.Helpers;
+using ECommerce.Application.Interfaces;
 using ECommerce.Application.Services;
  
 namespace ECommerce.Application.UnitTests.Features.Carts.V1.Commands;
@@ -12,10 +13,9 @@ public abstract class CartCommandsTestBase
     protected Mock<IProductRepository> ProductRepositoryMock;
     protected Mock<ICurrentUserService> CurrentUserServiceMock;
     protected Mock<ILazyServiceProvider> LazyServiceProviderMock;
-    protected Mock<ILocalizationService> LocalizationServiceMock;
     protected Mock<ICacheManager> CacheManagerMock;
 
-    protected LocalizationHelper Localizer;
+    protected Mock<ILocalizationHelper> LocalizerMock;
 
     protected CartCommandsTestBase()
     {
@@ -23,14 +23,12 @@ public abstract class CartCommandsTestBase
         ProductRepositoryMock = new Mock<IProductRepository>();
         CurrentUserServiceMock = new Mock<ICurrentUserService>();
         LazyServiceProviderMock = new Mock<ILazyServiceProvider>();
-        LocalizationServiceMock = new Mock<ILocalizationService>();
         CacheManagerMock = new Mock<ICacheManager>();
-
-        Localizer = new LocalizationHelper(LocalizationServiceMock.Object);
+        LocalizerMock = new Mock<ILocalizationHelper>();
 
         LazyServiceProviderMock
-            .Setup(x => x.LazyGetRequiredService<LocalizationHelper>())
-            .Returns(Localizer);
+            .Setup(x => x.LazyGetRequiredService<ILocalizationHelper>())
+            .Returns(LocalizerMock.Object);
             
         LazyServiceProviderMock
             .Setup(x => x.LazyGetRequiredService<ICurrentUserService>())
@@ -43,8 +41,8 @@ public abstract class CartCommandsTestBase
 
     private void SetupDefaultLocalizationMessages()
     {
-        LocalizationServiceMock.Setup(s => s.GetLocalizedString(It.IsAny<string>())).Returns<string>(key => key);
-        LocalizationServiceMock.Setup(s => s.GetLocalizedString(It.IsAny<string>(), It.IsAny<string>())).Returns<string, string>((key, lang) => key);
+        LocalizerMock.Setup(s => s[It.IsAny<string>()]).Returns<string>(key => key);
+        LocalizerMock.Setup(s => s[It.IsAny<string>(), It.IsAny<string>()]).Returns<string, string>((key, lang) => key);
     }
 
     protected void SetupProductRepositoryGet(Product? product)

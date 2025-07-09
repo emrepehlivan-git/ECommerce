@@ -14,7 +14,7 @@ public class RemoveFromCartCommandHandlerTests : CartCommandsTestBase
             CurrentUserServiceMock.Object,
             LazyServiceProviderMock.Object
         );
-        _validator = new RemoveFromCartCommandValidator(Localizer);
+        _validator = new RemoveFromCartCommandValidator(LocalizerMock.Object);
     }
 
     [Fact]
@@ -43,7 +43,7 @@ public class RemoveFromCartCommandHandlerTests : CartCommandsTestBase
 
         // Assert
         result.Status.Should().Be(ResultStatus.NotFound);
-        result.Errors.First().Should().Be(CartConsts.ErrorMessages.CartNotFound);
+        result.Errors.First().Should().Be(LocalizerMock.Object[CartConsts.ErrorMessages.CartNotFound]);
     }
     
     [Fact]
@@ -59,7 +59,7 @@ public class RemoveFromCartCommandHandlerTests : CartCommandsTestBase
 
         // Assert
         result.Status.Should().Be(ResultStatus.NotFound);
-        result.Errors.First().Should().Be(CartConsts.ErrorMessages.CartItemNotFound);
+        result.Errors.First().Should().Be(LocalizerMock.Object[CartConsts.ErrorMessages.CartItemNotFound]);
     }
     
     [Fact]
@@ -94,6 +94,6 @@ public class RemoveFromCartCommandHandlerTests : CartCommandsTestBase
         // Assert
         validationResult.IsValid.Should().BeFalse();
         validationResult.Errors.Should().ContainSingle()
-            .Which.ErrorMessage.Should().Be(CartConsts.ValidationMessages.ProductIdRequired);
+            .Which.ErrorMessage.Should().Be(LocalizerMock.Object[CartConsts.ValidationMessages.ProductIdRequired]);
     }
 } 

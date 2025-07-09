@@ -21,7 +21,7 @@ public sealed class DeleteRoleCommandTests : RoleTestBase
 
         Validator = new DeleteRoleCommandValidator(
             RoleServiceMock.Object,
-            Localizer);
+            LocalizerMock.Object);
     }
 
     [Fact]
@@ -76,7 +76,7 @@ public sealed class DeleteRoleCommandTests : RoleTestBase
 
         // Assert
         validationResult.IsValid.Should().BeFalse();
-        validationResult.Errors.Should().Contain(x => x.ErrorMessage == Localizer[RoleConsts.RoleNotFound]);
+        validationResult.Errors.Should().Contain(x => x.ErrorMessage == LocalizerMock.Object[RoleConsts.RoleNotFound]);
     }
 
     [Fact]
@@ -104,6 +104,6 @@ public sealed class DeleteRoleCommandTests : RoleTestBase
 
         // Assert
         validationResult.IsValid.Should().BeFalse();
-        validationResult.Errors.Should().Contain(x => x.ErrorMessage == Localizer[RoleConsts.RoleNotFound]);
+        validationResult.Errors.Should().Contain(x => x.ErrorMessage == LocalizerMock.Object[RoleConsts.RoleNotFound]);
     }
 } 

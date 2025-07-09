@@ -21,7 +21,6 @@ public class CartControllerTests : BaseIntegrationTest, IAsyncLifetime
     {
         // Arrange
         await ResetDatabaseAsync();
-        await CreateUserAsync();
 
         // Act
         var cart = await GetCartAsync();
@@ -35,7 +34,6 @@ public class CartControllerTests : BaseIntegrationTest, IAsyncLifetime
     public async Task AddToCart_WithValidData_ReturnsOkWithCartSummary()
     {
         await ResetDatabaseAsync();
-        await CreateUserAsync();
         var product = await CreateProductAsync();
         var summary = await AddToCartAsync(product.Id, 1);
 
@@ -48,7 +46,6 @@ public class CartControllerTests : BaseIntegrationTest, IAsyncLifetime
     public async Task GetCart_ReturnsOk()
     {
         await ResetDatabaseAsync();
-        await CreateUserAsync();
         var product = await CreateProductAsync();
         await AddToCartAsync(product.Id, 2);
 
@@ -64,11 +61,10 @@ public class CartControllerTests : BaseIntegrationTest, IAsyncLifetime
     public async Task AddToCart_ExceedsStock_ReturnsUnprocessableEntity()
     {
         await ResetDatabaseAsync();
-        await CreateUserAsync();
         var product = await CreateProductAsync("Test Product", 100m, 1);
         var command = new AddToCartCommand(product.Id, 2);
 
-        var response = await Client.PostAsJsonAsync("/api/Cart/add", command);
+        var response = await Client.PostAsJsonAsync("/api/v1/Cart/add", command);
 
         response.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
     }
@@ -77,7 +73,6 @@ public class CartControllerTests : BaseIntegrationTest, IAsyncLifetime
     public async Task RemoveFromCart_WithExistingProduct_ReturnsOkWithCartSummary()
     {
         await ResetDatabaseAsync();
-        await CreateUserAsync();
         var product = await CreateProductAsync();
         await AddToCartAsync(product.Id, 1);
 
@@ -92,7 +87,6 @@ public class CartControllerTests : BaseIntegrationTest, IAsyncLifetime
     public async Task UpdateQuantity_WithValidData_ReturnsOkWithCartSummary()
     {
         await ResetDatabaseAsync();
-        await CreateUserAsync();
         var product = await CreateProductAsync();
         await AddToCartAsync(product.Id, 1);
         var command = new UpdateCartItemQuantityCommand(product.Id, 5);
@@ -108,13 +102,12 @@ public class CartControllerTests : BaseIntegrationTest, IAsyncLifetime
     public async Task ClearCart_WhenCartIsNotEmpty_ReturnsNoContent()
     {
         await ResetDatabaseAsync();
-        await CreateUserAsync();
         var product1 = await CreateProductAsync("Product 1", 10m, 5);
         await AddToCartAsync(product1.Id, 2);
         var product2 = await CreateProductAsync("Product 2", 20m, 3);
         await AddToCartAsync(product2.Id, 3);
 
-        var response = await Client.DeleteAsync("/api/Cart/clear");
+        var response = await Client.DeleteAsync("/api/v1/Cart/clear");
 
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
@@ -145,21 +138,21 @@ public class CartControllerTests : BaseIntegrationTest, IAsyncLifetime
     private async Task<CartSummaryDto> AddToCartAsync(Guid productId, int quantity)
     {
         var command = new AddToCartCommand(productId, quantity);
-        var response = await Client.PostAsJsonAsync("/api/Cart/add", command);
+        var response = await Client.PostAsJsonAsync("/api/v1/Cart/add", command);
         response.EnsureSuccessStatusCode();
         return (await response.Content.ReadFromJsonAsync<CartSummaryDto>())!;
     }
     
     private async Task<CartDto> GetCartAsync()
     {
-        var response = await Client.GetAsync("/api/Cart");
+        var response = await Client.GetAsync("/api/v1/Cart");
         response.EnsureSuccessStatusCode();
         return (await response.Content.ReadFromJsonAsync<CartDto>())!;
     }
 
     private async Task<CartSummaryDto> RemoveFromCartAsync(Guid productId)
     {
-        var response = await Client.DeleteAsync($"/api/Cart/remove/{productId}");
+        var response = await Client.DeleteAsync($"/api/v1/Cart/remove/{productId}");
         response.EnsureSuccessStatusCode();
         return (await response.Content.ReadFromJsonAsync<CartSummaryDto>())!;
     }
@@ -167,7 +160,7 @@ public class CartControllerTests : BaseIntegrationTest, IAsyncLifetime
     private async Task<CartSummaryDto> UpdateQuantityAsync(Guid productId, int quantity)
     {
         var command = new UpdateCartItemQuantityCommand(productId, quantity);
-        var response = await Client.PutAsJsonAsync("/api/Cart/update-quantity", command);
+        var response = await Client.PutAsJsonAsync("/api/v1/Cart/update-quantity", command);
         response.EnsureSuccessStatusCode();
         return (await response.Content.ReadFromJsonAsync<CartSummaryDto>())!;
     }

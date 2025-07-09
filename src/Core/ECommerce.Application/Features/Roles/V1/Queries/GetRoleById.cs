@@ -3,8 +3,8 @@ using ECommerce.Application.Behaviors;
 using ECommerce.Application.Common.CQRS;
 using ECommerce.Application.Features.Roles.V1.DTOs;
 using ECommerce.Application.Services;
-using ECommerce.Application.Helpers;
-    using ECommerce.SharedKernel.DependencyInjection;
+using ECommerce.Application.Interfaces;
+using ECommerce.SharedKernel.DependencyInjection;
 using FluentValidation;
 using Mapster;
 using MediatR;
@@ -19,7 +19,7 @@ public sealed record GetRoleByIdQuery(Guid Id) : IRequest<Result<RoleDto>>, ICac
 
 public sealed class GetRoleByIdQueryValidator : AbstractValidator<GetRoleByIdQuery>
 {
-    public GetRoleByIdQueryValidator(LocalizationHelper localizer)
+    public GetRoleByIdQueryValidator(ILocalizationHelper localizer)
     {
         RuleFor(x => x.Id)
             .NotEmpty()

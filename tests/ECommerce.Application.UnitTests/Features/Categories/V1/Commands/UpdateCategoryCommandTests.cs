@@ -21,7 +21,7 @@ public sealed class UpdateCategoryCommandTests : CategoryCommandsTestBase
         Validator = new UpdateCategoryCommandValidator(
             new CategoryBusinessRules(CategoryRepositoryMock.Object),
             CategoryRepositoryMock.Object,
-            Localizer);
+            LocalizerMock.Object);
     }
 
     [Fact]
@@ -86,7 +86,7 @@ public sealed class UpdateCategoryCommandTests : CategoryCommandsTestBase
         // Assert
         validationResult.IsValid.Should().BeFalse();
         validationResult.Errors.Should().ContainSingle()
-            .Which.ErrorMessage.Should().Be(Localizer[CategoryConsts.NameExists]);
+            .Which.ErrorMessage.Should().Be(LocalizerMock.Object[CategoryConsts.NameExists]);
     }
 
     [Fact]
@@ -101,6 +101,6 @@ public sealed class UpdateCategoryCommandTests : CategoryCommandsTestBase
         // Assert
         validationResult.IsValid.Should().BeFalse();
         validationResult.Errors.Should().ContainSingle()
-            .Which.ErrorMessage.Should().Be(Localizer[CategoryConsts.NotFound]);
+            .Which.ErrorMessage.Should().Be(LocalizerMock.Object[CategoryConsts.NotFound]);
     }
 }

@@ -14,7 +14,7 @@ public class UpdateCartItemQuantityCommandHandlerTests : CartCommandsTestBase
             CurrentUserServiceMock.Object,
             LazyServiceProviderMock.Object
         );
-        _validator = new UpdateCartItemQuantityCommandValidator(Localizer);
+        _validator = new UpdateCartItemQuantityCommandValidator(LocalizerMock.Object);
     }
 
     [Fact]
@@ -43,7 +43,7 @@ public class UpdateCartItemQuantityCommandHandlerTests : CartCommandsTestBase
 
         // Assert
         result.Status.Should().Be(ResultStatus.NotFound);
-        result.Errors.First().Should().Be(CartConsts.ErrorMessages.CartNotFound);
+        result.Errors.First().Should().Be(LocalizerMock.Object[CartConsts.ErrorMessages.CartNotFound]);
     }
     
     [Fact]
@@ -59,7 +59,7 @@ public class UpdateCartItemQuantityCommandHandlerTests : CartCommandsTestBase
 
         // Assert
         result.Status.Should().Be(ResultStatus.NotFound);
-        result.Errors.First().Should().Be(CartConsts.ErrorMessages.CartItemNotFound);
+        result.Errors.First().Should().Be(LocalizerMock.Object[CartConsts.ErrorMessages.CartItemNotFound]);
     }
     
     [Fact]
@@ -96,7 +96,7 @@ public class UpdateCartItemQuantityCommandHandlerTests : CartCommandsTestBase
 
         // Assert
         result.Status.Should().Be(ResultStatus.Error);
-        result.Errors.First().Should().Be(CartConsts.ErrorMessages.InsufficientStock);
+        result.Errors.First().Should().Be(LocalizerMock.Object[CartConsts.ErrorMessages.InsufficientStock]);
     }
     
     [Fact]
@@ -132,6 +132,6 @@ public class UpdateCartItemQuantityCommandHandlerTests : CartCommandsTestBase
         // Assert
         validationResult.IsValid.Should().BeFalse();
         validationResult.Errors.Should().ContainSingle()
-            .Which.ErrorMessage.Should().Be(expectedError);
+            .Which.ErrorMessage.Should().Be(LocalizerMock.Object[expectedError]);
     }
 } 

@@ -1,4 +1,5 @@
 using ECommerce.Application.Helpers;
+using ECommerce.Application.Interfaces;
 using ECommerce.SharedKernel.DependencyInjection;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -12,5 +13,5 @@ public abstract class BaseApiV1Controller : ControllerBase
 {
     protected ILazyServiceProvider LazyServiceProvider => HttpContext.RequestServices.GetRequiredService<ILazyServiceProvider>();
     protected ISender Mediator => LazyServiceProvider.LazyGetRequiredService<ISender>();
-    protected LocalizationHelper Localizer => LazyServiceProvider.LazyGetRequiredService<LocalizationHelper>();
+    protected ILocalizationHelper Localizer => LazyServiceProvider.LazyGetRequiredService<ILocalizationHelper>();
 } 

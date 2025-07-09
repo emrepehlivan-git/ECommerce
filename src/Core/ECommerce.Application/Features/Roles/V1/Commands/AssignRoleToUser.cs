@@ -1,7 +1,7 @@
 using Ardalis.Result;
 using ECommerce.Application.Common.CQRS;
 using ECommerce.Application.Features.Users;
-using ECommerce.Application.Helpers;
+using ECommerce.Application.Interfaces;
 using ECommerce.Application.Services;
 using ECommerce.SharedKernel.DependencyInjection;
 using FluentValidation;
@@ -14,7 +14,7 @@ public sealed record AssignRoleToUserCommand(Guid UserId, Guid RoleId) : IReques
 
 public sealed class AssignRoleToUserCommandValidator : AbstractValidator<AssignRoleToUserCommand>
 {
-    public AssignRoleToUserCommandValidator(LocalizationHelper localizer)
+    public AssignRoleToUserCommandValidator(ILocalizationHelper localizer)
     {
         RuleFor(x => x.UserId)
             .NotEmpty()

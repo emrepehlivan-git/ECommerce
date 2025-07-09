@@ -9,6 +9,7 @@ public class ProductImageControllerTests(CustomWebApplicationFactory factory) : 
     [Fact]
     public async Task GetProductImages_WithValidProductId_ShouldReturnImages()
     {
+        await ResetDatabaseAsync();
         var productId = await CreateTestProductAsync();
 
         var response = await Client.GetAsync($"/api/v1/product/{productId}/images");
@@ -27,6 +28,7 @@ public class ProductImageControllerTests(CustomWebApplicationFactory factory) : 
     [Fact]
     public async Task GetProductImages_WithFilterByImageType_ShouldReturnFilteredImages()
     {
+        await ResetDatabaseAsync();
         var productId = await CreateTestProductAsync();
 
         var response = await Client.GetAsync($"/api/v1/product/{productId}/images?imageType={ImageType.Main}");
@@ -44,6 +46,7 @@ public class ProductImageControllerTests(CustomWebApplicationFactory factory) : 
     [Fact]
     public async Task UploadProductImages_WithValidFiles_ShouldReturnCreated()
     {
+        await ResetDatabaseAsync();
         var productId = await CreateTestProductAsync();
 
         using var form = new MultipartFormDataContent();
@@ -56,12 +59,13 @@ public class ProductImageControllerTests(CustomWebApplicationFactory factory) : 
 
         var response = await Client.PostAsync($"/api/v1/product/{productId}/images", form);
 
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
     }
 
     [Fact]
     public async Task DeleteProductImage_WithValidImageId_ShouldReturnNoContent()
     {
+        await ResetDatabaseAsync();
         var productId = await CreateTestProductAsync();
         var imageId = Guid.NewGuid();
 
@@ -73,6 +77,7 @@ public class ProductImageControllerTests(CustomWebApplicationFactory factory) : 
     [Fact]
     public async Task UpdateImageOrder_WithValidRequest_ShouldReturnOk()
     {
+        await ResetDatabaseAsync();
         var productId = await CreateTestProductAsync();
         
         var request = new UpdateImageOrderRequest(new Dictionary<Guid, int>
@@ -95,9 +100,10 @@ public class ProductImageControllerTests(CustomWebApplicationFactory factory) : 
 
     private async Task<Guid> CreateTestProductAsync()
     {
+        var productName = $"Test Product {Guid.NewGuid()}";
         var response = await Client.PostAsJsonAsync("/api/v1/product", new
         {
-            Name = "Test Product",
+            Name = productName,
             Description = "Test Description",
             Price = 100.00m,
             CategoryId = await CreateTestCategoryAsync(),
@@ -111,18 +117,14 @@ public class ProductImageControllerTests(CustomWebApplicationFactory factory) : 
 
     private async Task<Guid> CreateTestCategoryAsync()
     {
+        var categoryName = $"Test Category {Guid.NewGuid()}";
         var response = await Client.PostAsJsonAsync("/api/v1/category", new
         {
-            Name = "Test Category",
-            Description = "Test Description"
+            Name = categoryName
         });
 
-        if (response.IsSuccessStatusCode)
-        {
-            var responseContent = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<Guid>(responseContent);
-        }
-
-        return Guid.Parse("550e8400-e29b-41d4-a716-446655440000");
+        response.EnsureSuccessStatusCode();
+        var responseContent = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<Guid>(responseContent);
     }
 } 

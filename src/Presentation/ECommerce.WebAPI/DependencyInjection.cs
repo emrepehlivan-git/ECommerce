@@ -3,6 +3,7 @@ using ECommerce.Application;
 using ECommerce.Application.Common.Constants;
 using ECommerce.Application.Services;
 using ECommerce.Infrastructure;
+using ECommerce.Infrastructure.Services;
 using ECommerce.Persistence;
 using ECommerce.Persistence.Contexts;
 using ECommerce.SharedKernel.DependencyInjection;
@@ -78,7 +79,6 @@ public static class DependencyInjection
                     ValidateAudience = true,
                     ValidateIssuer = true,
                     ValidIssuers = [authority, publicAuthServerUrl.TrimEnd('/') + "/realms/" + keycloakOptions["realm"]],
-                    // API'nin kendisi (`ecommerce-api`), frontend (`nextjs-client`) ve swagger gibi farklı client'lardan gelen token'ları kabul et.
                     ValidAudiences = [keycloakOptions["client-id"], "nextjs-client", "swagger-client", "account"],
                     ValidateLifetime = true
                 };
@@ -167,6 +167,19 @@ public static class DependencyInjection
             await dbContext.Database.MigrateAsync();
     }
 
+    public static async Task ConfigurePermissions(this WebApplication app){
+        using var scope = app.Services.CreateScope();
+        try
+        {
+            var permissionSeedingService = scope.ServiceProvider.GetRequiredService<PermissionSeedingService>();
+            var result = await permissionSeedingService.SeedPermissionsAsync();
+            app.Logger.LogInformation("Permission seeding: {Result}", result);
+        }
+        catch (Exception ex)
+        {
+            app.Logger.LogError(ex, "Permission seeding failed");
+        }
+    }
     private static void ConfigureSwagger(IServiceCollection services, IConfiguration configuration)
     {
         services.AddSwaggerGen(options =>

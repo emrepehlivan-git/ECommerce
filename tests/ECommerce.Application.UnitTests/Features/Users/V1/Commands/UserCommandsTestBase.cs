@@ -1,4 +1,5 @@
 using ECommerce.Application.Helpers;
+using ECommerce.Application.Interfaces;
 using ECommerce.Application.Services;
 
 namespace ECommerce.Application.UnitTests.Features.Users.V1.Commands;
@@ -10,29 +11,25 @@ public class UserCommandsTestBase
 
     protected Mock<IUserService> UserServiceMock;
     protected Mock<ILazyServiceProvider> LazyServiceProviderMock;
-    protected Mock<ILocalizationService> LocalizationServiceMock;
-
-    protected LocalizationHelper Localizer;
+    protected Mock<ILocalizationHelper> LocalizerMock;
 
     protected UserCommandsTestBase()
     {
         UserServiceMock = new Mock<IUserService>();
         LazyServiceProviderMock = new Mock<ILazyServiceProvider>();
-        LocalizationServiceMock = new Mock<ILocalizationService>();
-
-        Localizer = new LocalizationHelper(LocalizationServiceMock.Object);
+        LocalizerMock = new Mock<ILocalizationHelper>();
 
         LazyServiceProviderMock
-            .Setup(x => x.LazyGetRequiredService<LocalizationHelper>())
-            .Returns(Localizer);
+            .Setup(x => x.LazyGetRequiredService<ILocalizationHelper>())
+            .Returns(LocalizerMock.Object);
 
         SetupDefaultLocalizationMessages();
     }
 
     protected void SetupDefaultLocalizationMessages()
     {
-        LocalizationServiceMock
-            .Setup(x => x.GetLocalizedString(UserConsts.NotFound))
+        LocalizerMock
+            .Setup(x => x[UserConsts.NotFound])
             .Returns("User not found");
     }
 
@@ -45,8 +42,8 @@ public class UserCommandsTestBase
 
     protected void SetupLocalizedMessage(string message)
     {
-        LocalizationServiceMock
-            .Setup(x => x.GetLocalizedString(message))
+        LocalizerMock
+            .Setup(x => x[message])
             .Returns(message);
     }
 }

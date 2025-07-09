@@ -1,4 +1,4 @@
-using ECommerce.Application.Helpers;
+using ECommerce.Application.Interfaces;
 using ECommerce.Domain.Enums;
 using FluentValidation.TestHelper;
 
@@ -6,32 +6,34 @@ namespace ECommerce.Application.UnitTests.Features.Products.V1.Queries;
 
 public class GetProductImagesQueryTests
 {
-    private readonly Mock<IProductRepository> ProductRepositoryMock;
-    private readonly Mock<IProductImageRepository> ProductImageRepositoryMock;
-    private readonly Mock<ILazyServiceProvider> LazyServiceProviderMock;
-    private readonly Mock<LocalizationHelper> LocalizerMock;
-    private readonly GetProductImagesQueryHandler Handler;
-    private readonly GetProductImagesQueryValidator Validator;
+    private readonly Mock<IProductRepository> _productRepositoryMock;
+    private readonly Mock<IProductImageRepository> _productImageRepositoryMock;
+    private readonly Mock<ILazyServiceProvider> _lazyServiceProviderMock;
+    private readonly Mock<ILocalizationHelper> _localizerMock;
+    private readonly GetProductImagesQueryHandler _handler;
+    private readonly GetProductImagesQueryValidator _validator;
 
     public GetProductImagesQueryTests()
     {
-        ProductRepositoryMock = new Mock<IProductRepository>();
-        ProductImageRepositoryMock = new Mock<IProductImageRepository>();
-        LazyServiceProviderMock = new Mock<ILazyServiceProvider>();
-        LocalizerMock = new Mock<LocalizationHelper>();
+        _productRepositoryMock = new Mock<IProductRepository>();
+        _productImageRepositoryMock = new Mock<IProductImageRepository>();
+        _lazyServiceProviderMock = new Mock<ILazyServiceProvider>();
+        _localizerMock = new Mock<ILocalizationHelper>();
 
-        LazyServiceProviderMock
-            .Setup(x => x.LazyGetRequiredService<LocalizationHelper>())
-            .Returns(LocalizerMock.Object);
+        _localizerMock.Setup(x => x[It.IsAny<string>()]).Returns("some-string");
 
-        Handler = new GetProductImagesQueryHandler(
-            ProductRepositoryMock.Object,
-            ProductImageRepositoryMock.Object,
-            LazyServiceProviderMock.Object);
+        _lazyServiceProviderMock
+            .Setup(x => x.LazyGetRequiredService<ILocalizationHelper>())
+            .Returns(_localizerMock.Object);
 
-        Validator = new GetProductImagesQueryValidator(
-            ProductRepositoryMock.Object,
-            LocalizerMock.Object);
+        _handler = new GetProductImagesQueryHandler(
+            _productRepositoryMock.Object,
+            _productImageRepositoryMock.Object,
+            _lazyServiceProviderMock.Object);
+
+        _validator = new GetProductImagesQueryValidator(
+            _productRepositoryMock.Object,
+            _localizerMock.Object);
     }
 
     [Fact]
@@ -40,7 +42,7 @@ public class GetProductImagesQueryTests
         var productId = Guid.NewGuid();
         var query = new GetProductImagesQuery(productId, null, true);
 
-        ProductRepositoryMock
+        _productRepositoryMock
             .Setup(x => x.AnyAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Product, bool>>>(), default))
             .ReturnsAsync(true);
 
@@ -58,11 +60,11 @@ public class GetProductImagesQueryTests
                 "Main image")
         };
 
-        ProductImageRepositoryMock
+        _productImageRepositoryMock
             .Setup(x => x.GetActiveByProductIdAsync(productId, default))
             .ReturnsAsync(productImages);
 
-        var result = await Handler.Handle(query, default);
+        var result = await _handler.Handle(query, default);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Count.Should().Be(1);
@@ -75,7 +77,7 @@ public class GetProductImagesQueryTests
         var productId = Guid.NewGuid();
         var query = new GetProductImagesQuery(productId, ImageType.Gallery, true);
 
-        ProductRepositoryMock
+        _productRepositoryMock
             .Setup(x => x.AnyAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Product, bool>>>(), default))
             .ReturnsAsync(true);
 
@@ -93,11 +95,11 @@ public class GetProductImagesQueryTests
                 "Gallery image")
         };
 
-        ProductImageRepositoryMock
+        _productImageRepositoryMock
             .Setup(x => x.GetByImageTypeAsync(productId, ImageType.Gallery, default))
             .ReturnsAsync(filteredImages);
 
-        var result = await Handler.Handle(query, default);
+        var result = await _handler.Handle(query, default);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Count.Should().Be(1);
@@ -110,44 +112,44 @@ public class GetProductImagesQueryTests
         var productId = Guid.NewGuid();
         var query = new GetProductImagesQuery(productId, null, true);
 
-        ProductRepositoryMock
+        _productRepositoryMock
             .Setup(x => x.AnyAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Product, bool>>>(), default))
             .ReturnsAsync(false);
 
-        LocalizerMock
+        _localizerMock
             .Setup(x => x[ProductConsts.NotFound])
             .Returns("Product not found");
 
-        var result = await Handler.Handle(query, default);
+        var result = await _handler.Handle(query, default);
 
         result.IsSuccess.Should().BeFalse();
         result.Status.Should().Be(ResultStatus.NotFound);
     }
 
     [Fact]
-    public void Validator_ValidQuery_ShouldNotHaveValidationErrors()
+    public async Task Validator_ValidQuery_ShouldNotHaveValidationErrors()
     {
         var query = new GetProductImagesQuery(Guid.NewGuid(), null, true);
 
-        ProductRepositoryMock
+        _productRepositoryMock
             .Setup(x => x.AnyAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Product, bool>>>(), default))
             .ReturnsAsync(true);
 
-        var result = Validator.TestValidate(query);
+        var result = await _validator.TestValidateAsync(query);
 
         result.ShouldNotHaveAnyValidationErrors();
     }
 
     [Fact]
-    public void Validator_EmptyProductId_ShouldHaveValidationError()
+    public async Task Validator_EmptyProductId_ShouldHaveValidationError()
     {
         var query = new GetProductImagesQuery(Guid.Empty, null, true);
 
-        LocalizerMock
+        _localizerMock
             .Setup(x => x[ProductConsts.NotFound])
             .Returns("Product not found");
 
-        var result = Validator.TestValidate(query);
+        var result = await _validator.TestValidateAsync(query);
 
         result.ShouldHaveValidationErrorFor(x => x.ProductId);
     }

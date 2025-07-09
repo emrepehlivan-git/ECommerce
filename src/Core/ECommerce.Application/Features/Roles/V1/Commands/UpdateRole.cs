@@ -1,7 +1,7 @@
 using Ardalis.Result;
 using ECommerce.Application.Behaviors;
 using ECommerce.Application.Common.CQRS;
-using ECommerce.Application.Helpers;
+using ECommerce.Application.Interfaces;
 using ECommerce.Application.Services;
 using ECommerce.SharedKernel.DependencyInjection;
 using FluentValidation;
@@ -13,25 +13,25 @@ public sealed record UpdateRoleCommand(Guid Id, string Name) : IRequest<Result>,
 
 public sealed class UpdateRoleCommandValidator : AbstractValidator<UpdateRoleCommand>
 {
-    private readonly ILocalizationService _localizationService;
+    private readonly ILocalizationHelper _localizer;
     private readonly IRoleService _roleService;
 
-    public UpdateRoleCommandValidator(ILocalizationService localizationService, IRoleService roleService)
+    public UpdateRoleCommandValidator(ILocalizationHelper localizer, IRoleService roleService)
     {
-        _localizationService = localizationService;
+        _localizer = localizer;
         _roleService = roleService;
 
         RuleFor(x => x.Id)
             .MustAsync(async (id, cancellationToken) => await roleService.FindRoleByIdAsync(id) != null)
-            .WithMessage(_localizationService.GetLocalizedString(RoleConsts.RoleNotFound));
+            .WithMessage(x => _localizer[RoleConsts.RoleNotFound]);
 
         RuleFor(x => x.Name)
             .NotEmpty()
-                .WithMessage(_localizationService.GetLocalizedString(RoleConsts.NameIsRequired))
+                .WithMessage(x => _localizer[RoleConsts.NameIsRequired])
             .MinimumLength(RoleConsts.NameMinLength)
-                .WithMessage(_localizationService.GetLocalizedString(RoleConsts.NameMustBeAtLeastCharacters, RoleConsts.NameMinLength.ToString()))
+                .WithMessage(x => _localizer[RoleConsts.NameMustBeAtLeastCharacters, RoleConsts.NameMinLength.ToString()])
             .MaximumLength(RoleConsts.NameMaxLength)
-                .WithMessage(_localizationService.GetLocalizedString(RoleConsts.NameMustBeLessThanCharacters, RoleConsts.NameMaxLength.ToString()));
+                .WithMessage(x => _localizer[RoleConsts.NameMustBeLessThanCharacters, RoleConsts.NameMaxLength.ToString()]);
             
         RuleFor(x => x)
             .MustAsync(async (command, ct) =>
@@ -39,7 +39,7 @@ public sealed class UpdateRoleCommandValidator : AbstractValidator<UpdateRoleCom
                 var existingRole = await roleService.FindRoleByNameAsync(command.Name);
                 return existingRole == null || existingRole.Id == command.Id;
             })
-            .WithMessage(_localizationService.GetLocalizedString(RoleConsts.NameExists))
+            .WithMessage(x => _localizer[RoleConsts.NameExists])
             .WithName(nameof(UpdateRoleCommand.Name));
     }
 }

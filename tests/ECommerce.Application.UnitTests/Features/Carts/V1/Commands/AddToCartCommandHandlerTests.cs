@@ -16,7 +16,7 @@ public class AddToCartCommandHandlerTests : CartCommandsTestBase
             LazyServiceProviderMock.Object,
             CacheManagerMock.Object
         );
-        _validator = new AddToCartCommandValidator(Localizer);
+        _validator = new AddToCartCommandValidator(LocalizerMock.Object);
     }
 
     [Fact]
@@ -60,7 +60,7 @@ public class AddToCartCommandHandlerTests : CartCommandsTestBase
 
         // Assert
         result.Status.Should().Be(ResultStatus.Error);
-        result.Errors.First().Should().Be(CartConsts.ErrorMessages.ProductNotActive);
+        result.Errors.First().Should().Be(LocalizerMock.Object[CartConsts.ErrorMessages.ProductNotActive]);
     }
     
     [Fact]
@@ -76,7 +76,7 @@ public class AddToCartCommandHandlerTests : CartCommandsTestBase
 
         // Assert
         result.Status.Should().Be(ResultStatus.Error);
-        result.Errors.First().Should().Be(CartConsts.ErrorMessages.InsufficientStock);
+        result.Errors.First().Should().Be(LocalizerMock.Object[CartConsts.ErrorMessages.InsufficientStock]);
     }
 
     [Fact]
@@ -130,6 +130,6 @@ public class AddToCartCommandHandlerTests : CartCommandsTestBase
         // Assert
         validationResult.IsValid.Should().BeFalse();
         validationResult.Errors.Should().ContainSingle()
-            .Which.ErrorMessage.Should().Be(expectedError);
+            .Which.ErrorMessage.Should().Be(LocalizerMock.Object[expectedError]);
     }
 } 

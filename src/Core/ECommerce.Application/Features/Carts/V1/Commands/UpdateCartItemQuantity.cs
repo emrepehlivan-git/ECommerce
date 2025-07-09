@@ -2,7 +2,7 @@ using Ardalis.Result;
 using ECommerce.Application.Behaviors;
 using ECommerce.Application.Common.CQRS;
 using ECommerce.Application.Features.Carts.V1.DTOs;
-using ECommerce.Application.Helpers;
+using ECommerce.Application.Interfaces;
 using ECommerce.Application.Repositories;
 using ECommerce.Application.Services;
 using ECommerce.SharedKernel.DependencyInjection;
@@ -18,7 +18,7 @@ public sealed record UpdateCartItemQuantityCommand(
 
 public sealed class UpdateCartItemQuantityCommandValidator : AbstractValidator<UpdateCartItemQuantityCommand>
 {
-    public UpdateCartItemQuantityCommandValidator(LocalizationHelper localizer)
+    public UpdateCartItemQuantityCommandValidator(ILocalizationHelper localizer)
     {
         RuleFor(x => x.ProductId)
             .NotEmpty()

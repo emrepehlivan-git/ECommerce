@@ -1,5 +1,5 @@
 using ECommerce.Application.Features.Categories.V1;
-using ECommerce.Application.Helpers;
+using ECommerce.Application.Interfaces;
 using ECommerce.Application.Services;
 
 namespace ECommerce.Application.UnitTests.Features.Categories.V1.Queries;
@@ -8,27 +8,24 @@ public abstract class CategoryQueriesTestBase
 {
     protected readonly Mock<ICategoryRepository> CategoryRepositoryMock;
     protected readonly Mock<ILazyServiceProvider> LazyServiceProviderMock;
-    protected readonly Mock<ILocalizationService> LocalizationServiceMock;
 
-    protected LocalizationHelper Localizer;
+    protected Mock<ILocalizationHelper> LocalizerMock;
 
     protected CategoryQueriesTestBase()
     {
         CategoryRepositoryMock = new Mock<ICategoryRepository>();
         LazyServiceProviderMock = new Mock<ILazyServiceProvider>();
-        LocalizationServiceMock = new Mock<ILocalizationService>();
-
-        Localizer = new LocalizationHelper(LocalizationServiceMock.Object);
+        LocalizerMock = new Mock<ILocalizationHelper>();
 
         LazyServiceProviderMock
-            .Setup(x => x.LazyGetRequiredService<LocalizationHelper>())
-            .Returns(Localizer);
+            .Setup(x => x.LazyGetRequiredService<ILocalizationHelper>())
+            .Returns(LocalizerMock.Object);
     }
 
     protected void SetupDefaultLocalizationMessages()
     {
-        LocalizationServiceMock
-            .Setup(x => x.GetLocalizedString(CategoryConsts.NotFound))
+        LocalizerMock
+            .Setup(x => x[CategoryConsts.NotFound])
             .Returns("Category not found");
     }
 

@@ -1,7 +1,7 @@
 using Ardalis.Result;
 using ECommerce.Application.Behaviors;
 using ECommerce.Application.Common.CQRS;
-using ECommerce.Application.Helpers;
+using ECommerce.Application.Interfaces;
 using ECommerce.Application.Services;
 using ECommerce.Domain.Entities;
 using ECommerce.SharedKernel.DependencyInjection;
@@ -14,23 +14,19 @@ public sealed record CreateRoleCommand(string Name) : IRequest<Result<Guid>>, IV
 
 public sealed class CreateRoleCommandValidator : AbstractValidator<CreateRoleCommand>
 {
-    private readonly IRoleService _roleService;
-    private readonly ILocalizationService _localizationService;
 
-    public CreateRoleCommandValidator(IRoleService roleService, ILocalizationService localizationService)
+    public CreateRoleCommandValidator(IRoleService roleService, ILocalizationHelper localizer)
     {
-        _roleService = roleService;
-        _localizationService = localizationService;
 
         RuleFor(x => x.Name)
             .NotEmpty()
-                .WithMessage(_localizationService.GetLocalizedString(RoleConsts.NameIsRequired))
+                .WithMessage(x => localizer[RoleConsts.NameIsRequired])
             .MinimumLength(RoleConsts.NameMinLength)
-                .WithMessage(_localizationService.GetLocalizedString(RoleConsts.NameMustBeAtLeastCharacters, RoleConsts.NameMinLength.ToString()))
+                .WithMessage(x => localizer[RoleConsts.NameMustBeAtLeastCharacters, RoleConsts.NameMinLength.ToString()])
             .MaximumLength(RoleConsts.NameMaxLength)
-                .WithMessage(_localizationService.GetLocalizedString(RoleConsts.NameMustBeLessThanCharacters, RoleConsts.NameMaxLength.ToString()))
-            .MustAsync(async (name, cancellationToken) => !await _roleService.RoleExistsAsync(name))
-                .WithMessage(_localizationService.GetLocalizedString(RoleConsts.NameExists));
+                .WithMessage(x => localizer[RoleConsts.NameMustBeLessThanCharacters, RoleConsts.NameMaxLength.ToString()])
+            .MustAsync(async (name, cancellationToken) => !await roleService.RoleExistsAsync(name))
+                .WithMessage(x => localizer[RoleConsts.NameExists]);
     }
 }
 

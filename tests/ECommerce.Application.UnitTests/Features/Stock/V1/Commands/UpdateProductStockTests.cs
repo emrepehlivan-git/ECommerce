@@ -12,21 +12,18 @@ public sealed class UpdateProductStockTests : StockTestBase
 
         Handler = new UpdateProductStockHandler(
             ProductRepositoryMock.Object,
-            StockRepositoryMock.Object,
             LazyServiceProviderMock.Object);
 
 
         Validator = new UpdateProductStockValidator(
-            ProductRepositoryMock.Object,
-            Localizer);
+            LocalizerMock.Object);
     }
 
     [Fact]
-    public async Task Handle_WithValidCommand_ShouldReserveStock()
+    public async Task Handle_WithValidCommand_ShouldUpdateStock()
     {
         // Arrange
         SetupProductRepositoryGetById(DefaultProduct);
-        SetupStockRepositoryReserveStock();
 
         // Act
         var result = await Handler.Handle(Command, CancellationToken.None);
@@ -34,13 +31,7 @@ public sealed class UpdateProductStockTests : StockTestBase
         // Assert
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeTrue();
-
-        StockRepositoryMock.Verify(
-            x => x.ReserveStockAsync(
-                Command.ProductId,
-                Command.StockQuantity,
-                It.IsAny<CancellationToken>()),
-            Times.Once);
+        DefaultProduct.Stock.Quantity.Should().Be(Command.StockQuantity);
     }
 
     [Fact]
@@ -59,13 +50,11 @@ public sealed class UpdateProductStockTests : StockTestBase
     }
 
     [Theory]
-    [InlineData(0)]
     [InlineData(-1)]
     public async Task Validate_WithInvalidStockQuantity_ShouldReturnValidationError(int stockQuantity)
     {
         // Arrange
         var command = Command with { StockQuantity = stockQuantity };
-        SetupProductExists(true);
 
         // Act
         var validationResult = await Validator.ValidateAsync(command);
@@ -73,21 +62,6 @@ public sealed class UpdateProductStockTests : StockTestBase
         // Assert
         validationResult.IsValid.Should().BeFalse();
         validationResult.Errors.Should().ContainSingle()
-            .Which.ErrorMessage.Should().Be("Stock quantity must be greater than zero.");
-    }
-
-    [Fact]
-    public async Task Validate_WithNonExistentProduct_ShouldReturnValidationError()
-    {
-        // Arrange
-        SetupProductRepositoryGetById(null);
-
-        // Act
-        var validationResult = await Validator.ValidateAsync(Command);
-
-        // Assert
-        validationResult.IsValid.Should().BeFalse();
-        validationResult.Errors.Should().ContainSingle()
-            .Which.ErrorMessage.Should().Be("Product not found.");
+            .Which.ErrorMessage.Should().Be(LocalizerMock.Object[ProductConsts.StockQuantityMustBeGreaterThanZero]);
     }
 }

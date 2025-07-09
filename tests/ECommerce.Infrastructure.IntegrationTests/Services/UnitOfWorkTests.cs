@@ -1,6 +1,7 @@
 using ECommerce.Persistence.Services;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using ECommerce.Application.Interfaces;
 
 namespace ECommerce.Infrastructure.IntegrationTests.Services;
 
@@ -73,15 +74,15 @@ public class UnitOfWorkTests : IDisposable
     }
 
     [Fact]
-    public void BeginTransactionAsync_ShouldHaveMethod()
+    public void ExecuteInTransactionAsync_ShouldHaveMethod()
     {
         // Note: InMemory database doesn't support real transactions
         // This test just verifies the method exists and can be called
         
         // Act & Assert - Just verify the method exists
-        var methodInfo = typeof(UnitOfWork).GetMethod(nameof(UnitOfWork.BeginTransactionAsync));
+        var methodInfo = typeof(UnitOfWork).GetMethod(nameof(IUnitOfWork.ExecuteInTransactionAsync));
         methodInfo.Should().NotBeNull();
-        methodInfo!.ReturnType.Should().Be(typeof(Task<IDbContextTransaction>));
+        methodInfo!.IsGenericMethod.Should().BeTrue();
     }
 
     [Fact]

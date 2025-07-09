@@ -6,14 +6,13 @@ public sealed class UpdateUserBirthdayCommandTests : UserCommandsTestBase
 
     public UpdateUserBirthdayCommandTests()
     {
-        // UserConsts.NotFound için doğru mesajı döndür
-        LocalizationServiceMock.Setup(x => x.GetLocalizedString(UserConsts.NotFound)).Returns("User not found");
+        LocalizerMock.Setup(x => x[UserConsts.NotFound]).Returns("User not found");
         
         UserServiceMock.Setup(x => x.UpdateBirthdayAsync(It.IsAny<Guid>(), It.IsAny<DateTime?>()))
             .ReturnsAsync((Guid userId, DateTime? birthday) => 
             {
                 if (userId == Guid.Empty)
-                    return Result.Error(LocalizationServiceMock.Object.GetLocalizedString(UserConsts.NotFound));
+                    return Result.Error(LocalizerMock.Object[UserConsts.NotFound]);
                 return Result.Success();
             });
 

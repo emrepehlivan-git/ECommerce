@@ -2,7 +2,7 @@ using Ardalis.Result;
 using ECommerce.Application.Behaviors;
 using ECommerce.Application.Common.CQRS;
 using ECommerce.Application.Exceptions;
-using ECommerce.Application.Helpers;
+using ECommerce.Application.Interfaces;
 using ECommerce.Application.Services;
 using ECommerce.SharedKernel.DependencyInjection;
 using FluentValidation;
@@ -14,7 +14,7 @@ public sealed record DeleteRoleCommand(Guid Id) : IRequest<Result>, IValidatable
 
 public sealed class DeleteRoleCommandValidator : AbstractValidator<DeleteRoleCommand>
 {
-    public DeleteRoleCommandValidator(IRoleService roleService, LocalizationHelper localizer)
+    public DeleteRoleCommandValidator(IRoleService roleService, ILocalizationHelper localizer)
     {
         RuleFor(x => x.Id)
             .MustAsync(async (id, cancellationToken) => await roleService.FindRoleByIdAsync(id) != null)

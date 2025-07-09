@@ -13,7 +13,7 @@ public static class MapsterConfig
 {
     public static IServiceCollection AddMapsterConfiguration(this IServiceCollection services)
     {
-        var config = TypeAdapterConfig.GlobalSettings;
+        var config = new TypeAdapterConfig();
 
         config.Scan(typeof(MapsterConfig).Assembly);
 
@@ -24,6 +24,8 @@ public static class MapsterConfig
         RoleMapperConfig.Configure();
         CartMapperConfig.Configure();
 
+        services.AddSingleton(config);
+        
         return services;
     }
 }
