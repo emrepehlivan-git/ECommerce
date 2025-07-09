@@ -5,7 +5,7 @@ public interface ICurrentUserService
     string? UserId { get; }
     string? Email { get; }
     string? Name { get; }
-    string? Role { get; }
+    List<string> Roles { get; }
 
     IEnumerable<string> GetPermissions();
     bool HasPermission(string permission);

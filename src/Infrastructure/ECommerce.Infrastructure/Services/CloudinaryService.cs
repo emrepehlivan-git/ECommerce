@@ -203,7 +203,7 @@ public sealed class CloudinaryService : ICloudinaryService, IScopedDependency
         }
 
         // Dosya formatı kontrolü
-        var extension = Path.GetExtension(fileName)?.TrimStart('.').ToLower();
+        var extension = Path.GetExtension(fileName)?.TrimStart('.').ToLower() ?? string.Empty;
         if (string.IsNullOrEmpty(extension) || !_settings.Upload.AllowedFormats.Contains(extension))
         {
             _logger.LogWarning("File format {Extension} is not allowed", extension);

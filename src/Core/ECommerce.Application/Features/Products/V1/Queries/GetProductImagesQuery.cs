@@ -1,5 +1,5 @@
 using Ardalis.Result;
-using ECommerce.Application.CQRS;
+using ECommerce.Application.Common.CQRS;
 using ECommerce.Application.Features.Products.V1.Commands;
 using ECommerce.Application.Helpers;
 using ECommerce.Application.Repositories;

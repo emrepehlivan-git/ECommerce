@@ -1,6 +1,6 @@
 using Ardalis.Result;
 using ECommerce.Application.Behaviors;
-using ECommerce.Application.CQRS;
+using ECommerce.Application.Common.CQRS;
 using ECommerce.Application.Features.Roles.V1.DTOs;
 using ECommerce.Application.Parameters;
 using ECommerce.Application.Services;

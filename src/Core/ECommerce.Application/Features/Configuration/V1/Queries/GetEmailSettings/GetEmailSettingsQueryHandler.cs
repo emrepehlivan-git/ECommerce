@@ -1,4 +1,4 @@
-using ECommerce.Application.CQRS;
+using ECommerce.Application.Common.CQRS;
 using ECommerce.SharedKernel.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 

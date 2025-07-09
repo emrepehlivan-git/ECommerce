@@ -1,4 +1,4 @@
-namespace ECommerce.Application.Constants;
+namespace ECommerce.Application.Common.Constants;
 
 public static class AuthMessages
 {

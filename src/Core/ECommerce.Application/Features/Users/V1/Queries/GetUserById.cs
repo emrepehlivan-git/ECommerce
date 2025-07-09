@@ -1,5 +1,5 @@
 using Ardalis.Result;
-using ECommerce.Application.CQRS;
+using ECommerce.Application.Common.CQRS;
 using ECommerce.Application.Features.Users.V1.DTOs;
 using ECommerce.Application.Services;
 using ECommerce.SharedKernel.DependencyInjection;

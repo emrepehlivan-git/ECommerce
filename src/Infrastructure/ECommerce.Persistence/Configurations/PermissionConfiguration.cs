@@ -1,4 +1,4 @@
-using ECommerce.Application.Constants;
+using ECommerce.Application.Common.Constants;
 using ECommerce.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;

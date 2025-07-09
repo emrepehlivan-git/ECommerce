@@ -1,5 +1,7 @@
 using ECommerce.Application.Services;
+using ECommerce.Application.Common.Constants;
 using ECommerce.SharedKernel.DependencyInjection;
+using ECommerce.Application.Extensions;
 using System.Security.Claims;
 
 namespace ECommerce.WebAPI.Services;
@@ -7,13 +9,20 @@ namespace ECommerce.WebAPI.Services;
 public sealed class CurrentUserService(IHttpContextAccessor httpContextAccessor, IPermissionService permissionService) : ICurrentUserService, IScopedDependency
 {
     public string? UserId
-        => httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        => httpContextAccessor.HttpContext?.User.GetUserId().ToString();
 
     public IEnumerable<string> GetPermissions()
     {
         if (httpContextAccessor.HttpContext?.User.Identity?.IsAuthenticated != true)
         {
-            return Enumerable.Empty<string>();
+            return [];
+        }
+
+        var userRoles = httpContextAccessor.HttpContext.User.GetClientRoles();
+        if (userRoles.Any(role => role.Equals("admin", StringComparison.OrdinalIgnoreCase) || 
+                                 role.Equals("Admin", StringComparison.OrdinalIgnoreCase)))
+        {
+            return GetAllSystemPermissions();
         }
 
         var userIdClaim = httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -25,14 +34,13 @@ public sealed class CurrentUserService(IHttpContextAccessor httpContextAccessor,
 
         try
         {
-            // Async method'u sync olarak çağırıyoruz - bu ideal değil ama mevcut interface'i koruyoruz
             var permissionsTask = permissionService.GetUserPermissionsAsync(userId);
             var permissions = permissionsTask.GetAwaiter().GetResult();
             return permissions;
         }
         catch (Exception)
         {
-            return Enumerable.Empty<string>();
+            return [];
         }
     }
 
@@ -43,16 +51,49 @@ public sealed class CurrentUserService(IHttpContextAccessor httpContextAccessor,
             return false;
         }
 
+        var userRoles = httpContextAccessor.HttpContext.User.GetClientRoles();
+        if (userRoles.Any(role => role.Equals("admin", StringComparison.OrdinalIgnoreCase) || 
+                                 role.Equals("Admin", StringComparison.OrdinalIgnoreCase)))
+        {
+            return true;
+        }
+
         var permissions = GetPermissions();
         return permissions.Contains(permission);
     }
 
     public string? Email
-        => httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Email)?.Value;
+        => httpContextAccessor.HttpContext?.User.GetEmail();
 
     public string? Name
-        => httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Name)?.Value;
+        => httpContextAccessor.HttpContext?.User.GetFullName();
 
-    public string? Role
-        => httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Role)?.Value;
+    public List<string> Roles
+        => httpContextAccessor.HttpContext?.User.GetClientRoles() ?? [];
+    
+    private static List<string> GetAllSystemPermissions()
+    {
+        var permissions = new List<string>();
+
+        var permissionTypes = typeof(PermissionConstants).GetNestedTypes();
+        
+        foreach (var type in permissionTypes)
+        {
+            var fields = type.GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+            
+            foreach (var field in fields)
+            {
+                if (field.FieldType == typeof(string))
+                {
+                    var permissionValue = (string?)field.GetValue(null);
+                    if (!string.IsNullOrEmpty(permissionValue))
+                    {
+                        permissions.Add(permissionValue);
+                    }
+                }
+            }
+        }
+
+        return permissions;
+    }
 }

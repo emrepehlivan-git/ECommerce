@@ -11,17 +11,12 @@ public sealed class TransactionalRequestBehavior<TRequest, TResponse>(
 {
     public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {
-        using var transaction = await unitOfWork.BeginTransactionAsync();
         try
         {
-            var response = await next();
-            await unitOfWork.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
-            return response;
+            return await unitOfWork.ExecuteInTransactionAsync(async () => await next(), cancellationToken);
         }
         catch (Exception exception)
         {
-            await transaction.RollbackAsync(cancellationToken);
             logger.LogError(exception, $"Transaction failed for request {typeof(TRequest).Name}");
             throw;
         }

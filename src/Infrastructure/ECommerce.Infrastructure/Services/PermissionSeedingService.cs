@@ -1,5 +1,5 @@
 using ECommerce.Application.Common.Logging;
-using ECommerce.Application.Constants;
+using ECommerce.Application.Common.Constants;
 using ECommerce.Application.Services;
 using ECommerce.Domain.Entities;
 using ECommerce.Persistence.Contexts;

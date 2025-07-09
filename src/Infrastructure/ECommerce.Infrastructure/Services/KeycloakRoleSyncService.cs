@@ -5,55 +5,46 @@ using ECommerce.Application.Extensions;
 using ECommerce.Application.Services;
 using ECommerce.Domain.Entities;
 using ECommerce.SharedKernel.DependencyInjection;
-using Microsoft.AspNetCore.Identity;
 
 namespace ECommerce.Infrastructure.Services;
 
-public class KeycloakRoleSyncService : IKeycloakRoleSyncService, IScopedDependency
+public class KeycloakRoleSyncService(
+    IRoleService roleService,
+    IECommerceLogger<KeycloakRoleSyncService> logger) : IKeycloakRoleSyncService, IScopedDependency
 {
-    private readonly UserManager<User> _userManager;
-    private readonly RoleManager<Role> _roleManager;
-    private readonly IRoleService _roleService;
-    private readonly IECommerceLogger<KeycloakRoleSyncService> _logger;
-
-    // Client rollerinde genellikle bu default roller olmaz, ancak yine de güvenlik için bırakıyoruz
-    private readonly HashSet<string> _ignoredKeycloakRoles = new()
+    private readonly HashSet<string> _ignoredClientRoles = new()
     {
-        "default-roles-ecommerce",
-        "offline_access", 
+        "offline_access",
         "uma_authorization"
     };
-
-    public KeycloakRoleSyncService(
-        UserManager<User> userManager,
-        RoleManager<Role> roleManager,
-        IRoleService roleService,
-        IECommerceLogger<KeycloakRoleSyncService> logger)
-    {
-        _userManager = userManager;
-        _roleManager = roleManager;
-        _roleService = roleService;
-        _logger = logger;
-    }
 
     public async Task<Result> SyncUserRolesFromTokenAsync(User user, ClaimsPrincipal principal, CancellationToken cancellationToken = default)
     {
         try
         {
-            var keycloakRoles = principal.GetAllKeycloakRoles();
-            _logger.LogInformation("Kullanıcı {UserId} için {Count} Keycloak client rolü bulundu: {Roles}", 
-                user.Id, keycloakRoles.Count, string.Join(", ", keycloakRoles));
+            var clientId = principal.FindFirstValue("aud") ?? string.Empty;
+            logger.LogInformation("Senkronizasyon için token'dan okunan Audience (Client ID): {ClientId}", clientId);
 
-            var systemRoles = FilterSystemRoles(keycloakRoles);
-            _logger.LogInformation("Sistem rolleri filtrelendi: {Roles}", string.Join(", ", systemRoles));
+            var clientRoles = principal.GetClientRoles();
+            logger.LogInformation("Kullanıcı {UserId} için {Count} Keycloak client rolü bulundu: {Roles}", 
+                user.Id, clientRoles.Count, string.Join(", ", clientRoles));
+
+            if (clientRoles.Count == 0)
+            {
+                logger.LogWarning("Kullanıcı {UserId} için senkronize edilecek Keycloak client rolü bulunamadı. Token'ın 'aud' ve 'resource_access' claim'lerini kontrol edin.", user.Id);
+                return Result.Success();
+            }
+
+            var systemRoles = FilterSystemRoles(clientRoles);
+            logger.LogInformation("Client rollerinden sistem rolleri filtrelendi: {Roles}", string.Join(", ", systemRoles));
 
             var syncRolesResult = await SyncRolesToLocalSystemAsync(systemRoles, cancellationToken);
             if (!syncRolesResult.IsSuccess)
             {
-                return syncRolesResult;
+                logger.LogWarning("Client rol senkronizasyonu başarısız ama devam ediliyor: {Error}", string.Join(", ", syncRolesResult.Errors));
             }
 
-            var currentUserRoles = await _roleService.GetUserRolesAsync(user);
+            var currentUserRoles = await roleService.GetUserRolesAsync(user);
             var rolesToAdd = systemRoles.Except(currentUserRoles).ToList();
             var rolesToRemove = currentUserRoles.Except(systemRoles)
                 .Where(role => !IsProtectedRole(role))
@@ -61,41 +52,66 @@ public class KeycloakRoleSyncService : IKeycloakRoleSyncService, IScopedDependen
 
             foreach (var roleName in rolesToAdd)
             {
-                var addResult = await _roleService.AddToRoleAsync(user, roleName);
-                if (addResult.Succeeded)
+                try
                 {
-                    _logger.LogInformation("Kullanıcı {UserId} için {RoleName} rolü eklendi", user.Id, roleName);
+                    var addResult = await roleService.AddToRoleAsync(user, roleName);
+                    if (addResult.Succeeded)
+                    {
+                        logger.LogInformation("Kullanıcı {UserId} için client rolü {RoleName} eklendi", user.Id, roleName);
+                    }
+                    else
+                    {
+                        logger.LogWarning("Kullanıcı {UserId} için client rolü {RoleName} eklenemedi: {Errors}",
+                            user.Id, roleName, string.Join(", ", addResult.Errors.Select(e => e.Description)));
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    _logger.LogWarning("Kullanıcı {UserId} için {RoleName} rolü eklenemedi: {Errors}",
-                        user.Id, roleName, string.Join(", ", addResult.Errors.Select(e => e.Description)));
+                    logger.LogError(ex, "Kullanıcı {UserId} için client rolü {RoleName} ekleme hatası", user.Id, roleName);
                 }
             }
 
             foreach (var roleName in rolesToRemove)
             {
-                var removeResult = await _roleService.RemoveFromRoleAsync(user, roleName);
-                if (removeResult.Succeeded)
+                try
                 {
-                    _logger.LogInformation("Kullanıcı {UserId} için {RoleName} rolü kaldırıldı", user.Id, roleName);
+                    if (roleName.Equals("admin", StringComparison.OrdinalIgnoreCase) || 
+                        roleName.Equals("Admin", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (systemRoles.Any(r => r.Equals("admin", StringComparison.OrdinalIgnoreCase) || 
+                                               r.Equals("Admin", StringComparison.OrdinalIgnoreCase)))
+                        {
+                            logger.LogInformation("Kullanıcı {UserId} hala Keycloak client rollerinde admin rolüne sahip, yerel admin rolü korunuyor", user.Id);
+                            continue;
+                        }
+                    }
+
+                    var removeResult = await roleService.RemoveFromRoleAsync(user, roleName);
+                    if (removeResult.Succeeded)
+                    {
+                        logger.LogInformation("Kullanıcı {UserId} için client rolü {RoleName} kaldırıldı", user.Id, roleName);
+                    }
+                    else
+                    {
+                        logger.LogWarning("Kullanıcı {UserId} için client rolü {RoleName} kaldırılamadı: {Errors}",
+                            user.Id, roleName, string.Join(", ", removeResult.Errors.Select(e => e.Description)));
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    _logger.LogWarning("Kullanıcı {UserId} için {RoleName} rolü kaldırılamadı: {Errors}",
-                        user.Id, roleName, string.Join(", ", removeResult.Errors.Select(e => e.Description)));
+                    logger.LogError(ex, "Kullanıcı {UserId} için client rolü {RoleName} kaldırma hatası", user.Id, roleName);
                 }
             }
 
-            _logger.LogInformation("Kullanıcı {UserId} rol senkronizasyonu tamamlandı. Eklenen: {Added}, Kaldırılan: {Removed}",
+            logger.LogInformation("Kullanıcı {UserId} client rol senkronizasyonu tamamlandı. Eklenen: {Added}, Kaldırılan: {Removed}",
                 user.Id, rolesToAdd.Count, rolesToRemove.Count);
 
             return Result.Success();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Kullanıcı {UserId} rol senkronizasyonu sırasında hata oluştu", user.Id);
-            return Result.Error($"Rol senkronizasyonu başarısız: {ex.Message}");
+            logger.LogError(ex, "Kullanıcı {UserId} client rol senkronizasyonu sırasında hata oluştu", user.Id);
+            return Result.Error(ex.Message);
         }
     }
 
@@ -107,29 +123,29 @@ public class KeycloakRoleSyncService : IKeycloakRoleSyncService, IScopedDependen
             
             foreach (var roleName in rolesToSync)
             {
-                if (await _roleService.RoleExistsAsync(roleName))
+                if (await roleService.RoleExistsAsync(roleName))
                 {
                     continue;
                 }
 
                 var role = Role.Create(roleName);
-                var createResult = await _roleService.CreateRoleAsync(role);
+                var createResult = await roleService.CreateRoleAsync(role);
                 
                 if (createResult.Succeeded)
                 {
                     createdRoles.Add(roleName);
-                    _logger.LogInformation("Rol oluşturuldu: {RoleName}", roleName);
+                    logger.LogInformation("Client rolünden sistem rolü oluşturuldu: {RoleName}", roleName);
                 }
                 else
                 {
-                    _logger.LogWarning("Rol oluşturulamadı {RoleName}: {Errors}",
+                    logger.LogWarning("Client rolünden sistem rolü oluşturulamadı {RoleName}: {Errors}",
                         roleName, string.Join(", ", createResult.Errors.Select(e => e.Description)));
                 }
             }
 
             if (createdRoles.Any())
             {
-                _logger.LogInformation("{Count} yeni rol oluşturuldu: {Roles}", 
+                logger.LogInformation("{Count} yeni sistem rolü client rollerinden oluşturuldu: {Roles}", 
                     createdRoles.Count, string.Join(", ", createdRoles));
             }
 
@@ -137,21 +153,20 @@ public class KeycloakRoleSyncService : IKeycloakRoleSyncService, IScopedDependen
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Rol senkronizasyonu sırasında hata oluştu");
-            return Result.Error($"Rol oluşturma başarısız: {ex.Message}");
+            logger.LogError(ex, "Client rollerinden sistem rolü oluşturma sırasında hata oluştu");
+            return Result.Error($"Client rollerinden sistem rolü oluşturma başarısız: {ex.Message}");
         }
     }
 
-    public List<string> FilterSystemRoles(IEnumerable<string> keycloakRoles)
+    public List<string> FilterSystemRoles(IEnumerable<string> clientRoles)
     {
-        return keycloakRoles
-            .Where(role => !_ignoredKeycloakRoles.Contains(role))
+        return [.. clientRoles
+            .Where(role => !_ignoredClientRoles.Contains(role))
             .Where(role => !string.IsNullOrWhiteSpace(role))
-            .Distinct()
-            .ToList();
+            .Distinct()];
     }
 
-    private bool IsProtectedRole(string roleName)
+    private static bool IsProtectedRole(string roleName)
     {
         var protectedRoles = new[] { "Customer", "SuperAdmin" };
         return protectedRoles.Contains(roleName);

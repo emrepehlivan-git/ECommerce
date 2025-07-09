@@ -1,4 +1,4 @@
-using ECommerce.Application.Constants;
+using ECommerce.Application.Common.Constants;
 using ECommerce.Application.Features.Categories.V1.Commands;
 using ECommerce.Application.Features.Categories.V1.Queries;
 using ECommerce.Application.Features.Categories.V1.DTOs;

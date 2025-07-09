@@ -2,7 +2,7 @@ using ECommerce.Application.Helpers;
 using ECommerce.SharedKernel.DependencyInjection;
 using MediatR;
 
-namespace ECommerce.Application.CQRS;
+namespace ECommerce.Application.Common.CQRS;
 
 public abstract class BaseHandler<TRequest, TResponse>(ILazyServiceProvider lazyServiceProvider) : IRequestHandler<TRequest, TResponse>
     where TRequest : IRequest<TResponse>

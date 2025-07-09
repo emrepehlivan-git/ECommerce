@@ -10,6 +10,7 @@
       - ASPNETCORE_URLS=http://+:8080
       - ASPNETCORE_ENVIRONMENT=Development
       - Serilog__WriteTo__1__Args__serverUrl=http://ecommerce.seq:5341
+      - LoggingOptions__SeqUrl=http://ecommerce.seq:5341
       - DOTNET_RUNNING_IN_CONTAINER=true
       - OpenTelemetry__ServiceName=ECommerce.WebAPI
       - OpenTelemetry__ServiceVersion=1.0.0

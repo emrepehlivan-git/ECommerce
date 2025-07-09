@@ -11,31 +11,29 @@ namespace ECommerce.WebAPI.Controllers;
 [Authorize]
 public class RoleTestController : ControllerBase
 {
-    private readonly IUserService _userService;
-    private readonly IRoleService _roleService;
-    private readonly IKeycloakRoleSyncService _keycloakRoleSyncService;
+    private readonly IUserService UserService;
+    private readonly IRoleService RoleService;
+    private readonly IKeycloakRoleSyncService KeycloakRoleSyncService;
 
     public RoleTestController(
         IUserService userService,
         IRoleService roleService,
         IKeycloakRoleSyncService keycloakRoleSyncService)
     {
-        _userService = userService;
-        _roleService = roleService;
-        _keycloakRoleSyncService = keycloakRoleSyncService;
+        UserService = userService;
+        RoleService = roleService;
+        KeycloakRoleSyncService = keycloakRoleSyncService;
     }
 
-    /// <summary>
-    /// Client rol bilgilerini ve kullanıcı rollerini gösterir
-    /// </summary>
     [HttpGet("client-roles")]
     public async Task<IActionResult> GetClientRoleInfo()
     {
-        var user = await _userService.GetUserByPrincipalAsync(User);
+        var user = await UserService.GetUserByPrincipalAsync(User);
         if (user == null)
             return NotFound("Kullanıcı bulunamadı");
 
-        var userRoles = await _roleService.GetUserRolesAsync(user);
+        var userRoles = await RoleService.GetUserRolesAsync(user);
+        var clientRoles = User.GetClientRoles();
         
         var tokenInfo = new
         {
@@ -44,47 +42,46 @@ public class RoleTestController : ControllerBase
             Email = user.Email,
             FullName = user.FullName.ToString(),
             
-            // Sadece client rolleri
-            ClientRoles = User.GetClientRoles(),
-            AllKeycloakRoles = User.GetAllKeycloakRoles(), // Artık sadece client rolleri döndürür
+            ClientRoles = clientRoles,
             
-            // Sistemdeki roller
-            UserRoles = userRoles,
+            SystemUserRoles = userRoles,
             
-            // Filtrelenmiş sistem rolleri
-            FilteredSystemRoles = _keycloakRoleSyncService.FilterSystemRoles(User.GetAllKeycloakRoles()),
+            FilteredSystemRoles = KeycloakRoleSyncService.FilterSystemRoles(clientRoles),
             
-            // Token'dan hiç realm rolleri gelmemeli
-            RealmRoles = User.GetRealmRoles(), // Boş olmalı veya default roller olmalı
+            TokenInfo = new
+            {
+                TotalClaims = User.Claims.Count(),
+                HasResourceAccess = User.HasClaim(c => c.Type == "resource_access"),
+                ClientId = User.FindFirstValue("aud")
+            },
             
-            // Tüm claims (debug için)
             Claims = User.Claims.Select(c => new { c.Type, c.Value }).ToList()
         };
 
         return Ok(tokenInfo);
     }
 
-    /// <summary>
-    /// Manuel client rol senkronizasyonu tetikler
-    /// </summary>
     [HttpPost("sync-client-roles")]
     public async Task<IActionResult> SyncClientRoles()
     {
-        var user = await _userService.GetUserByPrincipalAsync(User);
+        var user = await UserService.GetUserByPrincipalAsync(User);
         if (user == null)
             return NotFound("Kullanıcı bulunamadı");
 
-        var result = await _keycloakRoleSyncService.SyncUserRolesFromTokenAsync(user, User);
+        var result = await KeycloakRoleSyncService.SyncUserRolesFromTokenAsync(user, User);
         
         if (result.IsSuccess)
         {
-            var updatedUserRoles = await _roleService.GetUserRolesAsync(user);
+            var updatedUserRoles = await RoleService.GetUserRolesAsync(user);
+            var clientRoles = User.GetClientRoles();
+            
             return Ok(new
             {
                 Message = "Client rol senkronizasyonu başarılı",
-                UpdatedRoles = updatedUserRoles,
-                ClientRoles = User.GetClientRoles(),
-                AllKeycloakRoles = User.GetAllKeycloakRoles() // Sadece client rolleri
+                UpdatedSystemRoles = updatedUserRoles,
+                ClientRoles = clientRoles,
+                FilteredSystemRoles = KeycloakRoleSyncService.FilterSystemRoles(clientRoles),
+                SyncedAt = DateTime.UtcNow
             });
         }
 

@@ -1,6 +1,6 @@
 using Ardalis.Result;
 using ECommerce.Application.Behaviors;
-using ECommerce.Application.CQRS;
+using ECommerce.Application.Common.CQRS;
 using ECommerce.Application.Helpers;
 using ECommerce.Application.Repositories;
 using ECommerce.Application.Services;
@@ -43,7 +43,6 @@ public sealed class CreateCategoryCommandHandler(
 
         categoryRepository.Add(category);
 
-        // Cache invalidation - clear categories list cache
         await cacheManager.RemoveByPatternAsync("categories:*", cancellationToken);
 
         return Result.Success(category.Id);

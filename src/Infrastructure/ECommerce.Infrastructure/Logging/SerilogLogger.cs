@@ -1,90 +1,52 @@
 using System.Diagnostics;
+using Serilog.Context;
 
 namespace ECommerce.Infrastructure.Logging;
 
 public sealed class SerilogLogger<T>(Serilog.ILogger logger) : Application.Common.Logging.IECommerceLogger<T>
 {
-    public void LogInformation(string message, params object[] args)
+    private static void EnrichWithActivityInfo(Action logAction)
     {
         var activity = Activity.Current;
-        var traceId = activity?.TraceId.ToString() ?? "none";
-        var spanId = activity?.SpanId.ToString() ?? "none";
-        
-        var enrichedMessage = $"{message} | TraceId: {{TraceId}} | SpanId: {{SpanId}}";
-        var allArgs = args.Concat([traceId, spanId]).ToArray();
-        
-        logger.Information(enrichedMessage, allArgs);
+        using (LogContext.PushProperty("TraceId", activity?.TraceId.ToString() ?? "none"))
+        using (LogContext.PushProperty("SpanId", activity?.SpanId.ToString() ?? "none"))
+        {
+            logAction();
+        }
+    }
+    
+    public void LogInformation(string message, params object[] args)
+    {
+        EnrichWithActivityInfo(() => logger.Information(message, args));
     }
 
     public void LogWarning(string message, params object[] args)
     {
-        var activity = Activity.Current;
-        var traceId = activity?.TraceId.ToString() ?? "none";
-        var spanId = activity?.SpanId.ToString() ?? "none";
-        
-        var enrichedMessage = $"{message} | TraceId: {{TraceId}} | SpanId: {{SpanId}}";
-            var allArgs = args.Concat([traceId, spanId]).ToArray();
-        
-        logger.Warning(enrichedMessage, allArgs);
+        EnrichWithActivityInfo(() => logger.Warning(message, args));
     }
 
     public void LogError(string message, params object[] args)
     {
-        var activity = Activity.Current;
-        var traceId = activity?.TraceId.ToString() ?? "none";
-        var spanId = activity?.SpanId.ToString() ?? "none";
-        
-        var enrichedMessage = $"{message} | TraceId: {{TraceId}} | SpanId: {{SpanId}}";
-        var allArgs = args.Concat([traceId, spanId]).ToArray();
-        
-        logger.Error(enrichedMessage, allArgs);
+        EnrichWithActivityInfo(() => logger.Error(message, args));
     }
 
     public void LogDebug(string message, params object[] args)
     {
-        var activity = Activity.Current;
-        var traceId = activity?.TraceId.ToString() ?? "none";
-        var spanId = activity?.SpanId.ToString() ?? "none";
-        
-        var enrichedMessage = $"{message} | TraceId: {{TraceId}} | SpanId: {{SpanId}}";
-        var allArgs = args.Concat([traceId, spanId]).ToArray();
-        
-        logger.Debug(enrichedMessage, allArgs);
+        EnrichWithActivityInfo(() => logger.Debug(message, args));
     }
 
     public void LogCritical(string message, params object[] args)
     {
-        var activity = Activity.Current;
-        var traceId = activity?.TraceId.ToString() ?? "none";
-        var spanId = activity?.SpanId.ToString() ?? "none";
-        
-        var enrichedMessage = $"{message} | TraceId: {{TraceId}} | SpanId: {{SpanId}}";
-        var allArgs = args.Concat([traceId, spanId]).ToArray();
-        
-        logger.Fatal(enrichedMessage, allArgs);
+        EnrichWithActivityInfo(() => logger.Fatal(message, args));
     }
 
     public void LogError(Exception exception, string message, params object[] args)
     {
-        var activity = Activity.Current;
-        var traceId = activity?.TraceId.ToString() ?? "none";
-        var spanId = activity?.SpanId.ToString() ?? "none";
-        
-        var enrichedMessage = $"{message} | TraceId: {{TraceId}} | SpanId: {{SpanId}}";
-        var allArgs = args.Concat([traceId, spanId]).ToArray();
-        
-        logger.Error(exception, enrichedMessage, allArgs);
+        EnrichWithActivityInfo(() => logger.Error(exception, message, args));
     }
 
     public void LogCritical(Exception exception, string message, params object[] args)
     {
-        var activity = Activity.Current;
-        var traceId = activity?.TraceId.ToString() ?? "none";
-        var spanId = activity?.SpanId.ToString() ?? "none";
-        
-        var enrichedMessage = $"{message} | TraceId: {{TraceId}} | SpanId: {{SpanId}}";
-        var allArgs = args.Concat([traceId, spanId]).ToArray();
-        
-        logger.Fatal(exception, enrichedMessage, allArgs);
+        EnrichWithActivityInfo(() => logger.Fatal(exception, message, args));
     }
 }

@@ -1,4 +1,4 @@
-using ECommerce.Application.Constants;
+using ECommerce.Application.Common.Constants;
 using ECommerce.Application.Features.Roles.V1.Commands;
 using ECommerce.Application.Features.Roles.V1.DTOs;
 using ECommerce.Application.Features.Roles.V1.Queries;

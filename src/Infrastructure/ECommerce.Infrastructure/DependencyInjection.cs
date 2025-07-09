@@ -12,6 +12,7 @@ using System.Diagnostics;
 using StackExchange.Redis;
 using ECommerce.Infrastructure.Services;
 using ECommerce.Infrastructure.Configuration;
+using ECommerce.Application.Services;
 
 namespace ECommerce.Infrastructure;
 
@@ -24,13 +25,13 @@ public static class DependencyInjection
         services.AddObservability(configuration);
         services.AddHttpClient();
         
-        services.AddScoped<Application.Services.IKeycloakPermissionSyncService, KeycloakPermissionSyncService>();
-        services.AddScoped<Application.Services.IKeycloakRoleSyncService, KeycloakRoleSyncService>();
-        services.AddScoped<Application.Services.IPermissionService, PermissionService>();
+        services.AddScoped<IKeycloakPermissionSyncService, KeycloakPermissionSyncService>();
+        services.AddScoped<IKeycloakRoleSyncService, KeycloakRoleSyncService>();
+        services.AddScoped<IPermissionService, PermissionService>();
         services.AddScoped<PermissionSeedingService>();
         
         services.Configure<CloudinarySettings>(configuration.GetSection(CloudinarySettings.SectionName));
-        services.AddScoped<Application.Services.ICloudinaryService, CloudinaryService>();
+        services.AddScoped<ICloudinaryService, CloudinaryService>();
 
         services.AddMemoryCache();
         services.AddStackExchangeRedisCache(options =>
@@ -77,7 +78,8 @@ public static class DependencyInjection
 
         var loggerConfig = new LoggerConfiguration()
             .MinimumLevel.Is(Enum.Parse<Serilog.Events.LogEventLevel>(loggingOptions.MinimumLevel, true))
-            .Enrich.FromLogContext();
+            .Enrich.FromLogContext()
+            .Enrich.WithProperty("Application", "ECommerce");
 
         if (loggingOptions.EnableConsole)
             loggerConfig = loggerConfig.WriteTo.Console(outputTemplate: loggingOptions.OutputTemplate);

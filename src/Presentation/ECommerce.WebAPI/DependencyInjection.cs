@@ -1,6 +1,6 @@
 using System.Globalization;
 using ECommerce.Application;
-using ECommerce.Application.Constants;
+using ECommerce.Application.Common.Constants;
 using ECommerce.Application.Services;
 using ECommerce.Infrastructure;
 using ECommerce.Persistence;
@@ -69,7 +69,6 @@ public static class DependencyInjection
                 var authority = $"{keycloakOptions["auth-server-url"]!}realms/{keycloakOptions["realm"]!}";
 
                 options.Authority = authority;
-                options.Audience = keycloakOptions["client-id"];
                 options.RequireHttpsMetadata = keycloakOptions.GetValue<bool?>("require-https-metadata") ?? false;
 
                 var publicAuthServerUrl = keycloakOptions["public-auth-server-url"] ?? authority;
@@ -79,7 +78,8 @@ public static class DependencyInjection
                     ValidateAudience = true,
                     ValidateIssuer = true,
                     ValidIssuers = [authority, publicAuthServerUrl.TrimEnd('/') + "/realms/" + keycloakOptions["realm"]],
-                    ValidAudiences = [options.Audience, "account"],
+                    // API'nin kendisi (`ecommerce-api`), frontend (`nextjs-client`) ve swagger gibi farklı client'lardan gelen token'ları kabul et.
+                    ValidAudiences = [keycloakOptions["client-id"], "nextjs-client", "swagger-client", "account"],
                     ValidateLifetime = true
                 };
 
