@@ -48,7 +48,7 @@ public sealed class RemoveUserFromRoleCommandTests : RoleTestBase
         RoleServiceMock.Verify(x => x.FindRoleByIdAsync(Command.RoleId), Times.Once);
         RoleServiceMock.Verify(x => x.GetUserRolesAsync(user), Times.Once);
         RoleServiceMock.Verify(x => x.RemoveFromRoleAsync(user, It.IsAny<string>()), Times.Once);
-        CacheManagerMock.Verify(x => x.RemoveByPatternAsync($"user-roles:{UserId}:*", It.IsAny<CancellationToken>()), Times.Once);
+        CacheManagerMock.Verify(x => x.RemoveAsync($"user-roles:{UserId}", It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

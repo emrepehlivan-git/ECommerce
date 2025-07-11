@@ -5,17 +5,13 @@ using ECommerce.WebAPI.IntegrationTests.Common;
 
 namespace ECommerce.WebAPI.IntegrationTests.Endpoints;
 
-public class UserAddressesEndpointsTests : BaseIntegrationTest, IAsyncLifetime
+public class UserAddressesEndpointsTests(CustomWebApplicationFactory factory) : BaseIntegrationTest(factory), IAsyncLifetime
 {
-    private const string BaseUrl = "/api/v1/user-addresses";
-
-    public UserAddressesEndpointsTests(CustomWebApplicationFactory factory) : base(factory)
-    {
-    }
+    private const string BaseUrl = "/api/v1/UserAddresses";
 
     public async Task InitializeAsync()
     {
-        await Factory.InitializeAsync();
+        await ResetDatabaseAsync();
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
@@ -46,7 +42,7 @@ public class UserAddressesEndpointsTests : BaseIntegrationTest, IAsyncLifetime
     }
 
     [Fact]
-    public async Task GetUserAddresses_ShouldReturnAddresses()
+    public async Task GetCurrentUserAddresses_ShouldReturnAddresses()
     {
         // Arrange
         await ResetDatabaseAsync();
@@ -94,11 +90,11 @@ public class UserAddressesEndpointsTests : BaseIntegrationTest, IAsyncLifetime
         // Arrange
         await ResetDatabaseAsync();
         var command = new AddUserAddressCommand(
-            Guid.Parse(TestAuthHandler.TestUserId), 
-            "Shipping", 
-            "789 Pine Ln", 
-            "Otherplace", 
-            "54321", 
+            Guid.Parse(TestAuthHandler.TestUserId),
+            "Shipping",
+            "789 Pine Ln",
+            "Otherplace",
+            "54321",
             "USA");
 
         // Act

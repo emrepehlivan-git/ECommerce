@@ -95,9 +95,9 @@ public sealed class RoleController : BaseApiV1Controller
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult> AddUserToRole(Guid userId, [FromBody] Guid roleId, CancellationToken cancellationToken)
+    public async Task<ActionResult> AddUserToRole(Guid userId, [FromBody] RoleIdRequest request, CancellationToken cancellationToken)
     {
-        var result = await Mediator.Send(new AddUserToRoleCommand(userId, roleId), cancellationToken);
+        var result = await Mediator.Send(new AddUserToRoleCommand(userId, request.RoleId), cancellationToken);
         return result.ToActionResult(this);
     }
 
@@ -108,9 +108,9 @@ public sealed class RoleController : BaseApiV1Controller
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult> RemoveUserFromRole(Guid userId, [FromBody] Guid roleId, CancellationToken cancellationToken)
+    public async Task<ActionResult> RemoveUserFromRole(Guid userId, [FromBody] RoleIdRequest request, CancellationToken cancellationToken)
     {
-        var result = await Mediator.Send(new RemoveUserFromRoleCommand(userId, roleId), cancellationToken);
+        var result = await Mediator.Send(new RemoveUserFromRoleCommand(userId, request.RoleId), cancellationToken);
         return result.ToActionResult(this);
     }
 
@@ -125,4 +125,6 @@ public sealed class RoleController : BaseApiV1Controller
         var result = await Mediator.Send(new DeleteRolesCommand(ids), cancellationToken);
         return result.ToActionResult(this);
     }
-} 
+}
+
+public sealed record RoleIdRequest(Guid RoleId); 

@@ -10,10 +10,10 @@ public class ProductEndpointsTests : BaseIntegrationTest, IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        await Factory.InitializeAsync();
+        await ResetDatabaseAsync();
     }
 
-    public async Task DisposeAsync() => await Task.CompletedTask;
+    public Task DisposeAsync() => Task.CompletedTask;
 
     private static string CreateUniqueCategoryName(string baseName) => $"{baseName}_{Guid.NewGuid():N}";
 
@@ -434,4 +434,140 @@ public class ProductEndpointsTests : BaseIntegrationTest, IAsyncLifetime
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
+
+    #region Image Operation Tests
+
+    [Fact]
+    public async Task GetProductImages_WithValidId_ReturnsOk()
+    {
+        await ResetDatabaseAsync();
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var category = Category.Create(CreateUniqueCategoryName("Electronics"));
+        context.Categories.Add(category);
+        await context.SaveChangesAsync();
+
+        var product = Product.Create("Image Test", "Product for image test", 100m, category.Id, 5);
+        context.Products.Add(product);
+        context.ProductStocks.Add(product.Stock);
+        await context.SaveChangesAsync();
+
+        var response = await Client.GetAsync($"/api/v1/Product/{product.Id}/images");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var content = await response.Content.ReadAsStringAsync();
+        content.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task GetProductImages_WithNonExistentId_ReturnsBadRequest()
+    {
+        await ResetDatabaseAsync();
+        var response = await Client.GetAsync($"/api/v1/Product/{Guid.NewGuid()}/images");
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task GetProductImages_WithImageTypeFilter_ReturnsOk()
+    {
+        await ResetDatabaseAsync();
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var category = Category.Create(CreateUniqueCategoryName("Electronics"));
+        context.Categories.Add(category);
+        await context.SaveChangesAsync();
+
+        var product = Product.Create("Image Filter Test", "Product for image filter test", 100m, category.Id, 5);
+        context.Products.Add(product);
+        context.ProductStocks.Add(product.Stock);
+        await context.SaveChangesAsync();
+
+        var response = await Client.GetAsync($"/api/v1/Product/{product.Id}/images?activeOnly=true");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task DeleteProductImage_WithNonExistentImageId_ReturnsBadRequest()
+    {
+        await ResetDatabaseAsync();
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var category = Category.Create(CreateUniqueCategoryName("Electronics"));
+        context.Categories.Add(category);
+        await context.SaveChangesAsync();
+
+        var product = Product.Create("Delete Image Test", "Product for delete image test", 100m, category.Id, 5);
+        context.Products.Add(product);
+        context.ProductStocks.Add(product.Stock);
+        await context.SaveChangesAsync();
+
+        var imageId = Guid.NewGuid();
+        var response = await Client.DeleteAsync($"/api/v1/Product/{product.Id}/images/{imageId}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task DeleteProductImage_WithNonExistentProductId_ReturnsBadRequest()
+    {
+        await ResetDatabaseAsync();
+        var productId = Guid.NewGuid();
+        var imageId = Guid.NewGuid();
+        var response = await Client.DeleteAsync($"/api/v1/Product/{productId}/images/{imageId}");
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task UpdateImageOrder_WithValidData_ReturnsOk()
+    {
+        await ResetDatabaseAsync();
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var category = Category.Create(CreateUniqueCategoryName("Electronics"));
+        context.Categories.Add(category);
+        await context.SaveChangesAsync();
+
+        var product = Product.Create("Order Test", "Product for order test", 100m, category.Id, 5);
+        context.Products.Add(product);
+        context.ProductStocks.Add(product.Stock);
+        await context.SaveChangesAsync();
+
+        var orderRequest = new
+        {
+            ImageOrders = new Dictionary<Guid, int>
+            {
+                { Guid.NewGuid(), 1 },
+                { Guid.NewGuid(), 2 }
+            }
+        };
+
+        var response = await Client.PutAsJsonAsync($"/api/v1/Product/{product.Id}/images/reorder", orderRequest);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task UpdateImageOrder_WithEmptyData_ReturnsBadRequest()
+    {
+        await ResetDatabaseAsync();
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var category = Category.Create(CreateUniqueCategoryName("Electronics"));
+        context.Categories.Add(category);
+        await context.SaveChangesAsync();
+
+        var product = Product.Create("Empty Order Test", "Product for empty order test", 100m, category.Id, 5);
+        context.Products.Add(product);
+        context.ProductStocks.Add(product.Stock);
+        await context.SaveChangesAsync();
+
+        var orderRequest = new { };
+
+        var response = await Client.PutAsJsonAsync($"/api/v1/Product/{product.Id}/images/reorder", orderRequest);
+
+        response.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.OK);
+    }
+
+    #endregion
 }

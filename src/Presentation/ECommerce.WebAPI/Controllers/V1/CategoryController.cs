@@ -45,6 +45,12 @@ public sealed class CategoryController : BaseApiV1Controller
     public async Task<ActionResult<Guid>> CreateCategory(CreateCategoryCommand command, CancellationToken cancellationToken)
     {
         var result = await Mediator.Send(command, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            return CreatedAtAction(nameof(GetCategoryById), new { id = result.Value }, result.Value);
+        }
+
         return result.ToActionResult(this);
     }
 
@@ -71,6 +77,12 @@ public sealed class CategoryController : BaseApiV1Controller
     public async Task<ActionResult> DeleteCategory(Guid id, CancellationToken cancellationToken)
     {
         var result = await Mediator.Send(new DeleteCategoryCommand(id), cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            return NoContent();
+        }
+
         return result.ToActionResult(this);
     }
 } 

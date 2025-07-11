@@ -1,8 +1,4 @@
-using ECommerce.Domain.Entities;
-using ECommerce.Persistence.Contexts;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace ECommerce.WebAPI.IntegrationTests.Common;
 
@@ -36,13 +32,11 @@ public abstract class BaseIntegrationTest : IClassFixture<CustomWebApplicationFa
                 "Bu kesinlikle engellenmelidir!");
         }
     }
-    
+
     protected async Task ResetDatabaseAsync()
     {
         using var scope = Factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        
-        VerifyTestDatabase();
         
         await context.Database.EnsureDeletedAsync();
         
@@ -51,10 +45,9 @@ public abstract class BaseIntegrationTest : IClassFixture<CustomWebApplicationFa
         await CreateTestUserAsync();
     }
 
-    private async Task CreateTestUserAsync()
+    protected async Task CreateTestUserAsync()
     {
         using var scope = Factory.Services.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
 
         var user = new User

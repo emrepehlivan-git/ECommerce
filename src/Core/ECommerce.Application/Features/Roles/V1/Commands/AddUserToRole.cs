@@ -51,7 +51,7 @@ public sealed class AddUserToRoleCommandHandler(
             return Result.Error(result.Errors.Select(e => e.Description).ToArray());
         }
 
-        await cacheManager.RemoveByPatternAsync($"user-roles:{command.UserId}:*", cancellationToken);
+        await cacheManager.RemoveAsync($"user-roles:{command.UserId}", cancellationToken);
 
         return Result.Success();
     }

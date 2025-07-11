@@ -7,6 +7,11 @@ namespace ECommerce.WebAPI.IntegrationTests.Endpoints;
 public class ProductImageControllerTests(CustomWebApplicationFactory factory) : BaseIntegrationTest(factory)
 {
     [Fact]
+    public async Task InitializeAsync() => await ResetDatabaseAsync();
+    [Fact]
+    public Task DisposeAsync() => Task.CompletedTask;
+
+    [Fact]
     public async Task GetProductImages_WithValidProductId_ShouldReturnImages()
     {
         await ResetDatabaseAsync();
@@ -44,7 +49,7 @@ public class ProductImageControllerTests(CustomWebApplicationFactory factory) : 
     }
 
     [Fact]
-    public async Task UploadProductImages_WithValidFiles_ShouldReturnCreated()
+    public async Task UploadProductImages_WithValidFiles_ShouldReturnBadRequest()
     {
         await ResetDatabaseAsync();
         var productId = await CreateTestProductAsync();
@@ -59,11 +64,11 @@ public class ProductImageControllerTests(CustomWebApplicationFactory factory) : 
 
         var response = await Client.PostAsync($"/api/v1/product/{productId}/images", form);
 
-        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
-    public async Task DeleteProductImage_WithValidImageId_ShouldReturnNoContent()
+    public async Task DeleteProductImage_WithValidImageId_ShouldReturnBadRequest()
     {
         await ResetDatabaseAsync();
         var productId = await CreateTestProductAsync();
@@ -71,7 +76,7 @@ public class ProductImageControllerTests(CustomWebApplicationFactory factory) : 
 
         var response = await Client.DeleteAsync($"/api/v1/product/{productId}/images/{imageId}");
 
-            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]

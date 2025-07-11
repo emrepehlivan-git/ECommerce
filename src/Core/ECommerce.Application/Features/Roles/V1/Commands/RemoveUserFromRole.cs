@@ -35,23 +35,23 @@ public sealed class RemoveUserFromRoleCommandHandler(
 {
     public override async Task<Result> Handle(RemoveUserFromRoleCommand command, CancellationToken cancellationToken)
     {
-        var user = await userService.FindByIdAsync(command.UserId)!;
+        var user = (await userService.FindByIdAsync(command.UserId))!;
         var role = (await roleService.FindRoleByIdAsync(command.RoleId))!;
 
-        var userRoles = await roleService.GetUserRolesAsync(user!);
+        var userRoles = await roleService.GetUserRolesAsync(user);
         if (!userRoles.Contains(role.Name!))
         {
             return Result.Error(Localizer[RoleConsts.UserNotInRole]);
         }
 
-        var result = await roleService.RemoveFromRoleAsync(user!, role.Name!);
+        var result = await roleService.RemoveFromRoleAsync(user, role.Name!);
 
         if (!result.Succeeded)
         {
             return Result.Error(result.Errors.Select(e => e.Description).ToArray());
         }
 
-        await cacheManager.RemoveByPatternAsync($"user-roles:{command.UserId}:*", cancellationToken);
+        await cacheManager.RemoveAsync($"user-roles:{command.UserId}", cancellationToken);
 
         return Result.Success();
     }

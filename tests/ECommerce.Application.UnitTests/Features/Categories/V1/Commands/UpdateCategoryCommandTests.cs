@@ -20,7 +20,6 @@ public sealed class UpdateCategoryCommandTests : CategoryCommandsTestBase
 
         Validator = new UpdateCategoryCommandValidator(
             new CategoryBusinessRules(CategoryRepositoryMock.Object),
-            CategoryRepositoryMock.Object,
             LocalizerMock.Object);
     }
 
@@ -99,8 +98,7 @@ public sealed class UpdateCategoryCommandTests : CategoryCommandsTestBase
         var validationResult = await Validator.ValidateAsync(Command);
 
         // Assert
-        validationResult.IsValid.Should().BeFalse();
-        validationResult.Errors.Should().ContainSingle()
-            .Which.ErrorMessage.Should().Be(LocalizerMock.Object[CategoryConsts.NotFound]);
+        validationResult.IsValid.Should().BeTrue();
+        validationResult.Errors.Should().BeEmpty();
     }
 }

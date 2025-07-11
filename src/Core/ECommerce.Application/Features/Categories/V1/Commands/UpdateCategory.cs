@@ -14,12 +14,8 @@ public sealed record UpdateCategoryCommand(Guid Id, string Name) : IRequest<Resu
 
 public sealed class UpdateCategoryCommandValidator : AbstractValidator<UpdateCategoryCommand>
 {
-    public UpdateCategoryCommandValidator(CategoryBusinessRules categoryBusinessRules, ICategoryRepository categoryRepository, ILocalizationHelper localizer)
+    public UpdateCategoryCommandValidator(CategoryBusinessRules categoryBusinessRules, ILocalizationHelper localizer)
     {
-        RuleFor(x => x.Id)
-            .MustAsync(async (command, id, ct) => await categoryRepository.GetByIdAsync(id, cancellationToken: ct) is not null)
-            .WithMessage(localizer[CategoryConsts.NotFound]);
-
         RuleFor(x => x.Name)
             .NotEmpty()
             .WithMessage(localizer[CategoryConsts.NameIsRequired])
@@ -42,14 +38,15 @@ public sealed class UpdateCategoryCommandHandler(
     {
         var category = await categoryRepository.GetByIdAsync(command.Id, cancellationToken: cancellationToken);
 
-        category!.UpdateName(command.Name);
+        if (category is null)
+            return Result.NotFound(Localizer[CategoryConsts.NotFound]);
+        
+        category.UpdateName(command.Name);
 
         categoryRepository.Update(category);
 
-        // Cache invalidation
         await cacheManager.RemoveAsync($"category:{command.Id}", cancellationToken);
         await cacheManager.RemoveByPatternAsync("categories:*", cancellationToken);
-        // Also clear products cache as they might include category info
         await cacheManager.RemoveByPatternAsync("products:*", cancellationToken);
 
         return Result.Success();

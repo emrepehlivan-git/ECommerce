@@ -1,65 +1,157 @@
-using ECommerce.WebAPI.IntegrationTests.Common;
+using ECommerce.Persistence.Contexts;
+using ECommerce.Domain.Entities;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ECommerce.WebAPI.IntegrationTests.Endpoints;
 
-public class CategoryEndpointsTests : BaseIntegrationTest, IAsyncLifetime
+public class CategoryEndpointsTests : IClassFixture<CustomWebApplicationFactory>, IAsyncLifetime
 {
-    public CategoryEndpointsTests(CustomWebApplicationFactory factory) : base(factory)
+    private readonly CustomWebApplicationFactory _factory;
+    private HttpClient _unauthenticatedClient = default!;
+    private HttpClient _authenticatedClient = default!;
+
+    public CategoryEndpointsTests(CustomWebApplicationFactory factory)
     {
+        _factory = factory;
     }
 
     public async Task InitializeAsync()
     {
-        await Factory.InitializeAsync();
+        await _factory.InitializeAsync();
+        _unauthenticatedClient = _factory.CreateUnauthenticatedClient();
+        _authenticatedClient = _factory.CreateClient();
     }
 
-    public async Task DisposeAsync() => await Task.CompletedTask;
+    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
-    public async Task GetCategories_ReturnsOk()
+    public async Task GetCategories_WithoutAuth_ReturnsOk()
     {
-        await ResetDatabaseAsync();
-        var response = await Client.GetAsync("/api/v1/Category");
+        var response = await _unauthenticatedClient.GetAsync("/api/v1/Category");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
-    public async Task GetCategoryById_ReturnsOk()
+    public async Task GetCategoryById_WithoutAuth_ReturnsOk()
     {
-        await ResetDatabaseAsync();
-        using var scope = Factory.Services.CreateScope();
+        using var scope = _factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var category = Category.Create("IntegrationCat");
         context.Categories.Add(category);
         await context.SaveChangesAsync();
 
-        var response = await Client.GetAsync($"/api/v1/Category/{category.Id}");
+        var response = await _unauthenticatedClient.GetAsync($"/api/v1/Category/{category.Id}");
         response.EnsureSuccessStatusCode();
     }
 
     [Fact]
-    public async Task CreateCategory_RequiresAuthorization()
+    public async Task CreateCategory_WithAuth_ReturnsCreated()
     {
-        await ResetDatabaseAsync();
         var command = new { Name = "New Category" };
-        var response = await Client.PostAsJsonAsync("/api/v1/Category", command);
+        var response = await _authenticatedClient.PostAsJsonAsync("/api/v1/Category", command);
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+    }
+
+    [Fact]
+    public async Task CreateCategory_WithoutAuth_ReturnsUnauthorized()
+    {
+        var command = new { Name = "New Category" };
+        var response = await _unauthenticatedClient.PostAsJsonAsync("/api/v1/Category", command);
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact]
-    public async Task UpdateCategory_RequiresAuthorization()
+    public async Task UpdateCategory_WithoutAuth_ReturnsUnauthorized()
     {
-        await ResetDatabaseAsync();
-        var command = new { Name = "Updated" };
-        var response = await Client.PutAsJsonAsync($"/api/v1/Category/{Guid.NewGuid()}", command);
+        var command = new { Id = Guid.NewGuid(), Name = "Updated" };
+        var response = await _unauthenticatedClient.PutAsJsonAsync($"/api/v1/Category/{Guid.NewGuid()}", command);
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact]
-    public async Task DeleteCategory_RequiresAuthorization()
+    public async Task DeleteCategory_WithoutAuth_ReturnsUnauthorized()
     {
-        await ResetDatabaseAsync();
-        var response = await Client.DeleteAsync($"/api/v1/Category/{Guid.NewGuid()}");
+        using var scope = _factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var category = Category.Create("Category to delete");
+        context.Categories.Add(category);
+        await context.SaveChangesAsync();
+
+        var response = await _unauthenticatedClient.DeleteAsync($"/api/v1/Category/{category.Id}");
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task UpdateCategory_WithAuth_ReturnsOk()
+    {
+        using var scope = _factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var category = Category.Create("Category to update");
+        context.Categories.Add(category);
+        await context.SaveChangesAsync();
+
+        var command = new { Name = "Updated Category Name" };
+        var response = await _authenticatedClient.PutAsJsonAsync($"/api/v1/Category/{category.Id}", command);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task DeleteCategory_WithAuth_ReturnsNoContent()
+    {
+        using var scope = _factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var category = Category.Create("Category to delete with auth");
+        context.Categories.Add(category);
+        await context.SaveChangesAsync();
+
+        var response = await _authenticatedClient.DeleteAsync($"/api/v1/Category/{category.Id}");
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+    }
+
+    [Fact]
+    public async Task GetCategoryById_WithNonExistentId_ReturnsNotFound()
+    {
+        var nonExistentId = Guid.NewGuid();
+        var response = await _unauthenticatedClient.GetAsync($"/api/v1/Category/{nonExistentId}");
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task UpdateCategory_WithNonExistentId_ReturnsNotFound()
+    {
+        var nonExistentId = Guid.NewGuid();
+        var command = new { Id = nonExistentId, Name = "Updated Category Name" };
+        var response = await _authenticatedClient.PutAsJsonAsync($"/api/v1/Category/{nonExistentId}", command);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task DeleteCategory_WithNonExistentId_ReturnsNotFound()
+    {
+        var nonExistentId = Guid.NewGuid();
+        var response = await _authenticatedClient.DeleteAsync($"/api/v1/Category/{nonExistentId}");
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task CreateCategory_WithEmptyName_ReturnsBadRequest()
+    {
+        var command = new { Name = "" };
+        var response = await _authenticatedClient.PostAsJsonAsync("/api/v1/Category", command);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task UpdateCategory_WithEmptyName_ReturnsBadRequest()
+    {
+        using var scope = _factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var category = Category.Create("Category to update with invalid data");
+        context.Categories.Add(category);
+        await context.SaveChangesAsync();
+
+        var command = new { Name = "" };
+        var response = await _authenticatedClient.PutAsJsonAsync($"/api/v1/Category/{category.Id}", command);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 }
