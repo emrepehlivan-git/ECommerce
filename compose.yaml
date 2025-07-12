@@ -49,6 +49,10 @@
     image: quay.io/keycloak/keycloak:latest
     command: start-dev
     environment:
+      - KC_HOSTNAME=localhost
+      - KC_HOSTNAME_PORT=8088
+      - KC_HTTP_ENABLED=true
+      - KC_PROXY=edge
       - KC_BOOTSTRAP_ADMIN_USERNAME=admin
       - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
       - KC_HEALTH_ENABLED=true

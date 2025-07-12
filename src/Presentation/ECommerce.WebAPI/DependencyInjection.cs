@@ -1,6 +1,7 @@
 using System.Globalization;
 using ECommerce.Application;
 using ECommerce.Application.Common.Constants;
+using ECommerce.Application.Common.Logging;
 using ECommerce.Application.Services;
 using ECommerce.Infrastructure;
 using ECommerce.Infrastructure.Services;
@@ -8,6 +9,7 @@ using ECommerce.Persistence;
 using ECommerce.Persistence.Contexts;
 using ECommerce.SharedKernel.DependencyInjection;
 using ECommerce.WebAPI.Authorization;
+using ECommerce.WebAPI.Controllers.V1;
 using ECommerce.WebAPI.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -70,23 +72,37 @@ public static class DependencyInjection
                 var authority = $"{keycloakOptions["auth-server-url"]!}realms/{keycloakOptions["realm"]!}";
 
                 options.Authority = authority;
+                options.MetadataAddress = $"{authority}/.well-known/openid_configuration";
                 options.RequireHttpsMetadata = keycloakOptions.GetValue<bool?>("require-https-metadata") ?? false;
+
+                var handler = new HttpClientHandler();
+                var delegatingHandler = new KeycloakUrlRewriteHandler(handler);
+                options.BackchannelHttpHandler = delegatingHandler;
 
                 var publicAuthServerUrl = keycloakOptions["public-auth-server-url"] ?? authority;
 
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateAudience = true,
-                    ValidateIssuer = true,
-                    ValidIssuers = [authority, publicAuthServerUrl.TrimEnd('/') + "/realms/" + keycloakOptions["realm"]],
-                    ValidAudiences = [keycloakOptions["client-id"], "nextjs-client", "swagger-client", "account"],
-                    ValidateLifetime = true
+                    ValidateAudience = false,
+                    ValidateIssuer = false,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = false
                 };
 
                 options.Events = new JwtBearerEvents
                 {
+                    OnAuthenticationFailed = context =>
+                    {
+                        Console.WriteLine("Authentication failed.");
+                        Console.WriteLine(context.Exception);
+                        return Task.CompletedTask;
+                    },
                     OnTokenValidated = async context =>
                     {
+                        var logger = context.HttpContext.RequestServices.GetRequiredService<IECommerceLogger<BaseApiV1Controller>>();
+                        var claims = context.Principal?.Claims.Select(c => $"{c.Type}: {c.Value}").ToList();
+                        logger.LogInformation("Token claims: {Claims}", string.Join(", ", claims ?? new List<string>()));
+                        
                         var syncService =
                             context.HttpContext.RequestServices.GetRequiredService<IUserSynchronizationService>();
                         await syncService.SyncUserAsync(context.Principal!);
@@ -122,7 +138,11 @@ public static class DependencyInjection
         }
 
         app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
-        app.UseHttpsRedirection();
+        
+        if (!environment.IsDevelopment())
+        {
+            app.UseHttpsRedirection();
+        }
 
         app.UseAuthentication();
         app.UseAuthorization();
@@ -270,5 +290,37 @@ public static class DependencyInjection
             setup.GroupNameFormat = "'v'VVV";
             setup.SubstituteApiVersionInUrl = true;
         });
+    }
+}
+
+public class KeycloakUrlRewriteHandler : DelegatingHandler
+{
+    public KeycloakUrlRewriteHandler(HttpMessageHandler innerHandler) : base(innerHandler)
+    {
+    }
+
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        // localhost:8088 adreslerini keycloak:8080'e yönlendir
+        if (request.RequestUri != null && 
+            request.RequestUri.Host == "localhost" && 
+            request.RequestUri.Port == 8088)
+        {
+            var originalUri = request.RequestUri.ToString();
+            var newUri = new UriBuilder(request.RequestUri)
+            {
+                Host = "keycloak",
+                Port = 8080
+            }.Uri;
+            
+            Console.WriteLine($"[KeycloakUrlRewriteHandler] Rewriting URL: {originalUri} -> {newUri}");
+            request.RequestUri = newUri;
+        }
+        else if (request.RequestUri != null)
+        {
+            Console.WriteLine($"[KeycloakUrlRewriteHandler] No rewrite needed for: {request.RequestUri}");
+        }
+
+        return await base.SendAsync(request, cancellationToken);
     }
 }

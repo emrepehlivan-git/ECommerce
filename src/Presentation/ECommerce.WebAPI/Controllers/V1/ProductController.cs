@@ -10,12 +10,15 @@ using ECommerce.Domain.Enums;
 using ECommerce.WebAPI.DTOs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ECommerce.WebAPI.Controllers.V1;
 
+[Authorize]
 public sealed class ProductController : BaseApiV1Controller
 {
     [HttpGet]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(PagedResult<List<ProductDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
@@ -32,6 +35,7 @@ public sealed class ProductController : BaseApiV1Controller
     }
 
     [HttpGet("{id}")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(ProductDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
@@ -106,6 +110,7 @@ public sealed class ProductController : BaseApiV1Controller
     #region Image Operations
 
     [HttpGet("{id}/images")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(List<ProductImageResponseDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
