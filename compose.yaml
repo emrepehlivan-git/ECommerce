@@ -19,6 +19,7 @@
       - OpenTelemetry__Jaeger__Endpoint=http://ecommerce.jaeger:14268/api/traces
       - OpenTelemetry__OTLP__Endpoint=http://ecommerce.jaeger:4317
       - Keycloak__auth-server-url=http://keycloak:8080/
+      - Keycloak__metadata-url=http://keycloak:8080/realms/ecommerce/.well-known/openid-configuration
     depends_on:
       - ecommerce.db
       - ecommerce.redis
@@ -49,8 +50,6 @@
     image: quay.io/keycloak/keycloak:latest
     command: start-dev
     environment:
-      - KC_HOSTNAME=localhost
-      - KC_HOSTNAME_PORT=8088
       - KC_HTTP_ENABLED=true
       - KC_PROXY=edge
       - KC_BOOTSTRAP_ADMIN_USERNAME=admin
@@ -58,7 +57,7 @@
       - KC_HEALTH_ENABLED=true
       - KC_METRICS_ENABLED=true
     ports:
-      - "8088:8080"
+      - "8080:8080"
     networks:
       - ecommerce-network
     volumes:

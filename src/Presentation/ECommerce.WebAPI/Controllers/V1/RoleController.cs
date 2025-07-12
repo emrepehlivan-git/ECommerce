@@ -6,6 +6,7 @@ using ECommerce.Application.Parameters;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Ardalis.Result.AspNetCore;
+using System.Security.Claims;
 
 namespace ECommerce.WebAPI.Controllers.V1;
 

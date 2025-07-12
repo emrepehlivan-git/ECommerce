@@ -69,24 +69,19 @@ public static class DependencyInjection
             .AddJwtBearer(options =>
             {
                 var keycloakOptions = configuration.GetSection("Keycloak");
-                var authority = $"{keycloakOptions["auth-server-url"]!}realms/{keycloakOptions["realm"]!}";
 
-                options.Authority = authority;
-                options.MetadataAddress = $"{authority}/.well-known/openid_configuration";
-                options.RequireHttpsMetadata = keycloakOptions.GetValue<bool?>("require-https-metadata") ?? false;
-
-                var handler = new HttpClientHandler();
-                var delegatingHandler = new KeycloakUrlRewriteHandler(handler);
-                options.BackchannelHttpHandler = delegatingHandler;
-
-                var publicAuthServerUrl = keycloakOptions["public-auth-server-url"] ?? authority;
+                options.Authority = keycloakOptions["auth-server-url"]!;
+                options.MetadataAddress = keycloakOptions["metadata-url"]!;
+                options.RequireHttpsMetadata = false;
 
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateAudience = false,
-                    ValidateIssuer = false,
+                    ValidateAudience = true,
+                    ValidateIssuer = true,
                     ValidateLifetime = true,
-                    ValidateIssuerSigningKey = false
+                    ValidateIssuerSigningKey = false,
+                    ValidIssuers = keycloakOptions.GetSection("valid-issuers").Get<string[]>()!,
+                    ValidAudiences = keycloakOptions.GetSection("valid-audiences").Get<string[]>()!,
                 };
 
                 options.Events = new JwtBearerEvents
@@ -131,9 +126,12 @@ public static class DependencyInjection
                 options.SwaggerEndpoint("/swagger/v1/swagger.json", "ECommerce API v1");
 
                 var keycloakOptions = app.Configuration.GetSection("Keycloak");
-                options.OAuthClientId(keycloakOptions["client-id"]);
+                var publicAuthServerUrl = keycloakOptions["public-auth-server-url"] ?? keycloakOptions["auth-server-url"];
+                var realm = keycloakOptions["realm"];
+                options.OAuthClientId("swagger-client");
                 options.OAuthUsePkce();
                 options.OAuthScopeSeparator(" ");
+                options.OAuth2RedirectUrl("http://localhost:4000/swagger/oauth2-redirect.html");
             });
         }
 
@@ -290,37 +288,5 @@ public static class DependencyInjection
             setup.GroupNameFormat = "'v'VVV";
             setup.SubstituteApiVersionInUrl = true;
         });
-    }
-}
-
-public class KeycloakUrlRewriteHandler : DelegatingHandler
-{
-    public KeycloakUrlRewriteHandler(HttpMessageHandler innerHandler) : base(innerHandler)
-    {
-    }
-
-    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-    {
-        // localhost:8088 adreslerini keycloak:8080'e yönlendir
-        if (request.RequestUri != null && 
-            request.RequestUri.Host == "localhost" && 
-            request.RequestUri.Port == 8088)
-        {
-            var originalUri = request.RequestUri.ToString();
-            var newUri = new UriBuilder(request.RequestUri)
-            {
-                Host = "keycloak",
-                Port = 8080
-            }.Uri;
-            
-            Console.WriteLine($"[KeycloakUrlRewriteHandler] Rewriting URL: {originalUri} -> {newUri}");
-            request.RequestUri = newUri;
-        }
-        else if (request.RequestUri != null)
-        {
-            Console.WriteLine($"[KeycloakUrlRewriteHandler] No rewrite needed for: {request.RequestUri}");
-        }
-
-        return await base.SendAsync(request, cancellationToken);
     }
 }
