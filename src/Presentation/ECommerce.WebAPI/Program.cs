@@ -1,6 +1,6 @@
 using ECommerce.WebAPI;
 using ECommerce.Application.Common.Logging;
-using ECommerce.Infrastructure.Services;
+using ECommerce.Persistence.Extensions;
 
 IECommerceLogger<Program>? logger = null;
 
@@ -18,6 +18,7 @@ try
     {
         await app.ApplyMigrations();
         await app.ConfigurePermissions();
+        await app.Services.SeedDatabaseAsync();
     }
 
     app.UsePresentation(app.Environment);
