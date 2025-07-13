@@ -72,7 +72,7 @@
     environment:
       - NODE_ENV=production
       - NEXT_PUBLIC_APP_URL=http://localhost:3000
-      - NEXT_PUBLIC_AUTH_SERVER_URL=http://localhost:8088/
+      - NEXT_PUBLIC_AUTH_SERVER_URL=http://localhost:8080/
       - NEXT_PUBLIC_OPENIDDICT_CLIENT_ID=nextjs-client
       - KEYCLOAK_CLIENT_SECRET=nextjs-client-secret
       - NEXT_PUBLIC_API_URL=http://localhost:4000
