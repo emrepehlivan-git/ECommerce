@@ -6,13 +6,14 @@ using ECommerce.Application.Parameters;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Ardalis.Result.AspNetCore;
+using Ardalis.Result;
 
 namespace ECommerce.WebAPI.Controllers.V1;
 
 public sealed class CategoryController : BaseApiV1Controller
 {
     [HttpGet]
-    [ProducesResponseType(typeof(List<CategoryDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResult<List<CategoryDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
