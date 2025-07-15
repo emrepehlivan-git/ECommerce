@@ -36,6 +36,10 @@ public class KeycloakRoleSyncService(
             }
 
             var systemRoles = FilterSystemRoles(clientRoles);
+            if (!systemRoles.Contains("customer", StringComparer.OrdinalIgnoreCase))
+            {
+                systemRoles.Add("customer");
+            }
             logger.LogInformation("Client rollerinden sistem rolleri filtrelendi: {Roles}", string.Join(", ", systemRoles));
 
             var syncRolesResult = await SyncRolesToLocalSystemAsync(systemRoles, cancellationToken);
