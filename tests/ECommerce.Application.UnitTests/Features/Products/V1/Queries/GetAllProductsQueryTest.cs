@@ -23,7 +23,7 @@ public sealed class GetAllProductsQueryTest : ProductQueriesTestsBase
         // Arrange
         var productDtos = new List<ProductDto>
         {
-            new(DefaultProduct.Id, DefaultProduct.Name, DefaultProduct.Description, DefaultProduct.Price.Value, DefaultProduct.Category?.Name, DefaultProduct.Stock?.Quantity ?? 0, DefaultProduct.IsActive)
+            new(DefaultProduct.Id, DefaultProduct.Name, DefaultProduct.Description, DefaultProduct.Price.Value, DefaultProduct.Category?.Name, DefaultProduct.Stock?.Quantity ?? 0, DefaultProduct.IsActive, new List<ProductImageDto>())
         };
         var pagedResult = new PagedResult<List<ProductDto>>(PagedInfo, productDtos);
 

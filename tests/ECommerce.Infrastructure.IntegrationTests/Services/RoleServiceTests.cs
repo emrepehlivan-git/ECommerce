@@ -11,6 +11,7 @@ public sealed class RoleServiceTests
     private readonly Mock<RoleManager<Role>> RoleManagerMock;
     private readonly Mock<IKeycloakPermissionSyncService> KeycloakSyncServiceMock;
     private readonly Mock<IPermissionService> PermissionServiceMock;
+    private readonly Mock<IKeycloakRoleManagementService> KeycloakRoleManagementServiceMock;
     private readonly Mock<IECommerceLogger<RoleService>> LoggerMock;
     private readonly RoleService RoleService;
 
@@ -29,6 +30,7 @@ public sealed class RoleServiceTests
 
         KeycloakSyncServiceMock = new Mock<IKeycloakPermissionSyncService>();
         PermissionServiceMock = new Mock<IPermissionService>();
+        KeycloakRoleManagementServiceMock = new Mock<IKeycloakRoleManagementService>();
         LoggerMock = new Mock<IECommerceLogger<RoleService>>();
 
         RoleService = new RoleService(
@@ -36,6 +38,7 @@ public sealed class RoleServiceTests
             RoleManagerMock.Object,
             KeycloakSyncServiceMock.Object,
             PermissionServiceMock.Object,
+            KeycloakRoleManagementServiceMock.Object,
             LoggerMock.Object);
     }
 

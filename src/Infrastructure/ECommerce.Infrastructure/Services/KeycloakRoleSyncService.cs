@@ -29,89 +29,40 @@ public class KeycloakRoleSyncService(
             logger.LogInformation("Kullanıcı {UserId} için {Count} Keycloak client rolü bulundu: {Roles}", 
                 user.Id, clientRoles.Count, string.Join(", ", clientRoles));
 
-            var systemRoles = FilterSystemRoles(clientRoles);
-            
-            // Always ensure customer role is present for every user
-            if (!systemRoles.Contains("customer", StringComparer.OrdinalIgnoreCase))
-            {
-                systemRoles.Add("customer");
-                logger.LogInformation("Kullanıcı {UserId} için varsayılan 'customer' rolü eklendi", user.Id);
-            }
-            
-            // If no roles found, at least assign customer role
-            if (clientRoles.Count == 0)
-            {
-                logger.LogWarning("Kullanıcı {UserId} için Keycloak client rolü bulunamadı, varsayılan 'customer' rolü atanıyor", user.Id);
-            }
-            logger.LogInformation("Client rollerinden sistem rolleri filtrelendi: {Roles}", string.Join(", ", systemRoles));
-
-            var syncRolesResult = await SyncRolesToLocalSystemAsync(systemRoles, cancellationToken);
-            if (!syncRolesResult.IsSuccess)
-            {
-                logger.LogWarning("Client rol senkronizasyonu başarısız ama devam ediliyor: {Error}", string.Join(", ", syncRolesResult.Errors));
-            }
-
             var currentUserRoles = await roleService.GetUserRolesAsync(user);
-            var rolesToAdd = systemRoles.Except(currentUserRoles).ToList();
-            var rolesToRemove = currentUserRoles.Except(systemRoles)
-                .Where(role => !IsProtectedRole(role))
-                .ToList();
-
-            foreach (var roleName in rolesToAdd)
+            
+            // Only ensure customer role is present for every user
+            if (!currentUserRoles.Contains("Customer", StringComparer.OrdinalIgnoreCase))
             {
                 try
                 {
-                    var addResult = await roleService.AddToRoleAsync(user, roleName);
+                    var addResult = await roleService.AddToRoleAsync(user, "Customer");
                     if (addResult.Succeeded)
                     {
-                        logger.LogInformation("Kullanıcı {UserId} için client rolü {RoleName} eklendi", user.Id, roleName);
+                        logger.LogInformation("Kullanıcı {UserId} için varsayılan 'Customer' rolü eklendi", user.Id);
                     }
                     else
                     {
-                        logger.LogWarning("Kullanıcı {UserId} için client rolü {RoleName} eklenemedi: {Errors}",
-                            user.Id, roleName, string.Join(", ", addResult.Errors.Select(e => e.Description)));
+                        logger.LogWarning("Kullanıcı {UserId} için varsayılan 'Customer' rolü eklenemedi: {Errors}",
+                            user.Id, string.Join(", ", addResult.Errors.Select(e => e.Description)));
                     }
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, "Kullanıcı {UserId} için client rolü {RoleName} ekleme hatası", user.Id, roleName);
+                    logger.LogError(ex, "Kullanıcı {UserId} için varsayılan 'Customer' rolü ekleme hatası", user.Id);
                 }
             }
-
-            foreach (var roleName in rolesToRemove)
+            
+            // Don't automatically assign other roles from Keycloak
+            // Only log what roles were found but not auto-assigned
+            var systemRoles = FilterSystemRoles(clientRoles);
+            if (systemRoles.Any())
             {
-                try
-                {
-                    if (roleName.Equals("admin", StringComparison.OrdinalIgnoreCase) || 
-                        roleName.Equals("Admin", StringComparison.OrdinalIgnoreCase))
-                    {
-                        if (systemRoles.Any(r => r.Equals("admin", StringComparison.OrdinalIgnoreCase) || 
-                                               r.Equals("Admin", StringComparison.OrdinalIgnoreCase)))
-                        {
-                            logger.LogInformation("Kullanıcı {UserId} hala Keycloak client rollerinde admin rolüne sahip, yerel admin rolü korunuyor", user.Id);
-                            continue;
-                        }
-                    }
-
-                    var removeResult = await roleService.RemoveFromRoleAsync(user, roleName);
-                    if (removeResult.Succeeded)
-                    {
-                        logger.LogInformation("Kullanıcı {UserId} için client rolü {RoleName} kaldırıldı", user.Id, roleName);
-                    }
-                    else
-                    {
-                        logger.LogWarning("Kullanıcı {UserId} için client rolü {RoleName} kaldırılamadı: {Errors}",
-                            user.Id, roleName, string.Join(", ", removeResult.Errors.Select(e => e.Description)));
-                    }
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Kullanıcı {UserId} için client rolü {RoleName} kaldırma hatası", user.Id, roleName);
-                }
+                logger.LogInformation("Kullanıcı {UserId} için Keycloak client rolü bulundu ancak otomatik atanmadı: {Roles}", 
+                    user.Id, string.Join(", ", systemRoles));
             }
 
-            logger.LogInformation("Kullanıcı {UserId} client rol senkronizasyonu tamamlandı. Eklenen: {Added}, Kaldırılan: {Removed}",
-                user.Id, rolesToAdd.Count, rolesToRemove.Count);
+            logger.LogInformation("Kullanıcı {UserId} client rol senkronizasyonu tamamlandı. Sadece Customer rolü kontrol edildi.", user.Id);
 
             return Result.Success();
         }

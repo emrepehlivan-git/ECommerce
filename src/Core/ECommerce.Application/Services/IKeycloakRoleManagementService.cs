@@ -12,11 +12,10 @@ public interface IKeycloakRoleManagementService
     /// Creates a role in Keycloak client
     /// </summary>
     /// <param name="roleName">Role name to create</param>
-    /// <param name="description">Role description</param>
     /// <param name="clientId">Keycloak client ID</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Result of role creation</returns>
-    Task<Result> CreateClientRoleAsync(string roleName, string? description = null, string clientId = "ecommerce-api", CancellationToken cancellationToken = default);
+    Task<Result> CreateClientRoleAsync(string roleName, string clientId = "ecommerce-api", CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Deletes a role from Keycloak client

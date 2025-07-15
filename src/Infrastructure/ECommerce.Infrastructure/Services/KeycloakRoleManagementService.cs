@@ -6,8 +6,8 @@ using ECommerce.Application.Common.Logging;
 using ECommerce.Application.Services;
 using ECommerce.Domain.Entities;
 using ECommerce.SharedKernel.DependencyInjection;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Identity;
 
 namespace ECommerce.Infrastructure.Services;
 
@@ -15,8 +15,7 @@ public sealed class KeycloakRoleManagementService(
     HttpClient httpClient,
     IConfiguration configuration,
     IECommerceLogger<KeycloakRoleManagementService> logger,
-    UserManager<User> userManager,
-    IRoleService roleService) : IKeycloakRoleManagementService, IScopedDependency
+    UserManager<User> userManager) : IKeycloakRoleManagementService, IScopedDependency
 {
     private readonly string _authServerUrl = configuration.GetSection("Keycloak")["auth-server-url"]!;
     private readonly string _realm = configuration.GetSection("Keycloak")["realm"]!;
@@ -25,7 +24,7 @@ public sealed class KeycloakRoleManagementService(
     private readonly string _adminUsername = configuration.GetSection("Keycloak")["admin-username"]!;
     private readonly string _adminPassword = configuration.GetSection("Keycloak")["admin-password"]!;
 
-    public async Task<Result> CreateClientRoleAsync(string roleName, string? description = null, string clientId = "ecommerce-api", CancellationToken cancellationToken = default)
+    public async Task<Result> CreateClientRoleAsync(string roleName, string clientId = "ecommerce-api", CancellationToken cancellationToken = default)
     {
         try
         {
@@ -40,7 +39,7 @@ public sealed class KeycloakRoleManagementService(
             var roleData = new
             {
                 name = roleName,
-                description = description ?? $"Role: {roleName}",
+                description = $"Role: {roleName}",
                 composite = false,
                 clientRole = true
             };
@@ -264,11 +263,11 @@ public sealed class KeycloakRoleManagementService(
             var content = await response.Content.ReadAsStringAsync(cancellationToken);
             var roles = JsonSerializer.Deserialize<JsonElement[]>(content);
 
-            var roleNames = roles.Select(r => r.GetProperty("name").GetString()!)
+            var roleNames = roles?.Select(r => r.GetProperty("name").GetString()!)
                                  .Where(name => !string.IsNullOrEmpty(name))
                                  .ToList();
 
-            return Result<List<string>>.Success(roleNames);
+            return Result<List<string>>.Success(roleNames ?? []);
         }
         catch (Exception ex)
         {
@@ -315,19 +314,19 @@ public sealed class KeycloakRoleManagementService(
 
             if (!existsResult.Value)
             {
-                var createResult = await CreateClientRoleAsync(role.Name!, role.Description, clientId, cancellationToken);
+                var createResult = await CreateClientRoleAsync(role.Name!, clientId: clientId, cancellationToken: cancellationToken);
                 if (!createResult.IsSuccess)
                 {
                     return Result.Error($"Failed to create role in Keycloak: {string.Join(", ", createResult.Errors)}");
                 }
             }
 
-            logger.LogInformation("Role '{RoleName}' synchronized to Keycloak client '{ClientId}'", role.Name, clientId);
+            logger.LogInformation("Role '{RoleName}' synchronized to Keycloak client '{ClientId}'", role?.Name ?? "Unknown", clientId);
             return Result.Success();
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error synchronizing role '{RoleName}' to Keycloak", role.Name);
+            logger.LogError(ex, "Error synchronizing role '{RoleName}' to Keycloak", role?.Name ?? "Unknown");
             return Result.Error($"Error synchronizing role: {ex.Message}");
         }
     }
@@ -336,7 +335,7 @@ public sealed class KeycloakRoleManagementService(
     {
         try
         {
-            var localRoles = await roleService.GetUserRolesAsync(user);
+            var localRoles = await userManager.GetRolesAsync(user);
             var keycloakRolesResult = await GetUserClientRolesAsync(user.Id.ToString(), clientId, cancellationToken);
 
             if (!keycloakRolesResult.IsSuccess)
@@ -426,7 +425,7 @@ public sealed class KeycloakRoleManagementService(
             return null;
 
         var content = await response.Content.ReadAsStringAsync();
-        var clients = JsonSerializer.Deserialize<JsonElement[]>(content);
+        var clients = JsonSerializer.Deserialize<JsonElement[]>(content) ?? [];
 
         return clients.FirstOrDefault().TryGetProperty("id", out var id) ? id.GetString() : null;
     }
