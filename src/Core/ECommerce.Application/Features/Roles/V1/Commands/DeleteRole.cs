@@ -39,8 +39,7 @@ public sealed class DeleteRoleCommandHandler(
             return Result.Error(result.Errors.Select(e => e.Description).ToArray());
         }
 
-        await cacheManager.RemoveAsync("roles:all:include-permissions:True", cancellationToken);
-        await cacheManager.RemoveAsync("roles:all:include-permissions:False", cancellationToken);
+        await cacheManager.RemoveAsync("roles:all", cancellationToken);
 
         return Result.Success();
     }

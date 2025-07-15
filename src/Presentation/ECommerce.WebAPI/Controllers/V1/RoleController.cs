@@ -19,9 +19,9 @@ public sealed class RoleController : BaseApiV1Controller
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> GetRoles([FromQuery] PageableRequestParams requestParams, [FromQuery] bool includePermissions = false, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> GetRoles([FromQuery] PageableRequestParams requestParams, CancellationToken cancellationToken = default)
     {
-        var result = await Mediator.Send(new GetAllRolesQuery(requestParams, includePermissions), cancellationToken);
+        var result = await Mediator.Send(new GetAllRolesQuery(requestParams), cancellationToken);
         return Ok(result);
     }
 

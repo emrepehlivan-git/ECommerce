@@ -13,25 +13,19 @@ public sealed record UpdateRoleCommand(Guid Id, string Name) : IRequest<Result>,
 
 public sealed class UpdateRoleCommandValidator : AbstractValidator<UpdateRoleCommand>
 {
-    private readonly ILocalizationHelper _localizer;
-    private readonly IRoleService _roleService;
-
     public UpdateRoleCommandValidator(ILocalizationHelper localizer, IRoleService roleService)
     {
-        _localizer = localizer;
-        _roleService = roleService;
-
         RuleFor(x => x.Id)
             .MustAsync(async (id, cancellationToken) => await roleService.FindRoleByIdAsync(id) != null)
-            .WithMessage(x => _localizer[RoleConsts.RoleNotFound]);
+            .WithMessage(x => localizer[RoleConsts.RoleNotFound]);
 
         RuleFor(x => x.Name)
             .NotEmpty()
-                .WithMessage(x => _localizer[RoleConsts.NameIsRequired])
+                .WithMessage(x => localizer[RoleConsts.NameIsRequired])
             .MinimumLength(RoleConsts.NameMinLength)
-                .WithMessage(x => _localizer[RoleConsts.NameMustBeAtLeastCharacters, RoleConsts.NameMinLength.ToString()])
+                .WithMessage(x => localizer[RoleConsts.NameMustBeAtLeastCharacters, RoleConsts.NameMinLength.ToString()])
             .MaximumLength(RoleConsts.NameMaxLength)
-                .WithMessage(x => _localizer[RoleConsts.NameMustBeLessThanCharacters, RoleConsts.NameMaxLength.ToString()]);
+                .WithMessage(x => localizer[RoleConsts.NameMustBeLessThanCharacters, RoleConsts.NameMaxLength.ToString()]);
             
         RuleFor(x => x)
             .MustAsync(async (command, ct) =>
@@ -39,7 +33,7 @@ public sealed class UpdateRoleCommandValidator : AbstractValidator<UpdateRoleCom
                 var existingRole = await roleService.FindRoleByNameAsync(command.Name);
                 return existingRole == null || existingRole.Id == command.Id;
             })
-            .WithMessage(x => _localizer[RoleConsts.NameExists])
+            .WithMessage(x => localizer[RoleConsts.NameExists])
             .WithName(nameof(UpdateRoleCommand.Name));
     }
 }
@@ -63,7 +57,7 @@ public sealed class UpdateRoleCommandHandler(
             return Result.Error(result.Errors.Select(e => e.Description).ToArray());
         }
 
-        await cacheManager.RemoveByPatternAsync("roles:all:include-permissions:*", cancellationToken);
+        await cacheManager.RemoveByPatternAsync("roles:all", cancellationToken);
 
         return Result.Success();
     }

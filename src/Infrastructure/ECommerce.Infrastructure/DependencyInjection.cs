@@ -37,8 +37,7 @@ public static class DependencyInjection
         services.AddStackExchangeRedisCache(options =>
         {
             options.Configuration = configuration.GetConnectionString("Redis");
-            options.InstanceName = "ECommerce";
-                options.ConfigurationOptions = new ConfigurationOptions
+            options.ConfigurationOptions = new ConfigurationOptions
             {
                 EndPoints = { configuration.GetConnectionString("Redis")! },
                 ConnectTimeout = 5000, 

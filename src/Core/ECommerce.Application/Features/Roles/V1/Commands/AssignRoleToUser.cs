@@ -1,12 +1,10 @@
 using Ardalis.Result;
 using ECommerce.Application.Common.CQRS;
-using ECommerce.Application.Features.Users;
 using ECommerce.Application.Interfaces;
 using ECommerce.Application.Services;
 using ECommerce.SharedKernel.DependencyInjection;
 using FluentValidation;
 using MediatR;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace ECommerce.Application.Features.Roles.V1.Commands;
 
@@ -48,8 +46,7 @@ public sealed class AssignRoleToUserCommandHandler(
 
         var result = await roleService.AddToRoleAsync(user, role.Name!);
         
-        // User permissions cache'ini temizle
-        await cacheManager.RemoveAsync($"user_permissions_{request.UserId}", cancellationToken);
+        await cacheManager.RemoveAsync($"user-roles:{request.UserId}", cancellationToken);
 
         return Result<bool>.Success(result.Succeeded);
     }

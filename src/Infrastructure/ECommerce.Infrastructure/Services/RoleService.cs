@@ -92,15 +92,9 @@ public sealed class RoleService(
         return IdentityResult.Success;
     }
 
-    public async Task<PagedResult<List<RoleDto>>> GetAllRolesAsync(int page, int pageSize, string search, bool includePermissions = false)
+    public async Task<PagedResult<List<RoleDto>>> GetAllRolesAsync(int page, int pageSize, string search)
     {
         IQueryable<Role> query = roleManager.Roles;
-
-        if (includePermissions)
-        {
-            query = query.Include(r => r.RolePermissions)
-                .ThenInclude(rp => rp.Permission);
-        }
 
         if (!string.IsNullOrEmpty(search))
             query = query.Where(r => r.Name != null && r.Name.ToLower().Contains(search.ToLower()));

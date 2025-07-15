@@ -47,7 +47,7 @@ public sealed class CreateRoleCommandHandler(
             return Result.Error([.. result.Errors.Select(e => e.Description)]);
         }
 
-        await cacheManager.RemoveByPatternAsync("roles:all:include-permissions:*", cancellationToken);
+        await cacheManager.RemoveByPatternAsync("roles:*", cancellationToken);
 
         return Result.Success(role.Id);
     }
