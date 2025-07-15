@@ -7,4 +7,5 @@ public sealed record ProductDto(
     decimal Price,
     string? CategoryName,
     int StockQuantity,
-    bool IsActive);
+    bool IsActive,
+    List<ProductImageDto> Images);

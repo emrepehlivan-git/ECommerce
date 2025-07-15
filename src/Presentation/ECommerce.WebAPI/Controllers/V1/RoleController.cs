@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Ardalis.Result.AspNetCore;
 using System.Security.Claims;
+using Ardalis.Result;
 
 namespace ECommerce.WebAPI.Controllers.V1;
 
@@ -14,7 +15,7 @@ public sealed class RoleController : BaseApiV1Controller
 {
     [HttpGet]
     [Authorize(Policy = PermissionConstants.Roles.Read)]
-    [ProducesResponseType(typeof(List<RoleDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResult<List<RoleDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]

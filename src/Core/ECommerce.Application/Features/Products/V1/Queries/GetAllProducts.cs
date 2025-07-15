@@ -9,6 +9,7 @@ using ECommerce.Application.Parameters;
 using MediatR;
 using System.Linq.Expressions;
 using ECommerce.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Application.Features.Products.V1.Queries;
 
@@ -46,6 +47,7 @@ public sealed class GetAllProductsQueryHandler(
 
         return await productRepository.GetPagedAsync<ProductDto>(
             predicate: predicate,
+            include: x => x.Include(p => p.Images),
             orderBy: x => x.ApplyOrderBy(Filter.FromOrderByString(query.OrderBy)),
             page: query.PageableRequestParams.Page,
             pageSize: query.PageableRequestParams.PageSize,

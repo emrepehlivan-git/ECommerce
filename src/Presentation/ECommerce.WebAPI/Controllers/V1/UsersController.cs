@@ -6,12 +6,13 @@ using ECommerce.Application.Features.Users.V1.DTOs;
 using Ardalis.Result.AspNetCore;
 using Microsoft.AspNetCore.Authorization;
 using ECommerce.Application.Services;
+using Ardalis.Result;
 namespace ECommerce.WebAPI.Controllers.V1;
 
 public sealed class UsersController : BaseApiV1Controller
 {
     [HttpGet]
-    [ProducesResponseType(typeof(List<UserDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResult<List<UserDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]

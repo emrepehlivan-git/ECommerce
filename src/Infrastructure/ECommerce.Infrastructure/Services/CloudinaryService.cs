@@ -194,7 +194,6 @@ public sealed class CloudinaryService : ICloudinaryService, IScopedDependency
 
     public bool ValidateImageFile(Stream imageStream, string fileName, long fileSizeBytes)
     {
-        // Dosya boyutu kontrolü
         if (fileSizeBytes > _settings.Upload.MaxFileSizeBytes)
         {
             _logger.LogWarning("File size {Size} exceeds maximum allowed size {MaxSize}", 
@@ -202,7 +201,6 @@ public sealed class CloudinaryService : ICloudinaryService, IScopedDependency
             return false;
         }
 
-        // Dosya formatı kontrolü
         var extension = Path.GetExtension(fileName)?.TrimStart('.').ToLower() ?? string.Empty;
         if (string.IsNullOrEmpty(extension) || !_settings.Upload.AllowedFormats.Contains(extension))
         {
@@ -210,7 +208,6 @@ public sealed class CloudinaryService : ICloudinaryService, IScopedDependency
             return false;
         }
 
-        // Stream kontrolü
         if (imageStream == null || !imageStream.CanRead || imageStream.Length == 0)
         {
             _logger.LogWarning("Invalid image stream");
@@ -240,7 +237,39 @@ public sealed class CloudinaryService : ICloudinaryService, IScopedDependency
         }
     }
 
-    private string GeneratePublicId(string fileName, ImageType imageType)
+    public async Task DeleteAllImagesAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            string? nextCursor = null;
+            do
+            {
+                var listParams = new ListResourcesParams
+                {
+                    MaxResults = 500,
+                    NextCursor = nextCursor
+                };
+                var resources = await _cloudinary.ListResourcesAsync(listParams, cancellationToken);
+                if (resources.Resources == null || resources.Resources.Length == 0)
+                    break;
+                var publicIds = resources.Resources.Select(r => r.PublicId).ToList();
+                if (publicIds.Count > 0)
+                {
+                    var deleteParams = new DelResParams { PublicIds = publicIds };
+                    await _cloudinary.DeleteResourcesAsync(deleteParams, cancellationToken);
+                    _logger.LogInformation("Deleted {Count} images in batch", publicIds.Count);
+                }
+                nextCursor = resources.NextCursor;
+            } while (!string.IsNullOrEmpty(nextCursor));
+            _logger.LogInformation("Successfully deleted all images");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting all images");
+        }
+    }
+
+    private static string GeneratePublicId(string fileName, ImageType imageType)
     {
         var nameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
         var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -251,14 +280,12 @@ public sealed class CloudinaryService : ICloudinaryService, IScopedDependency
     {
         return new List<Transformation>
         {
-            // Thumbnail transformation
             new Transformation()
                 .Width(_settings.Transformations.Thumbnail.Width)
                 .Height(_settings.Transformations.Thumbnail.Height)
                 .Crop(_settings.Transformations.Thumbnail.Crop)
                 .Quality(_settings.Transformations.Thumbnail.Quality),
             
-            // Large transformation
             new Transformation()
                 .Width(_settings.Transformations.Large.Width)
                 .Height(_settings.Transformations.Large.Height)

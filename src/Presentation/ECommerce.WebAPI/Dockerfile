@@ -27,6 +27,7 @@ RUN dotnet publish "ECommerce.WebAPI.csproj" -c $BUILD_CONFIGURATION -o /app/pub
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+COPY --from=build /src/src/Infrastructure/ECommerce.Persistence/SeedImages ./SeedImages
 
 ENV ASPNETCORE_URLS=http://+:8080
 

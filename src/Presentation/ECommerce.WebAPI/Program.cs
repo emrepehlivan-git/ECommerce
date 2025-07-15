@@ -1,6 +1,6 @@
 using ECommerce.WebAPI;
 using ECommerce.Application.Common.Logging;
-using ECommerce.Persistence.Extensions;
+using ECommerce.Persistence.Seeders;
 
 IECommerceLogger<Program>? logger = null;
 
@@ -18,7 +18,13 @@ try
     {
         await app.ApplyMigrations();
         await app.ConfigurePermissions();
-        await app.Services.SeedDatabaseAsync();
+
+        // Seed işlemini otomatik başlat
+        using (var scope = app.Services.CreateScope())
+        {
+            var seeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
+            await seeder.SeedAsync();
+        }
     }
 
     app.UsePresentation(app.Environment);

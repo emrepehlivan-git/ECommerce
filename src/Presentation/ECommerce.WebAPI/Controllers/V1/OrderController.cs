@@ -5,13 +5,14 @@ using ECommerce.Application.Features.Orders.V1.DTOs;
 using ECommerce.Application.Parameters;
 using ECommerce.Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
+using Ardalis.Result;
 
 namespace ECommerce.WebAPI.Controllers.V1;
 
 public sealed class OrderController() : BaseApiV1Controller
 {
     [HttpGet]
-    [ProducesResponseType(typeof(List<OrderDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResult<List<OrderDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]

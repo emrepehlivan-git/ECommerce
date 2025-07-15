@@ -7,6 +7,7 @@ using ECommerce.Infrastructure;
 using ECommerce.Infrastructure.Services;
 using ECommerce.Persistence;
 using ECommerce.Persistence.Contexts;
+using ECommerce.Persistence.Seeders;
 using ECommerce.SharedKernel.DependencyInjection;
 using ECommerce.WebAPI.Authorization;
 using ECommerce.WebAPI.Controllers.V1;
@@ -27,6 +28,7 @@ public static class DependencyInjection
     public static IServiceCollection AddApiServices(this IServiceCollection services, IConfiguration configuration)
     {
         ConfigureLocalization(services);
+        services.AddScoped<DataSeeder>();
 
         services.AddCors(options =>
         {

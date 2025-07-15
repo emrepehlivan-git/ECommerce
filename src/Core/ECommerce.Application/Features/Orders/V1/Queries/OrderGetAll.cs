@@ -1,13 +1,10 @@
 using Ardalis.Result;
 using ECommerce.Application.Common.CQRS;
 using ECommerce.SharedKernel.DependencyInjection;
-using ECommerce.Application.Extensions;
 using ECommerce.Application.Features.Orders.V1.DTOs;
 using ECommerce.Application.Parameters;
 using ECommerce.Application.Repositories;
-using ECommerce.Domain.Entities;
 using ECommerce.Domain.Enums;
-using ECommerce.SharedKernel;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
