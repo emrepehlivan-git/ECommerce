@@ -29,16 +29,19 @@ public class KeycloakRoleSyncService(
             logger.LogInformation("Kullanıcı {UserId} için {Count} Keycloak client rolü bulundu: {Roles}", 
                 user.Id, clientRoles.Count, string.Join(", ", clientRoles));
 
-            if (clientRoles.Count == 0)
-            {
-                logger.LogWarning("Kullanıcı {UserId} için senkronize edilecek Keycloak client rolü bulunamadı. Token'ın 'aud' ve 'resource_access' claim'lerini kontrol edin.", user.Id);
-                return Result.Success();
-            }
-
             var systemRoles = FilterSystemRoles(clientRoles);
+            
+            // Always ensure customer role is present for every user
             if (!systemRoles.Contains("customer", StringComparer.OrdinalIgnoreCase))
             {
                 systemRoles.Add("customer");
+                logger.LogInformation("Kullanıcı {UserId} için varsayılan 'customer' rolü eklendi", user.Id);
+            }
+            
+            // If no roles found, at least assign customer role
+            if (clientRoles.Count == 0)
+            {
+                logger.LogWarning("Kullanıcı {UserId} için Keycloak client rolü bulunamadı, varsayılan 'customer' rolü atanıyor", user.Id);
             }
             logger.LogInformation("Client rollerinden sistem rolleri filtrelendi: {Roles}", string.Join(", ", systemRoles));
 

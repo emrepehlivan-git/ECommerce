@@ -41,10 +41,6 @@ public static class ClaimsPrincipalExtensions
 
     public static List<string> GetClientRoles(this ClaimsPrincipal principal)
     {
-        var clientId = principal.FindFirstValue("aud");
-        if (string.IsNullOrEmpty(clientId))
-            return [];
-
         var resourceAccessClaim = principal.FindFirstValue("resource_access");
         if (string.IsNullOrEmpty(resourceAccessClaim))
             return [];
@@ -52,14 +48,43 @@ public static class ClaimsPrincipalExtensions
         try
         {
             using var doc = JsonDocument.Parse(resourceAccessClaim);
-            if (doc.RootElement.TryGetProperty(clientId, out var clientElement) &&
-                clientElement.TryGetProperty("roles", out var rolesElement))
+            var allRoles = new List<string>();
+            
+            // Priority order: ecommerce-api, nextjs-client, swagger-client, then any other client
+            var clientPriority = new[] { "ecommerce-api", "nextjs-client", "swagger-client" };
+            
+            foreach (var clientId in clientPriority)
             {
-                return [.. rolesElement.EnumerateArray()
-                    .Where(role => role.ValueKind == JsonValueKind.String)
-                    .Select(role => role.GetString()!)
-                    .Where(role => !string.IsNullOrEmpty(role))];
+                if (doc.RootElement.TryGetProperty(clientId, out var clientElement) &&
+                    clientElement.TryGetProperty("roles", out var rolesElement))
+                {
+                    var roles = rolesElement.EnumerateArray()
+                        .Where(role => role.ValueKind == JsonValueKind.String)
+                        .Select(role => role.GetString()!)
+                        .Where(role => !string.IsNullOrEmpty(role))
+                        .ToList();
+                    
+                    allRoles.AddRange(roles);
+                }
             }
+            
+            // Check for any other clients not in priority list
+            foreach (var property in doc.RootElement.EnumerateObject())
+            {
+                if (!clientPriority.Contains(property.Name) && 
+                    property.Value.TryGetProperty("roles", out var rolesElement))
+                {
+                    var roles = rolesElement.EnumerateArray()
+                        .Where(role => role.ValueKind == JsonValueKind.String)
+                        .Select(role => role.GetString()!)
+                        .Where(role => !string.IsNullOrEmpty(role))
+                        .ToList();
+                    
+                    allRoles.AddRange(roles);
+                }
+            }
+            
+            return allRoles.Distinct().ToList();
         }
         catch (JsonException)
         {
