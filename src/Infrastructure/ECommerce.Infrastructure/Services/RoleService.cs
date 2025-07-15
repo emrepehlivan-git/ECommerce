@@ -16,6 +16,7 @@ public sealed class RoleService(
     RoleManager<Role> roleManager,
     IKeycloakPermissionSyncService keycloakSyncService,
     IPermissionService permissionService,
+    IKeycloakRoleManagementService keycloakRoleManagementService,
     IECommerceLogger<RoleService> logger) : IRoleService, IScopedDependency
 {
     public async Task<IList<string>> GetRolesAsync()
@@ -51,7 +52,15 @@ public sealed class RoleService(
 
     public async Task<IdentityResult> CreateRoleAsync(Role role)
     {
-        return await roleManager.CreateAsync(role);
+        var result = await roleManager.CreateAsync(role);
+        
+        if (result.Succeeded)
+        {
+            // Sync role to Keycloak
+            await keycloakRoleManagementService.SyncRoleToKeycloakAsync(role);
+        }
+        
+        return result;
     }
 
     public async Task<IdentityResult> UpdateRoleAsync(Role role)
@@ -61,7 +70,15 @@ public sealed class RoleService(
 
     public async Task<IdentityResult> DeleteRoleAsync(Role role)
     {
-        return await roleManager.DeleteAsync(role);
+        var result = await roleManager.DeleteAsync(role);
+        
+        if (result.Succeeded)
+        {
+            // Remove role from Keycloak
+            await keycloakRoleManagementService.DeleteClientRoleAsync(role.Name!);
+        }
+        
+        return result;
     }
 
     public async Task<IdentityResult> DeleteRolesAsync(List<Role> roles)
@@ -102,6 +119,10 @@ public sealed class RoleService(
         
         if (result.Succeeded)
         {
+            // Sync role to Keycloak
+            await keycloakRoleManagementService.AssignClientRoleToUserAsync(user.Id.ToString(), role);
+            
+            // Sync permissions to Keycloak
             await SyncUserPermissionsToKeycloakAsync(user.Id);
         }
         
@@ -114,6 +135,10 @@ public sealed class RoleService(
         
         if (result.Succeeded)
         {
+            // Remove role from Keycloak
+            await keycloakRoleManagementService.RemoveClientRoleFromUserAsync(user.Id.ToString(), role);
+            
+            // Sync permissions to Keycloak
             await SyncUserPermissionsToKeycloakAsync(user.Id);
         }
         

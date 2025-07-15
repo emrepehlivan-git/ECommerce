@@ -14,7 +14,8 @@ public sealed class UserSynchronizationService(
     UserManager<User> userManager,
     IECommerceLogger<UserSynchronizationService> logger,
     IServiceProvider serviceProvider,
-    IKeycloakRoleSyncService keycloakRoleSyncService) : IUserSynchronizationService, IScopedDependency
+    IKeycloakRoleSyncService keycloakRoleSyncService,
+    IKeycloakRoleManagementService keycloakRoleManagementService) : IUserSynchronizationService, IScopedDependency
 {
     public async Task<Result<User>> SyncUserAsync(ClaimsPrincipal principal, CancellationToken cancellationToken)
     {
@@ -83,6 +84,11 @@ public sealed class UserSynchronizationService(
         if (!addToRoleResult.Succeeded)
         {
             logger.LogWarning("Failed to add 'Customer' role to user {Email}", email);
+        }
+        else
+        {
+            // Sync customer role to Keycloak
+            await keycloakRoleManagementService.AssignClientRoleToUserAsync(newUser.Id.ToString(), "Customer");
         }
         
         logger.LogInformation("Successfully created and provisioned user {Email} with ID {UserId}", email, newUser.Id);
