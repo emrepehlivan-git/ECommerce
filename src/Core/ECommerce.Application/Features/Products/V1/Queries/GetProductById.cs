@@ -24,7 +24,8 @@ public sealed class GetProductByIdQueryHandler(
     public override async Task<Result<ProductDto>> Handle(GetProductByIdQuery query, CancellationToken cancellationToken)
     {
         var product = await productRepository.GetByIdAsync(query.Id,
-            include: x => x.Include(p => p.Category)
+            include: x => x.Include(p => p.Stock)
+            .Include(p => p.Category)
             .Include(p => p.Images),
             cancellationToken: cancellationToken);
 

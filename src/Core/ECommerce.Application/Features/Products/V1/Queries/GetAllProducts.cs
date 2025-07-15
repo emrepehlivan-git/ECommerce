@@ -47,7 +47,7 @@ public sealed class GetAllProductsQueryHandler(
 
         return await productRepository.GetPagedAsync<ProductDto>(
             predicate: predicate,
-            include: x => x.Include(p => p.Images),
+            include: x => x.Include(p => p.Images).Include(p => p.Stock),
             orderBy: x => x.ApplyOrderBy(Filter.FromOrderByString(query.OrderBy)),
             page: query.PageableRequestParams.Page,
             pageSize: query.PageableRequestParams.PageSize,
