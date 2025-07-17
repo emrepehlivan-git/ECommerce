@@ -26,7 +26,7 @@ public sealed class OrderGetAllQueryTests : OrderQueriesTestBase
             new(DefaultOrder.Id,
                          DefaultOrder.UserId,
                          DefaultOrder.OrderDate,
-                         DefaultOrder.Status,
+                         DefaultOrder.Status.ToString(),
                          DefaultOrder.TotalAmount,
                          DefaultOrder.ShippingAddress.ToString(),
                          DefaultOrder.BillingAddress.ToString(),
@@ -67,7 +67,7 @@ public sealed class OrderGetAllQueryTests : OrderQueriesTestBase
         var queryWithStatus = new OrderGetAllQuery(new PageableRequestParams(Page: 1, PageSize: 10), OrderStatus.Processing);
         var orderDtos = new List<OrderDto>
         {
-            new(DefaultOrder.Id, DefaultOrder.UserId, DefaultOrder.OrderDate, DefaultOrder.Status, DefaultOrder.TotalAmount, DefaultOrder.ShippingAddress.ToString(), DefaultOrder.BillingAddress.ToString(), DefaultOrder.Items.Select(i => new OrderItemDto(i.Id, i.ProductId, i.Product?.Name ?? "", i.UnitPrice.Value, i.Quantity, i.TotalPrice.Value)).ToList())
+            new(DefaultOrder.Id, DefaultOrder.UserId, DefaultOrder.OrderDate, DefaultOrder.Status.ToString(), DefaultOrder.TotalAmount, DefaultOrder.ShippingAddress.ToString(), DefaultOrder.BillingAddress.ToString(), DefaultOrder.Items.Select(i => new OrderItemDto(i.Id, i.ProductId, i.Product?.Name ?? "", i.UnitPrice.Value, i.Quantity, i.TotalPrice.Value)).ToList())
         };
         var pagedResult = new PagedResult<List<OrderDto>>(PagedInfo, orderDtos);
 
@@ -104,7 +104,7 @@ public sealed class OrderGetAllQueryTests : OrderQueriesTestBase
         var query = new OrderGetAllQuery(new PageableRequestParams(Page: 2, PageSize: 5));
         var orderDtos = new List<OrderDto>
         {
-            new OrderDto(DefaultOrder.Id, DefaultOrder.UserId, DefaultOrder.OrderDate, DefaultOrder.Status, DefaultOrder.TotalAmount, DefaultOrder.ShippingAddress.ToString(), DefaultOrder.BillingAddress.ToString(), DefaultOrder.Items.Select(i => new OrderItemDto(i.Id, i.ProductId, i.Product?.Name ?? "", i.UnitPrice.Value, i.Quantity, i.TotalPrice.Value)).ToList())
+            new OrderDto(DefaultOrder.Id, DefaultOrder.UserId, DefaultOrder.OrderDate, DefaultOrder.Status.ToString(), DefaultOrder.TotalAmount, DefaultOrder.ShippingAddress.ToString(), DefaultOrder.BillingAddress.ToString(), DefaultOrder.Items.Select(i => new OrderItemDto(i.Id, i.ProductId, i.Product?.Name ?? "", i.UnitPrice.Value, i.Quantity, i.TotalPrice.Value)).ToList())
         };
         var pagedResult = new PagedResult<List<OrderDto>>(PagedInfo, orderDtos);
 
@@ -133,7 +133,7 @@ public sealed class OrderGetAllQueryTests : OrderQueriesTestBase
         // Arrange
         var orderDtos = new List<OrderDto>
         {
-            new(DefaultOrder.Id, DefaultOrder.UserId, DefaultOrder.OrderDate, DefaultOrder.Status, DefaultOrder.TotalAmount, DefaultOrder.ShippingAddress.ToString(), DefaultOrder.BillingAddress.ToString(), DefaultOrder.Items.Select(i => new OrderItemDto(i.Id, i.ProductId, i.Product?.Name ?? "", i.UnitPrice.Value, i.Quantity, i.TotalPrice.Value)).ToList())
+            new(DefaultOrder.Id, DefaultOrder.UserId, DefaultOrder.OrderDate, DefaultOrder.Status.ToString(), DefaultOrder.TotalAmount, DefaultOrder.ShippingAddress.ToString(), DefaultOrder.BillingAddress.ToString(), DefaultOrder.Items.Select(i => new OrderItemDto(i.Id, i.ProductId, i.Product?.Name ?? "", i.UnitPrice.Value, i.Quantity, i.TotalPrice.Value)).ToList())
         };
         var pagedResult = new PagedResult<List<OrderDto>>(PagedInfo, orderDtos);
 

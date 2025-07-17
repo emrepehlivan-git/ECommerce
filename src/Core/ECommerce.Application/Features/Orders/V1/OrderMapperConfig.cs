@@ -9,7 +9,8 @@ public static class OrderMapperConfig
     public static void Configure(TypeAdapterConfig config)
     {
         config.ForType<Order, OrderDto>()
-            .Map(dest => dest.Items, src => src.Items);
+            .Map(dest => dest.Items, src => src.Items)
+            .Map(dest => dest.Status, src => src.Status.ToString());
 
         config.ForType<OrderItem, OrderItemDto>()
             .Map(dest => dest.ProductName, src => src.Product.Name);
