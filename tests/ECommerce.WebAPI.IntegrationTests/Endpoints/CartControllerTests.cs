@@ -115,6 +115,7 @@ public class CartControllerTests : BaseIntegrationTest, IAsyncLifetime
         cart.Items.Should().BeEmpty();
     }
 
+
     private async Task<Product> CreateProductAsync(string name = "Test Product", decimal price = 100m, int stock = 10)
     {
         using var scope = Factory.Services.CreateScope();
