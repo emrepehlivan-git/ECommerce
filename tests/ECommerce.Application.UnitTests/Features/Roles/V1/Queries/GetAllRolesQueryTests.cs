@@ -19,7 +19,7 @@ public sealed class GetAllRolesQueryTests : RoleTestBase
         ];
 
         PageableRequestParams = new PageableRequestParams(1, 10);
-        Query = new GetAllRolesQuery(PageableRequestParams, false);
+        Query = new GetAllRolesQuery(PageableRequestParams);
         Handler = new GetAllRolesQueryHandler(
             RoleServiceMock.Object,
             LazyServiceProviderMock.Object);
@@ -42,7 +42,7 @@ public sealed class GetAllRolesQueryTests : RoleTestBase
         result.Value.Should().Contain(r => r.Name == "User");
         result.Value.Should().Contain(r => r.Name == "Manager");
 
-        RoleServiceMock.Verify(x => x.GetAllRolesAsync(PageableRequestParams.Page, PageableRequestParams.PageSize, PageableRequestParams.Search ?? string.Empty, false), Times.Once);
+        RoleServiceMock.Verify(x => x.GetAllRolesAsync(PageableRequestParams.Page, PageableRequestParams.PageSize, PageableRequestParams.Search ?? string.Empty), Times.Once);
     }
 
     [Fact]
@@ -59,18 +59,18 @@ public sealed class GetAllRolesQueryTests : RoleTestBase
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeEmpty();
 
-        RoleServiceMock.Verify(x => x.GetAllRolesAsync(PageableRequestParams.Page, PageableRequestParams.PageSize, PageableRequestParams.Search ?? string.Empty, false), Times.Once);
+            RoleServiceMock.Verify(x => x.GetAllRolesAsync(PageableRequestParams.Page, PageableRequestParams.PageSize, PageableRequestParams.Search ?? string.Empty), Times.Once);
     }
 
     [Fact]
     public void CacheKey_WithIncludePermissionsFalse_ShouldBeCorrect()
     {
         // Arrange
-        var query = new GetAllRolesQuery(PageableRequestParams, false);
+        var query = new GetAllRolesQuery(PageableRequestParams);
 
         // Act & Assert
         query.Should().BeAssignableTo<ICacheableRequest>();
-        query.CacheKey.Should().Be("roles:all:include-permissions:False");
+        query.CacheKey.Should().Be("roles:all");
         query.CacheDuration.Should().Be(TimeSpan.FromMinutes(30));
     }
 
@@ -78,11 +78,11 @@ public sealed class GetAllRolesQueryTests : RoleTestBase
     public void CacheKey_WithIncludePermissionsTrue_ShouldBeCorrect()
     {
         // Arrange
-        var query = new GetAllRolesQuery(PageableRequestParams, true);
+        var query = new GetAllRolesQuery(PageableRequestParams);
 
         // Act & Assert
         query.Should().BeAssignableTo<ICacheableRequest>();
-        query.CacheKey.Should().Be("roles:all:include-permissions:True");
+        query.CacheKey.Should().Be("roles:all");
         query.CacheDuration.Should().Be(TimeSpan.FromMinutes(30));
     }
 

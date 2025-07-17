@@ -57,7 +57,7 @@ public sealed class UpdateRoleCommandHandler(
             return Result.Error(result.Errors.Select(e => e.Description).ToArray());
         }
 
-        await cacheManager.RemoveByPatternAsync("roles:all", cancellationToken);
+        await cacheManager.RemoveByPatternAsync("roles:*", cancellationToken);
 
         return Result.Success();
     }

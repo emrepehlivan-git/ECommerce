@@ -114,8 +114,7 @@ public abstract class RoleTestBase
             .Setup(x => x.GetAllRolesAsync(
                 It.IsAny<int>(),
                 It.IsAny<int>(),
-                It.IsAny<string>(),
-                It.IsAny<bool>()
+                It.IsAny<string>()
             ))
             .ReturnsAsync(new PagedResult<List<RoleDto>>(new PagedInfo(1, 10, roleDtos.Count, 1), roleDtos));
     }

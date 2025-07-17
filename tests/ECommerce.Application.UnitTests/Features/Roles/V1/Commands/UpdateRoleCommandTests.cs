@@ -42,7 +42,7 @@ public sealed class UpdateRoleCommandTests : RoleTestBase
 
         RoleServiceMock.Verify(x => x.FindRoleByIdAsync(RoleId), Times.Once);
         RoleServiceMock.Verify(x => x.UpdateRoleAsync(It.IsAny<Role>()), Times.Once);
-        CacheManagerMock.Verify(x => x.RemoveByPatternAsync("roles:all:include-permissions:*", It.IsAny<CancellationToken>()), Times.Once);
+        CacheManagerMock.Verify(x => x.RemoveByPatternAsync("roles:*", It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
