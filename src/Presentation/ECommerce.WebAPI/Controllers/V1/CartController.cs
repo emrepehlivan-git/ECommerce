@@ -2,10 +2,12 @@ using Ardalis.Result.AspNetCore;
 using ECommerce.Application.Features.Carts.V1.Commands;
 using ECommerce.Application.Features.Carts.V1.DTOs;
 using ECommerce.Application.Features.Carts.V1.Queries;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerce.WebAPI.Controllers.V1;
 
+[Authorize]
 public sealed class CartController : BaseApiV1Controller
 {
     [HttpGet]

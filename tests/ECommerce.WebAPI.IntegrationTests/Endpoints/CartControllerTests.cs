@@ -115,6 +115,65 @@ public class CartControllerTests : BaseIntegrationTest, IAsyncLifetime
         cart.Items.Should().BeEmpty();
     }
 
+    [Fact]
+    public async Task GetCart_WhenUserNotAuthenticated_ReturnsUnauthorized()
+    {
+        await ResetDatabaseAsync();
+        
+        var client = Factory.CreateUnauthenticatedClient();
+        var response = await client.GetAsync("/api/v1/Cart");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task AddToCart_WhenUserNotAuthenticated_ReturnsUnauthorized()
+    {
+        await ResetDatabaseAsync();
+        var product = await CreateProductAsync();
+        var command = new AddToCartCommand(product.Id, 1);
+
+        var client = Factory.CreateUnauthenticatedClient();
+        var response = await client.PostAsJsonAsync("/api/v1/Cart/add", command);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task RemoveFromCart_WhenUserNotAuthenticated_ReturnsUnauthorized()
+    {
+        await ResetDatabaseAsync();
+        var product = await CreateProductAsync();
+
+        var client = Factory.CreateUnauthenticatedClient();
+        var response = await client.DeleteAsync($"/api/v1/Cart/remove/{product.Id}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task UpdateQuantity_WhenUserNotAuthenticated_ReturnsUnauthorized()
+    {
+        await ResetDatabaseAsync();
+        var product = await CreateProductAsync();
+        var command = new UpdateCartItemQuantityCommand(product.Id, 5);
+
+        var client = Factory.CreateUnauthenticatedClient();
+        var response = await client.PutAsJsonAsync("/api/v1/Cart/update-quantity", command);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task ClearCart_WhenUserNotAuthenticated_ReturnsUnauthorized()
+    {
+        await ResetDatabaseAsync();
+
+        var client = Factory.CreateUnauthenticatedClient();
+        var response = await client.DeleteAsync("/api/v1/Cart/clear");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
 
     private async Task<Product> CreateProductAsync(string name = "Test Product", decimal price = 100m, int stock = 10)
     {
