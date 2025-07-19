@@ -4,7 +4,6 @@ using ECommerce.Application.Common.Constants;
 using ECommerce.Application.Common.Logging;
 using ECommerce.Application.Services;
 using ECommerce.Infrastructure;
-using ECommerce.Infrastructure.Services;
 using ECommerce.Persistence;
 using ECommerce.Persistence.Contexts;
 using ECommerce.Persistence.Seeders;
@@ -12,6 +11,7 @@ using ECommerce.SharedKernel.DependencyInjection;
 using ECommerce.WebAPI.Authorization;
 using ECommerce.WebAPI.Controllers.V1;
 using ECommerce.WebAPI.Middlewares;
+using ECommerce.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Localization;
@@ -46,6 +46,7 @@ public static class DependencyInjection
         services.AddEndpointsApiExplorer();
         services.AddHttpContextAccessor();
         services.AddProblemDetails();
+        services.AddSignalR();
 
         return services;
     }
@@ -110,6 +111,7 @@ public static class DependencyInjection
         app.UseAuthorization();
 
         app.MapControllers();
+        app.MapHub<NotificationHub>("/notificationHub");
 
         return app;
     }

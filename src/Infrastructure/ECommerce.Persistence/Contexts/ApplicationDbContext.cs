@@ -17,6 +17,7 @@ public sealed class ApplicationDbContext : IdentityDbContext<User, Role, Guid>
     public DbSet<UserAddress> UserAddresses { get; set; }
     public DbSet<Cart> Carts { get; set; }
     public DbSet<CartItem> CartItems { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {
     }
