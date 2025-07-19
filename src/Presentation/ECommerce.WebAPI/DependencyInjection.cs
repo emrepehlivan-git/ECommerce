@@ -28,9 +28,30 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddApiServices(this IServiceCollection services, IConfiguration configuration)
     {
-        ConfigureLocalization(services);
         services.AddScoped<DataSeeder>();
+        ConfigureLocalization(services);
+        ConfigureSwagger(services, configuration);
+        ConfigureApiVersioning(services);
+        ConfigureAuthentication(services, configuration);
+        ConfigureAuthorization(services);
+        ConfigureRateLimiting(services);
+        ConfigureCors(services);
 
+        services.AddApplication()
+            .AddInfrastructure(configuration)
+            .AddPersistence(configuration);
+
+        services.AddDependencies(typeof(DependencyInjection).Assembly);
+        services.AddControllers();
+        services.AddEndpointsApiExplorer();
+        services.AddHttpContextAccessor();
+        services.AddProblemDetails();
+
+        return services;
+    }
+
+    private static void ConfigureCors(IServiceCollection services)
+    {
         services.AddCors(options =>
         {
             options.AddPolicy("AllowAllOrigins",
@@ -49,21 +70,52 @@ public static class DependencyInjection
                         .AllowCredentials();
                 });
         });
+    }
 
-        ConfigureSwagger(services, configuration);
+    public static WebApplication UsePresentation(this WebApplication app, IWebHostEnvironment environment)
+    {
+        app.UseMiddleware<RequestTimingMiddleware>();
 
-        services.AddApplication()
-            .AddInfrastructure(configuration)
-            .AddPersistence(configuration);
-        services.AddDependencies(typeof(DependencyInjection).Assembly);
+        app.UseRequestLocalization();
 
-        ConfigureApiVersioning(services);
+        app.UseCors("AllowAllOrigins");
 
-        services.AddControllers();
-        services.AddEndpointsApiExplorer();
-        services.AddHttpContextAccessor();
-        services.AddProblemDetails();
+        if (environment.IsDevelopment())
+        {
+            app.UseSwagger(c => { c.RouteTemplate = "swagger/{documentName}/swagger.json"; });
+            app.UseSwaggerUI(options =>
+            {
+                options.SwaggerEndpoint("/swagger/v1/swagger.json", "ECommerce API v1");
 
+                var keycloakOptions = app.Configuration.GetSection("Keycloak");
+                var publicAuthServerUrl = keycloakOptions["public-auth-server-url"] ?? keycloakOptions["auth-server-url"];
+                var realm = keycloakOptions["realm"];
+                options.OAuthClientId("swagger-client");
+                options.OAuthUsePkce();
+                options.OAuthScopeSeparator(" ");
+                options.OAuth2RedirectUrl("http://localhost:4000/swagger/oauth2-redirect.html");
+            });
+        }
+
+        app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+        
+        if (!environment.IsDevelopment())
+        {
+            app.UseHttpsRedirection();
+        }
+
+        app.UseRateLimiter();
+        
+        app.UseAuthentication();
+        app.UseAuthorization();
+
+        app.MapControllers();
+
+        return app;
+    }
+
+    private static void ConfigureAuthentication(IServiceCollection services, IConfiguration configuration)
+    {
         services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -107,53 +159,6 @@ public static class DependencyInjection
                     }
                 };
             });
-
-        ConfigureAuthorization(services);
-        ConfigureRateLimiting(services);
-
-        return services;
-    }
-
-    public static WebApplication UsePresentation(this WebApplication app, IWebHostEnvironment environment)
-    {
-        app.UseMiddleware<RequestTimingMiddleware>();
-
-        app.UseRequestLocalization();
-
-        app.UseCors("AllowAllOrigins");
-
-        if (environment.IsDevelopment())
-        {
-            app.UseSwagger(c => { c.RouteTemplate = "swagger/{documentName}/swagger.json"; });
-            app.UseSwaggerUI(options =>
-            {
-                options.SwaggerEndpoint("/swagger/v1/swagger.json", "ECommerce API v1");
-
-                var keycloakOptions = app.Configuration.GetSection("Keycloak");
-                var publicAuthServerUrl = keycloakOptions["public-auth-server-url"] ?? keycloakOptions["auth-server-url"];
-                var realm = keycloakOptions["realm"];
-                options.OAuthClientId("swagger-client");
-                options.OAuthUsePkce();
-                options.OAuthScopeSeparator(" ");
-                options.OAuth2RedirectUrl("http://localhost:4000/swagger/oauth2-redirect.html");
-            });
-        }
-
-        app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
-        
-        if (!environment.IsDevelopment())
-        {
-            app.UseHttpsRedirection();
-        }
-
-        app.UseRateLimiter();
-        
-        app.UseAuthentication();
-        app.UseAuthorization();
-
-        app.MapControllers();
-
-        return app;
     }
 
     private static void ConfigureAuthorization(IServiceCollection services)
