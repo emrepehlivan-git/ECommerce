@@ -1,57 +1,46 @@
 using ECommerce.Application.Features.Notifications.V1.Commands;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MediatR;
 
 namespace ECommerce.WebAPI.Controllers.V1;
 
 [Authorize]
 public sealed class NotificationController : BaseApiV1Controller
 {
-    [HttpPost("send")]
-    public async Task<IActionResult> SendNotification([FromBody] SendNotificationCommand command)
+
+    [HttpPost("system")]
+    public async Task<IActionResult> SendSystemNotification([FromBody] SendSystemNotificationCommand command)
     {
         await Mediator.Send(command);
-        return Ok();
+        return Ok(new { message = "System notification sent successfully" });
     }
 
-    [HttpPost("send-to-user/{userId}")]
-    public async Task<IActionResult> SendToUser(Guid userId, [FromBody] NotificationRequest request)
+    [HttpPost("bulk")]
+    public async Task<IActionResult> SendBulkNotification([FromBody] SendBulkNotificationCommand command)
     {
-        var command = new SendNotificationCommand(
+        var result = await Mediator.Send(command);
+        return Ok(result);
+    }
+
+    [HttpPost("announcement")]
+    public async Task<IActionResult> SendAnnouncement([FromBody] AnnouncementRequest request)
+    {
+        var command = new SendSystemNotificationCommand(
             request.Title,
             request.Message,
-            request.Type,
-            userId,
-            request.Data);
+            SystemNotificationType.Announcement,
+            request.TargetUserId,
+            request.TargetGroup);
 
         await Mediator.Send(command);
-        return Ok();
+        return Ok(new { message = "Announcement sent successfully" });
     }
 
-    [HttpPost("send-to-all")]
-    public async Task<IActionResult> SendToAll([FromBody] NotificationRequest request)
-    {
-        var command = new SendNotificationCommand(
-            request.Title,
-            request.Message,
-            request.Type,
-            null,
-            request.Data);
-
-        await Mediator.Send(command);
-        return Ok();
-    }
-
-    [HttpPost("test")]
-    public async Task<IActionResult> SendTest([FromBody] SendTestNotificationCommand command)
-    {
-        await Mediator.Send(command);
-        return Ok(new { message = "Test notification sent successfully" });
-    }
 }
 
-public record NotificationRequest(
+public record AnnouncementRequest(
     string Title,
     string Message,
-    string Type,
-    Dictionary<string, object>? Data = null);
+    Guid? TargetUserId = null,
+    string? TargetGroup = null);
