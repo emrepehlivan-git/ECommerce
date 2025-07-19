@@ -10,7 +10,7 @@ public static class OrderMapperConfig
     {
         config.ForType<Order, OrderDto>()
             .Map(dest => dest.Items, src => src.Items)
-            .Map(dest => dest.Status, src => src.Status.ToString());
+            .Map(dest => dest.Status, src => src.Status);
 
         config.ForType<OrderItem, OrderItemDto>()
             .Map(dest => dest.ProductName, src => src.Product.Name);
