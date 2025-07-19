@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Versioning;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -108,6 +109,7 @@ public static class DependencyInjection
             });
 
         ConfigureAuthorization(services);
+        ConfigureRateLimiting(services);
 
         return services;
     }
@@ -144,6 +146,8 @@ public static class DependencyInjection
             app.UseHttpsRedirection();
         }
 
+        app.UseRateLimiter();
+        
         app.UseAuthentication();
         app.UseAuthorization();
 
@@ -289,6 +293,34 @@ public static class DependencyInjection
         {
             setup.GroupNameFormat = "'v'VVV";
             setup.SubstituteApiVersionInUrl = true;
+        });
+    }
+
+    private static void ConfigureRateLimiting(IServiceCollection services)
+    {
+        services.AddRateLimiter(options =>
+        {
+            options.AddFixedWindowLimiter("GlobalRateLimit", config =>
+            {
+                config.PermitLimit = 100;
+                config.Window = TimeSpan.FromMinutes(1);
+                config.QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst;
+                config.QueueLimit = 10;
+            });
+
+            options.AddFixedWindowLimiter("AuthRateLimit", config =>
+            {
+                config.PermitLimit = 10;
+                config.Window = TimeSpan.FromMinutes(1);
+                config.QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst;
+                config.QueueLimit = 5;
+            });
+
+            options.OnRejected = async (context, cancellationToken) =>
+            {
+                context.HttpContext.Response.StatusCode = 429;
+                await context.HttpContext.Response.WriteAsync("Too many requests. Please try again later.", cancellationToken);
+            };
         });
     }
 }

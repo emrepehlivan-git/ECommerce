@@ -7,8 +7,11 @@ using Ardalis.Result.AspNetCore;
 using Microsoft.AspNetCore.Authorization;
 using ECommerce.Application.Services;
 using Ardalis.Result;
+using Microsoft.AspNetCore.RateLimiting;
+
 namespace ECommerce.WebAPI.Controllers.V1;
 
+[EnableRateLimiting("AuthRateLimit")]
 public sealed class UsersController : BaseApiV1Controller
 {
     [HttpGet]
