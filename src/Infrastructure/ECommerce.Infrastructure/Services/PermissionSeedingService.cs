@@ -57,6 +57,7 @@ public class PermissionSeedingService : IScopedDependency
             }
 
             await SyncToKeycloakAsync();
+            await EnsureAdminHasAllPermissionsAsync(cancellationToken);
 
             var message = $"Permission seeding tamamlandı. Database'e {newPermissions.Count} yeni permission eklendi.";
             _logger.LogInformation(message);
@@ -119,6 +120,62 @@ public class PermissionSeedingService : IScopedDependency
         {
             _logger.LogError(ex, "Keycloak sync hatası");
             // Keycloak sync hatası permission seeding'i engellemez
+        }
+    }
+
+    private async Task EnsureAdminHasAllPermissionsAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Admin rolünü bul
+            var adminRole = await _context.Roles
+                .FirstOrDefaultAsync(r => r.Name == "admin", cancellationToken);
+            
+            if (adminRole == null)
+            {
+                _logger.LogWarning("Admin role bulunamadı, admin role oluşturuluyor");
+                adminRole = Role.Create("admin");
+                await _context.Roles.AddAsync(adminRole, cancellationToken);
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+
+            // Tüm permissionları al
+            var allPermissions = await _context.Permissions
+                .AsNoTracking()
+                .ToListAsync(cancellationToken);
+
+            // Admin rolünün mevcut permissionları
+            var existingRolePermissions = await _context.RolePermissions
+                .Where(rp => rp.RoleId == adminRole.Id)
+                .Select(rp => rp.PermissionId)
+                .ToListAsync(cancellationToken);
+
+            var existingPermissionSet = existingRolePermissions.ToHashSet();
+            var newRolePermissions = new List<RolePermission>();
+
+            foreach (var permission in allPermissions)
+            {
+                if (!existingPermissionSet.Contains(permission.Id))
+                {
+                    var rolePermission = RolePermission.Create(adminRole.Id, permission.Id);
+                    newRolePermissions.Add(rolePermission);
+                }
+            }
+
+            if (newRolePermissions.Any())
+            {
+                await _context.RolePermissions.AddRangeAsync(newRolePermissions, cancellationToken);
+                await _context.SaveChangesAsync(cancellationToken);
+                _logger.LogInformation("Admin rolüne {Count} yeni permission eklendi", newRolePermissions.Count);
+            }
+            else
+            {
+                _logger.LogInformation("Admin rolünde tüm permission'lar mevcut");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Admin permission atama hatası");
         }
     }
 } 

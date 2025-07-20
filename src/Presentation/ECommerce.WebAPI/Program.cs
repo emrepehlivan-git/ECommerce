@@ -1,6 +1,7 @@
 using ECommerce.WebAPI;
 using ECommerce.Application.Common.Logging;
 using ECommerce.Persistence.Seeders;
+using Microsoft.EntityFrameworkCore;
 
 IECommerceLogger<Program>? logger = null;
 
@@ -19,11 +20,24 @@ try
         await app.ApplyMigrations();
         await app.ConfigurePermissions();
 
-        // Seed işlemini otomatik başlat
-        using (var scope = app.Services.CreateScope())
+        // Seed işlemini sadece development environment'ta ve veri yoksa çalıştır
+        if (app.Environment.IsDevelopment())
         {
-            var seeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
-            await seeder.SeedAsync();
+            using (var scope = app.Services.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<ECommerce.Persistence.Contexts.ApplicationDbContext>();
+                var needsSeeding = !await context.Categories.AnyAsync() || !await context.Products.AnyAsync();
+                
+                if (needsSeeding)
+                {
+                    var seeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
+                    await seeder.SeedAsync();
+                }
+                else
+                {
+                    logger.LogInformation("Data already exists, skipping seeding.");
+                }
+            }
         }
     }
 

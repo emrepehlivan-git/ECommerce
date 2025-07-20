@@ -43,7 +43,7 @@ public static class DependencyInjection
 
     private static void ConfigureIdentity(IServiceCollection services)
     {
-        services.AddIdentity<User, Role>(options =>
+        services.AddIdentityCore<User>(options =>
         {
             options.Password.RequiredLength = 6;
             options.Password.RequireDigit = false;
@@ -52,6 +52,8 @@ public static class DependencyInjection
             options.Password.RequireNonAlphanumeric = false;
             options.User.RequireUniqueEmail = true;
         })
+        .AddRoles<Role>()
+        .AddSignInManager<SignInManager<User>>()
         .AddEntityFrameworkStores<ApplicationDbContext>()
         .AddDefaultTokenProviders();
 

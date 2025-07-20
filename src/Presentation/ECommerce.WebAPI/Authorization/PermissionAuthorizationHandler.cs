@@ -15,8 +15,16 @@ public sealed class PermissionAuthorizationHandler(ICurrentUserService currentUs
         AuthorizationHandlerContext context,
         PermissionRequirement requirement)
     {
+        Console.WriteLine($"Permission check: {requirement.Permission}");
+        Console.WriteLine($"User authenticated: {context.User.Identity?.IsAuthenticated}");
+        Console.WriteLine($"User identity type: {context.User.Identity?.GetType().Name}");
+        Console.WriteLine($"Claims count: {context.User.Claims.Count()}");
+        Console.WriteLine($"Authentication type: {context.User.Identity?.AuthenticationType}");
+        Console.WriteLine($"User name: {context.User.Identity?.Name}");
+        
         if (context.User.Identity?.IsAuthenticated != true)
         {
+            Console.WriteLine("Authentication failed in permission handler");
             context.Fail();
             return Task.CompletedTask;
         }

@@ -29,10 +29,11 @@ public static class DependencyInjection
     public static IServiceCollection AddApiServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped<DataSeeder>();
+        
         ConfigureLocalization(services);
         ConfigureSwagger(services, configuration);
         ConfigureApiVersioning(services);
-        ConfigureAuthentication(services, configuration);
+       ConfigureAuthentication(services, configuration);
         ConfigureAuthorization(services);
         ConfigureRateLimiting(services);
         ConfigureCors(services);
@@ -107,11 +108,34 @@ public static class DependencyInjection
 
         app.UseRateLimiter();
         
+        // Debug middleware BEFORE authentication
+        app.Use(async (context, next) =>
+        {
+            Console.WriteLine($"BEFORE AUTH - Path: {context.Request.Path}");
+            Console.WriteLine($"BEFORE AUTH - Auth header: {context.Request.Headers.Authorization.FirstOrDefault()}");
+            await next();
+            Console.WriteLine($"AFTER AUTH - User authenticated: {context.User.Identity?.IsAuthenticated}");
+            Console.WriteLine($"AFTER AUTH - Claims count: {context.User.Claims.Count()}");
+        });
+        
         app.UseAuthentication();
         app.UseAuthorization();
 
         app.MapControllers();
         app.MapHub<NotificationHub>("/notificationHub");
+        
+        // Test endpoint to debug authentication
+        app.MapGet("/test-auth", (HttpContext context) =>
+        {
+            Console.WriteLine($"Test endpoint - User authenticated: {context.User.Identity?.IsAuthenticated}");
+            Console.WriteLine($"Test endpoint - Claims count: {context.User.Claims.Count()}");
+            Console.WriteLine($"Test endpoint - Auth header: {context.Request.Headers.Authorization.FirstOrDefault()}");
+            return Results.Ok(new { 
+                IsAuthenticated = context.User.Identity?.IsAuthenticated,
+                ClaimsCount = context.User.Claims.Count(),
+                AuthHeader = context.Request.Headers.Authorization.FirstOrDefault()
+            });
+        });
 
         return app;
     }
@@ -122,13 +146,22 @@ public static class DependencyInjection
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultSignOutScheme = JwtBearerDefaults.AuthenticationScheme;
             })
             .AddJwtBearer(options =>
             {
                 var keycloakOptions = configuration.GetSection("Keycloak");
+                var metadataUrl = keycloakOptions["metadata-url"]!;
+                
+                Console.WriteLine($"JWT Bearer Configuration:");
+                Console.WriteLine($"Authority: {keycloakOptions["auth-server-url"]}");
+                Console.WriteLine($"MetadataAddress: {metadataUrl}");
+                Console.WriteLine($"Valid Issuers: {string.Join(", ", keycloakOptions.GetSection("valid-issuers").Get<string[]>() ?? Array.Empty<string>())}");
+                Console.WriteLine($"Valid Audiences: {string.Join(", ", keycloakOptions.GetSection("valid-audiences").Get<string[]>() ?? Array.Empty<string>())}");
 
                 options.Authority = keycloakOptions["auth-server-url"]!;
-                options.MetadataAddress = keycloakOptions["metadata-url"]!;
+                options.MetadataAddress = metadataUrl;
                 options.RequireHttpsMetadata = false;
 
                 options.TokenValidationParameters = new TokenValidationParameters
@@ -141,12 +174,28 @@ public static class DependencyInjection
                     ValidAudiences = keycloakOptions.GetSection("valid-audiences").Get<string[]>()!,
                 };
 
+                Console.WriteLine("JWT Bearer middleware configured with events");
+                
                 options.Events = new JwtBearerEvents
                 {
+                    OnMessageReceived = context =>
+                    {
+                        Console.WriteLine("JWT OnMessageReceived triggered!");
+                        return Task.CompletedTask;
+                    },
                     OnAuthenticationFailed = context =>
                     {
-                        Console.WriteLine("Authentication failed.");
-                        Console.WriteLine(context.Exception);
+                        Console.WriteLine($"JWT Authentication failed: {context.Exception.Message}");
+                        Console.WriteLine($"Request path: {context.Request.Path}");
+                        Console.WriteLine($"Authorization header: {context.Request.Headers.Authorization}");
+                        Console.WriteLine($"Exception type: {context.Exception.GetType().Name}");
+                        Console.WriteLine($"Full exception: {context.Exception}");
+                        return Task.CompletedTask;
+                    },
+                    OnChallenge = context =>
+                    {
+                        Console.WriteLine($"JWT Challenge triggered for path: {context.Request.Path}");
+                        Console.WriteLine($"Error: {context.Error}, Description: {context.ErrorDescription}");
                         return Task.CompletedTask;
                     },
                     OnTokenValidated = async context =>

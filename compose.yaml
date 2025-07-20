@@ -18,8 +18,14 @@
       - OpenTelemetry__Jaeger__AgentPort=6831
       - OpenTelemetry__Jaeger__Endpoint=http://ecommerce.jaeger:14268/api/traces
       - OpenTelemetry__OTLP__Endpoint=http://ecommerce.jaeger:4317
+      - Keycloak__realm=ecommerce
       - Keycloak__auth-server-url=http://keycloak:8080/
       - Keycloak__metadata-url=http://keycloak:8080/realms/ecommerce/.well-known/openid-configuration
+      - Keycloak__valid-issuers__0=http://localhost:8080/realms/ecommerce
+      - Keycloak__valid-audiences__0=ecommerce-api
+      - Keycloak__valid-audiences__1=swagger-client
+      - Keycloak__valid-audiences__2=nextjs-client
+      - Keycloak__valid-audiences__3=account
     depends_on:
       - ecommerce.db
       - ecommerce.redis
