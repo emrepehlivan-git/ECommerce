@@ -6,12 +6,12 @@ A comprehensive and scalable e-commerce application built with modern .NET techn
 
 ### 🔐 Authentication and Authorization
 
-- **OpenIddict** based OAuth 2.0 / OpenID Connect implementation
-- **ASP.NET Identity** for user management
+- **Keycloak** based OAuth 2.0 / OpenID Connect implementation
 - **JWT Token** based authentication
 - **Role-based authorization** (RBAC)
 - **Permission-based access control** (Granular permissions)
 - **Multiple authentication flows** support (Authorization Code, Client Credentials)
+- **Centralized identity management** with Keycloak
 
 ### 👥 User Management
 
@@ -113,8 +113,7 @@ A comprehensive and scalable e-commerce application built with modern .NET techn
 │   ├── ECommerce.Application     → CQRS, DTOs, Validators, Business Logic
 │   └── ECommerce.SharedKernel    → Shared abstractions, Base classes
 ├── 🔧 Infrastructure/
-│   ├── ECommerce.AuthServer      → OpenIddict authorization server
-│   ├── ECommerce.Infrastructure  → External services, Email, Caching
+│   ├── ECommerce.Infrastructure  → External services, Email, Caching, Keycloak integration
 │   └── ECommerce.Persistence     → EF Core, Repositories, Database
 └── 🌐 Presentation/
     └── ECommerce.WebAPI          → REST API controllers, Middleware
@@ -176,9 +175,9 @@ Request → ValidationBehavior → CacheBehavior → TracingBehavior → Transac
 
 ### 🔑 Authentication & Authorization
 
-- **OpenIddict 6.0** - OAuth/OIDC server
-- **ASP.NET Identity** - User management
+- **Keycloak** - OAuth/OIDC identity provider
 - **JWT Bearer** tokens
+- **OpenID Connect** integration
 
 ### 📨 Communication
 
@@ -239,10 +238,7 @@ docker-compose up -d ecommerce.db ecommerce.redis ecommerce.seq ecommerce.jaeger
 # Apply database migrations
 dotnet ef database update --project src/Infrastructure/ECommerce.Persistence
 
-# Start Auth Server
-dotnet run --project src/Infrastructure/ECommerce.AuthServer
-
-# Start API (new terminal)
+# Start API
 dotnet run --project src/Presentation/ECommerce.WebAPI
 ```
 
@@ -253,7 +249,7 @@ dotnet run --project src/Presentation/ECommerce.WebAPI
 | Service         | URL                           | Description         |
 | --------------- | ----------------------------- | ------------------- |
 | **API**         | http://localhost:4000         | REST API endpoints  |
-| **Auth Server** | https://localhost:5002        | OAuth/OIDC provider |
+| **Keycloak**    | http://localhost:8080         | OAuth/OIDC provider |
 | **Swagger UI**  | http://localhost:4000/swagger | API documentation   |
 
 ### 📊 Monitoring and Logs
@@ -263,6 +259,7 @@ dotnet run --project src/Presentation/ECommerce.WebAPI
 | **Jaeger**  | http://localhost:16686 | -                 | -        |
 | **Seq**     | http://localhost:5341  | -                 | -        |
 | **PgAdmin** | http://localhost:8082  | admin@example.com | admin    |
+| **Keycloak Admin** | http://localhost:8080/admin | admin | admin |
 
 ### 🗄️ Database
 
@@ -277,12 +274,12 @@ dotnet run --project src/Presentation/ECommerce.WebAPI
 
 ```bash
 # 1. Authorization Code Flow (via Swagger)
-# Swagger UI → Authorize → Login with credentials
+# Swagger UI → Authorize → Login with Keycloak credentials
 
 # 2. Client Credentials Flow
-curl -X POST https://localhost:5002/connect/token \
+curl -X POST http://localhost:8080/realms/ecommerce/protocol/openid-connect/token \
   -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "grant_type=client_credentials&client_id=api&client_secret=api-secret&scope=api"
+  -d "grant_type=client_credentials&client_id=ecommerce-api&client_secret=YOUR_CLIENT_SECRET"
 ```
 
 ### 📦 Basic API Examples
@@ -371,9 +368,11 @@ dotnet test --collect:"XPlat Code Coverage"
 ConnectionStrings__DefaultConnection="Host=localhost;Database=ecommerce;Username=postgres;Password=postgres"
 ConnectionStrings__Redis="localhost:6379"
 
-# Authentication
-Authentication__Authority="https://localhost:5002"
-Authentication__Audience="api"
+# Authentication (Keycloak)
+Keycloak__realm="ecommerce"
+Keycloak__auth-server-url="http://localhost:8080/"
+Keycloak__metadata-url="http://localhost:8080/realms/ecommerce/.well-known/openid-configuration"
+Keycloak__valid-audiences__0="ecommerce-api"
 
 # Observability
 OpenTelemetry__ServiceName="ECommerce.WebAPI"
@@ -401,7 +400,7 @@ docker-compose -f compose.production.yml up -d
 
 # Monitor logs
 docker-compose logs -f ecommerce.webapi
-docker-compose logs -f ecommerce.authserver
+docker-compose logs -f keycloak
 ```
 
 ### 🔒 Security Considerations
@@ -442,7 +441,7 @@ This project is licensed under the [MIT License](./LICENSE).
 
 - [.NET 8 Documentation](https://docs.microsoft.com/en-us/dotnet/)
 - [Entity Framework Core](https://docs.microsoft.com/en-us/ef/core/)
-- [OpenIddict Documentation](https://documentation.openiddict.com/)
+- [Keycloak Documentation](https://www.keycloak.org/documentation)
 - [Docker Documentation](https://docs.docker.com/)
 - [OpenTelemetry .NET](https://opentelemetry.io/docs/instrumentation/net/)
 
