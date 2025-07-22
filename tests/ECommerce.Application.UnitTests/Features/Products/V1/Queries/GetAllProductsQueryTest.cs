@@ -1,4 +1,5 @@
 using ECommerce.Application.Behaviors;
+using ECommerce.SharedKernel.Specifications;
 
 namespace ECommerce.Application.UnitTests.Features.Products.V1.Queries;
 
@@ -29,12 +30,9 @@ public sealed class GetAllProductsQueryTest : ProductQueriesTestsBase
 
         ProductRepositoryMock
             .Setup(x => x.GetPagedAsync<ProductDto>(
-                It.IsAny<Expression<Func<Product, bool>>>(),
-                It.IsAny<Expression<Func<IQueryable<Product>, IOrderedQueryable<Product>>>>(),
-                It.IsAny<Expression<Func<IQueryable<Product>, IQueryable<Product>>>>(),
+                It.IsAny<ISpecification<Product>>(),
                 It.IsAny<int>(),
                 It.IsAny<int>(),
-                It.IsAny<bool>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(pagedResult);
 
@@ -54,12 +52,9 @@ public sealed class GetAllProductsQueryTest : ProductQueriesTestsBase
 
         ProductRepositoryMock
             .Setup(x => x.GetPagedAsync<ProductDto>(
-                It.IsAny<Expression<Func<Product, bool>>>(),
-                It.IsAny<Expression<Func<IQueryable<Product>, IOrderedQueryable<Product>>>>(),
-                It.IsAny<Expression<Func<IQueryable<Product>, IQueryable<Product>>>>(),
+                It.IsAny<ISpecification<Product>>(),
                 It.IsAny<int>(),
                 It.IsAny<int>(),
-                It.IsAny<bool>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(emptyResult);
 
@@ -82,12 +77,9 @@ public sealed class GetAllProductsQueryTest : ProductQueriesTestsBase
 
         ProductRepositoryMock
             .Setup(x => x.GetPagedAsync<ProductDto>(
-                It.IsAny<Expression<Func<Product, bool>>>(),
-                It.IsAny<Expression<Func<IQueryable<Product>, IOrderedQueryable<Product>>>>(),
-                It.IsAny<Expression<Func<IQueryable<Product>, IQueryable<Product>>>>(),
+                It.IsAny<ISpecification<Product>>(),
                 It.IsAny<int>(),
                 It.IsAny<int>(),
-                It.IsAny<bool>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(pagedResult);
 
@@ -97,12 +89,9 @@ public sealed class GetAllProductsQueryTest : ProductQueriesTestsBase
         // Assert
         result.Should().NotBeNull();
         ProductRepositoryMock.Verify(x => x.GetPagedAsync<ProductDto>(
-            It.IsAny<Expression<Func<Product, bool>>>(),
-            It.IsAny<Expression<Func<IQueryable<Product>, IOrderedQueryable<Product>>>>(),
-            It.IsAny<Expression<Func<IQueryable<Product>, IQueryable<Product>>>>(),
+            It.IsAny<ISpecification<Product>>(),
             It.IsAny<int>(),
             It.IsAny<int>(),
-            It.IsAny<bool>(),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 

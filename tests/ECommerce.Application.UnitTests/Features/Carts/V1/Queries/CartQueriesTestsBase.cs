@@ -1,6 +1,7 @@
 using System.Reflection;
 using ECommerce.Application.Interfaces;
 using ECommerce.Application.Services;
+using ECommerce.SharedKernel.Specifications;
 
 namespace ECommerce.Application.UnitTests.Features.Carts.Queries;
 
@@ -55,6 +56,13 @@ public abstract class CartQueriesTestsBase
         CartRepositoryMock
             .Setup(x => x.GetByUserIdWithItemsAsync(DefaultUserId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(exists ? DefaultCart : null);
+    }
+
+    protected void SetupCartListAsync(List<Cart> carts)
+    {
+        CartRepositoryMock
+            .Setup(x => x.ListAsync(It.IsAny<ISpecification<Cart>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(carts);
     }
 
     protected void SetupCurrentUser(string? userId = null)

@@ -1,4 +1,5 @@
 using ECommerce.Domain.ValueObjects;
+using ECommerce.SharedKernel.Specifications;
 
 namespace ECommerce.Application.UnitTests.Features.UserAddresses.V1.Queries;
 
@@ -71,7 +72,7 @@ public sealed class GetUserAddressesQueryTests : UserAddressesTestBase
         result.IsSuccess.Should().BeTrue();
 
         UserAddressRepositoryMock.Verify(
-            x => x.GetUserAddressesAsync(queryWithActiveOnly.UserId, true, It.IsAny<CancellationToken>()),
+            x => x.ListAsync(It.IsAny<ISpecification<UserAddress>>(), It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -91,7 +92,7 @@ public sealed class GetUserAddressesQueryTests : UserAddressesTestBase
         result.IsSuccess.Should().BeTrue();
 
         UserAddressRepositoryMock.Verify(
-            x => x.GetUserAddressesAsync(queryWithAllAddresses.UserId, false, It.IsAny<CancellationToken>()),
+            x => x.ListAsync(It.IsAny<ISpecification<UserAddress>>(), It.IsAny<CancellationToken>()),
             Times.Once);
     }
 

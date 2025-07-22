@@ -2,6 +2,7 @@ using Ardalis.Result;
 using ECommerce.Application.Behaviors;
 using ECommerce.Application.Common.CQRS;
 using ECommerce.Application.Features.Carts.V1.DTOs;
+using ECommerce.Application.Features.Carts.V1.Specifications;
 using ECommerce.Application.Interfaces;
 using ECommerce.Application.Repositories;
 using ECommerce.Application.Services;
@@ -46,17 +47,19 @@ public sealed class AddToCartCommandHandler(
         if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out var currentUserId))
             return Result<CartSummaryDto>.Unauthorized();
 
-        var product = await productRepository.GetByIdAsync(request.ProductId, 
-            include: x => x.Include(p => p.Stock), 
-            cancellationToken: cancellationToken);
-        if (product is null)
-            return Result<CartSummaryDto>.NotFound(Localizer[CartConsts.ErrorMessages.ProductNotFound]);
-
-        if (!product.IsActive)
-            return Result<CartSummaryDto>.Error(Localizer[CartConsts.ErrorMessages.ProductNotActive]);
-
-        if (!product.IsOrderable(request.Quantity))
+        var spec = new CartItemOrderableSpecification(request.ProductId, request.Quantity);
+        var product = await productRepository.ListAsync(spec, cancellationToken);
+        var orderableProduct = product.FirstOrDefault();
+        
+        if (orderableProduct is null)
+        {
+            var productExists = await productRepository.GetByIdAsync(request.ProductId, cancellationToken: cancellationToken);
+            if (productExists is null)
+                return Result<CartSummaryDto>.NotFound(Localizer[CartConsts.ErrorMessages.ProductNotFound]);
+            if (!productExists.IsActive)
+                return Result<CartSummaryDto>.Error(Localizer[CartConsts.ErrorMessages.ProductNotActive]);
             return Result<CartSummaryDto>.Error(Localizer[CartConsts.ErrorMessages.InsufficientStock]);
+        }
 
         var cart = await cartRepository.GetByUserIdWithItemsAsync(currentUserId, cancellationToken);
         
@@ -75,7 +78,7 @@ public sealed class AddToCartCommandHandler(
         if (newQuantity > CartConsts.MaxQuantityPerItem)
             return Result<CartSummaryDto>.Error(string.Format(Localizer[CartConsts.ErrorMessages.MaxQuantityExceeded], CartConsts.MaxQuantityPerItem));
 
-        cart.AddItem(request.ProductId, product.Price.Value, request.Quantity);
+        cart.AddItem(request.ProductId, orderableProduct.Price.Value, request.Quantity);
 
         if (cart.TotalAmount > CartConsts.MaxTotalAmount)
             return Result<CartSummaryDto>.Error(string.Format(Localizer[CartConsts.ErrorMessages.MaxTotalAmountExceeded], CartConsts.MaxTotalAmount));

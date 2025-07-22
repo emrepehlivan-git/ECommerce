@@ -3,9 +3,11 @@ using ECommerce.Application.Common.CQRS;
 using ECommerce.SharedKernel.DependencyInjection;
 using ECommerce.Application.Extensions;
 using ECommerce.Application.Features.Users.V1.DTOs;
+using ECommerce.Application.Features.Users.V1.Specifications;
 using ECommerce.Application.Services;
 using ECommerce.Application.Parameters;
 using ECommerce.Domain.Entities;
+using ECommerce.SharedKernel.Specifications;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,16 +22,8 @@ public sealed class GetUsersQueryHandler(
     public override async Task<PagedResult<List<UserDto>>> Handle(GetUsersQuery query,
     CancellationToken cancellationToken)
     {
-        var usersQuery = userService.Users.AsNoTracking();
-        if (!string.IsNullOrWhiteSpace(query.PageableRequestParams.Search))
-        {
-            var search = query.PageableRequestParams.Search.ToLower();
-            usersQuery = usersQuery.Where(u =>
-                u.FullName.FirstName.ToLower().Contains(search) ||
-                u.FullName.LastName.ToLower().Contains(search) ||
-                u.Email!.ToLower().Contains(search)
-            );
-        }
+        var spec = new UserSearchSpecification(query.PageableRequestParams.Search);
+        var usersQuery = SpecificationEvaluator<User>.GetQuery(userService.Users.AsNoTracking(), spec);
         return await usersQuery.ApplyPagingAsync<User, UserDto>(query.PageableRequestParams, cancellationToken: cancellationToken);
     }
 }

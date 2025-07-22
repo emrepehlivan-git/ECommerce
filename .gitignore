@@ -6,7 +6,7 @@
 *.userosscache
 *.sln.docstates
 *.userprefs
-
+specification-pattern-docs
 # bash
 start-apps.zsh
 stop-apps.zsh

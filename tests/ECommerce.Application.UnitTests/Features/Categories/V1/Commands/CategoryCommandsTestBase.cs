@@ -1,6 +1,7 @@
 using ECommerce.Application.Features.Categories.V1;
 using ECommerce.Application.Interfaces;
 using ECommerce.Application.Services;
+using ECommerce.SharedKernel.Specifications;
 
 namespace ECommerce.Application.UnitTests.Features.Categories.V1.Commands;
 
@@ -57,6 +58,11 @@ public abstract class CategoryCommandsTestBase
     {
         CategoryRepositoryMock
             .Setup(x => x.AnyAsync(It.IsAny<Expression<Func<Category, bool>>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(exists);
+
+        // Also setup the specification-based method
+        CategoryRepositoryMock
+            .Setup(x => x.AnyAsync(It.IsAny<ISpecification<Category>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(exists);
     }
 

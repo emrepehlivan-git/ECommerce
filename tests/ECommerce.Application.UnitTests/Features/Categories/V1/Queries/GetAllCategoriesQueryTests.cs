@@ -1,5 +1,6 @@
 using ECommerce.Application.Behaviors;
 using ECommerce.Application.Parameters;
+using ECommerce.SharedKernel.Specifications;
 using Mapster;
 
 namespace ECommerce.Application.UnitTests.Features.Categories.V1.Queries;
@@ -31,12 +32,9 @@ public sealed class GetAllCategoriesQueryTests : CategoryQueriesTestBase
         var pagedResult = new PagedResult<List<CategoryDto>>(PagedInfo, Categories);
         CategoryRepositoryMock
             .Setup(x => x.GetPagedAsync<CategoryDto>(
-                It.IsAny<Expression<Func<Category, bool>>>(),
-                It.IsAny<Expression<Func<IQueryable<Category>, IOrderedQueryable<Category>>>>(),
-                It.IsAny<Expression<Func<IQueryable<Category>, IQueryable<Category>>>>(),
+                It.IsAny<ISpecification<Category>>(),
                 It.IsAny<int>(),
                 It.IsAny<int>(),
-                It.IsAny<bool>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(pagedResult);
 
@@ -58,12 +56,9 @@ public sealed class GetAllCategoriesQueryTests : CategoryQueriesTestBase
         
         CategoryRepositoryMock
             .Setup(x => x.GetPagedAsync<CategoryDto>(
-                It.IsAny<Expression<Func<Category, bool>>>(),
-                It.IsAny<Expression<Func<IQueryable<Category>, IOrderedQueryable<Category>>>>(),
-                It.IsAny<Expression<Func<IQueryable<Category>, IQueryable<Category>>>>(),
+                It.IsAny<ISpecification<Category>>(),
                 1,
                 2,
-                It.IsAny<bool>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(pagedResult);
 
@@ -84,12 +79,9 @@ public sealed class GetAllCategoriesQueryTests : CategoryQueriesTestBase
         
         CategoryRepositoryMock
             .Setup(x => x.GetPagedAsync<CategoryDto>(
-                It.IsAny<Expression<Func<Category, bool>>>(),
-                It.IsAny<Expression<Func<IQueryable<Category>, IOrderedQueryable<Category>>>>(),
-                It.IsAny<Expression<Func<IQueryable<Category>, IQueryable<Category>>>>(),
+                It.IsAny<ISpecification<Category>>(),
                 It.IsAny<int>(),
                 It.IsAny<int>(),
-                It.IsAny<bool>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(pagedResult);
 
@@ -99,12 +91,9 @@ public sealed class GetAllCategoriesQueryTests : CategoryQueriesTestBase
         // Assert
         result.Should().NotBeNull();
         CategoryRepositoryMock.Verify(x => x.GetPagedAsync<CategoryDto>(
-            It.IsAny<Expression<Func<Category, bool>>>(),
-            It.IsAny<Expression<Func<IQueryable<Category>, IOrderedQueryable<Category>>>>(),
-            It.IsAny<Expression<Func<IQueryable<Category>, IQueryable<Category>>>>(),
+            It.IsAny<ISpecification<Category>>(),
             1,
             10,
-            It.IsAny<bool>(),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 

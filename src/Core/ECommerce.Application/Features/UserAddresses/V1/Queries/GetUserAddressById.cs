@@ -2,6 +2,7 @@ using Ardalis.Result;
 using ECommerce.Application.Common.CQRS;
 using ECommerce.SharedKernel.DependencyInjection;
 using ECommerce.Application.Features.UserAddresses.V1.DTOs;
+using ECommerce.Application.Features.UserAddresses.V1.Specifications;
 using ECommerce.Application.Repositories;
 using ECommerce.SharedKernel;
 using Mapster;
@@ -17,14 +18,12 @@ public sealed class GetUserAddressByIdQueryHandler(
 {
     public override async Task<Result<UserAddressDto>> Handle(GetUserAddressByIdQuery query, CancellationToken cancellationToken)
     {
-        var address = await userAddressRepository.GetByIdAsync(query.AddressId, null, false, cancellationToken);
+        var spec = new UserAddressActiveSpecification(query.AddressId, query.UserId);
+        var addresses = await userAddressRepository.ListAsync(spec, cancellationToken);
+        var address = addresses.FirstOrDefault();
 
         if (address == null)
-            return Result.NotFound("User address not found");
-
-        // Security check: ensure the address belongs to the requesting user
-        if (address.UserId != query.UserId)
-            return Result.Forbidden();
+            return Result.NotFound("User address not found or not accessible");
 
         return Result.Success(address.Adapt<UserAddressDto>());
     }

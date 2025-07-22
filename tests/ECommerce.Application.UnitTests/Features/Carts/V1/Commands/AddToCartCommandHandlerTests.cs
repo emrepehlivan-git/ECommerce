@@ -37,6 +37,7 @@ public class AddToCartCommandHandlerTests : CartCommandsTestBase
     public async Task Handle_ShouldReturnNotFound_WhenProductDoesNotExist()
     {
         // Arrange
+        SetupProductRepositoryListAsync(new List<Product>());
         SetupProductRepositoryGet(null);
         var command = new AddToCartCommand(Guid.NewGuid(), 1);
 
@@ -52,6 +53,7 @@ public class AddToCartCommandHandlerTests : CartCommandsTestBase
     {
         // Arrange
         var product = CreateTestProduct(isActive: false);
+        SetupProductRepositoryListAsync(new List<Product>());
         SetupProductRepositoryGet(product);
         var command = new AddToCartCommand(product.Id, 1);
 
@@ -68,6 +70,7 @@ public class AddToCartCommandHandlerTests : CartCommandsTestBase
     {
         // Arrange
         var product = CreateTestProduct(stock: 5);
+        SetupProductRepositoryListAsync(new List<Product>());
         SetupProductRepositoryGet(product);
         var command = new AddToCartCommand(product.Id, 10);
 
@@ -84,6 +87,7 @@ public class AddToCartCommandHandlerTests : CartCommandsTestBase
     {
         // Arrange
         var product = CreateTestProduct(productId: DefaultProductId);
+        SetupProductRepositoryListAsync(new List<Product> { product });
         SetupProductRepositoryGet(product);
         SetupCartRepositoryGet(null);
         var command = new AddToCartCommand(product.Id, 1);
@@ -104,6 +108,7 @@ public class AddToCartCommandHandlerTests : CartCommandsTestBase
         // Arrange
         var product = CreateTestProduct(productId: DefaultProductId);
         var cart = Cart.Create(DefaultUserId);
+        SetupProductRepositoryListAsync(new List<Product> { product });
         SetupProductRepositoryGet(product);
         SetupCartRepositoryGet(cart);
         var command = new AddToCartCommand(product.Id, 1);

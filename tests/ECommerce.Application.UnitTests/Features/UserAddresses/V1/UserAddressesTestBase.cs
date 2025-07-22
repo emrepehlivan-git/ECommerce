@@ -3,6 +3,7 @@ using ECommerce.Application.Features.UserAddresses.V1.DTOs;
 using ECommerce.Application.Interfaces;
 using ECommerce.Application.Services;
 using ECommerce.Domain.ValueObjects;
+using ECommerce.SharedKernel.Specifications;
 using Mapster;
 
 namespace ECommerce.Application.UnitTests.Features.UserAddresses.V1;
@@ -109,6 +110,11 @@ public abstract class UserAddressesTestBase
     {
         UserAddressRepositoryMock
             .Setup(x => x.GetUserAddressesAsync(It.IsAny<Guid>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(addresses ?? new List<UserAddress> { DefaultUserAddress });
+
+        // Also setup the specification-based method
+        UserAddressRepositoryMock
+            .Setup(x => x.ListAsync(It.IsAny<ISpecification<UserAddress>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(addresses ?? new List<UserAddress> { DefaultUserAddress });
     }
 

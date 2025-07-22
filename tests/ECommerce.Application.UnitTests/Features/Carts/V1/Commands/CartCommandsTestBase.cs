@@ -1,6 +1,7 @@
 using ECommerce.Application.Helpers;
 using ECommerce.Application.Interfaces;
 using ECommerce.Application.Services;
+using ECommerce.SharedKernel.Specifications;
  
 namespace ECommerce.Application.UnitTests.Features.Carts.V1.Commands;
  
@@ -54,6 +55,24 @@ public abstract class CartCommandsTestBase
                 It.IsAny<bool>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(product);
+    }
+
+    protected void SetupProductRepositoryListAsync(List<Product> products)
+    {
+        ProductRepositoryMock
+            .Setup(r => r.ListAsync(
+                It.IsAny<ISpecification<Product>>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(products);
+    }
+
+    protected void SetupProductRepositoryAnyAsync(bool exists)
+    {
+        ProductRepositoryMock
+            .Setup(r => r.AnyAsync(
+                It.IsAny<ISpecification<Product>>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(exists);
     }
 
     protected void SetupCartRepositoryGet(Cart? cart)

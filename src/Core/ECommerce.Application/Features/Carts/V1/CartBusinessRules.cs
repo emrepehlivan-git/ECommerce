@@ -1,4 +1,5 @@
 using ECommerce.Application.Exceptions;
+using ECommerce.Application.Features.Carts.V1.Specifications;
 using ECommerce.Application.Interfaces;
 using ECommerce.Application.Repositories;
 using ECommerce.Domain.Entities;
@@ -15,21 +16,20 @@ public sealed class CartBusinessRules(
         _ = await cartRepository.GetByIdAsync(cartId) ?? throw new NotFoundException(ILocalizationHelper[CartConsts.ErrorMessages.CartNotFound]);
     }
 
-    public async Task CheckProductExistsAsync(Guid productId)
+    public async Task CheckProductCanBeOrderedAsync(Guid productId, int quantity)
     {
-        _ = await productRepository.GetByIdAsync(productId) ?? throw new NotFoundException(ILocalizationHelper[CartConsts.ErrorMessages.ProductNotFound]);
-    }
-
-    public void CheckProductIsActive(Product product)
-    {
-        if (!product.IsActive)
-            throw new BusinessException(ILocalizationHelper[CartConsts.ErrorMessages.ProductNotActive]);
-    }
-
-    public void CheckSufficientStock(Product product, int requestedQuantity)
-    {
-        if (!product.HasSufficientStock(requestedQuantity))
+        var spec = new CartItemOrderableSpecification(productId, quantity);
+        var canOrder = await productRepository.AnyAsync(spec);
+        
+        if (!canOrder)
+        {
+            var productExists = await productRepository.GetByIdAsync(productId);
+            if (productExists is null)
+                throw new NotFoundException(ILocalizationHelper[CartConsts.ErrorMessages.ProductNotFound]);
+            if (!productExists.IsActive)
+                throw new BusinessException(ILocalizationHelper[CartConsts.ErrorMessages.ProductNotActive]);
             throw new BusinessException(ILocalizationHelper[CartConsts.ErrorMessages.InsufficientStock]);
+        }
     }
 
     public void CheckMaxItemsInCart(Cart cart, bool isNewItem)

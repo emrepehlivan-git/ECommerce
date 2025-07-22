@@ -3,6 +3,7 @@ using ECommerce.Application.Behaviors;
 using ECommerce.Application.Common.CQRS;
 using ECommerce.SharedKernel.DependencyInjection;
 using ECommerce.Application.Extensions;
+using ECommerce.Application.Features.Products.Specifications;
 using ECommerce.Application.Repositories;
 using ECommerce.Application.Features.Products.V1.DTOs;
 using ECommerce.Application.Parameters;
@@ -29,26 +30,10 @@ public sealed class GetAllProductsQueryHandler(
 {
     public override async Task<PagedResult<List<ProductDto>>> Handle(GetAllProductsQuery query, CancellationToken cancellationToken)
     {
-        Expression<Func<Product, bool>>? predicate = null;
-
-        if (query.CategoryId.HasValue && !string.IsNullOrWhiteSpace(query.PageableRequestParams.Search))
-        {
-            predicate = p => p.CategoryId == query.CategoryId.Value && 
-                           p.Name.ToLower().Contains(query.PageableRequestParams.Search.ToLower());
-        }
-        else if (query.CategoryId.HasValue)
-        {
-            predicate = p => p.CategoryId == query.CategoryId.Value;
-        }
-        else if (!string.IsNullOrWhiteSpace(query.PageableRequestParams.Search))
-        {
-            predicate = p => p.Name.ToLower().Contains(query.PageableRequestParams.Search.ToLower());
-        }
+        var spec = new ProductFilterSpecification(query.CategoryId, query.PageableRequestParams.Search);
 
         return await productRepository.GetPagedAsync<ProductDto>(
-            predicate: predicate,
-            include: x => x.Include(p => p.Images).Include(p => p.Stock),
-            orderBy: x => x.ApplyOrderBy(Filter.FromOrderByString(query.OrderBy)),
+            specification: spec,
             page: query.PageableRequestParams.Page,
             pageSize: query.PageableRequestParams.PageSize,
             cancellationToken: cancellationToken);

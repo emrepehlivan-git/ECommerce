@@ -2,6 +2,7 @@ using Ardalis.Result;
 using ECommerce.Application.Behaviors;
 using ECommerce.Application.Common.CQRS;
 using ECommerce.Application.Features.Carts.V1.DTOs;
+using ECommerce.Application.Features.Carts.V1.Specifications;
 using ECommerce.Application.Repositories;
 using ECommerce.Application.Services;
 using ECommerce.SharedKernel.DependencyInjection;
@@ -27,7 +28,9 @@ public sealed class GetCartQueryHandler(
         if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out var currentUserId))
             return Result<CartDto>.Unauthorized();
 
-        var cart = await cartRepository.GetByUserIdWithItemsAsync(currentUserId, cancellationToken);
+        var spec = new CartByUserSpecification(currentUserId);
+        var carts = await cartRepository.ListAsync(spec, cancellationToken);
+        var cart = carts.FirstOrDefault();
         
         if (cart is null)
         {

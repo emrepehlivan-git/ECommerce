@@ -1,6 +1,7 @@
 using ECommerce.Application.Features.Carts.V1;
 using ECommerce.Application.Features.Carts.V1.Queries;
 using ECommerce.Application.Interfaces;
+using ECommerce.SharedKernel.Specifications;
 
 namespace ECommerce.Application.UnitTests.Features.Carts.Queries;
 
@@ -24,7 +25,7 @@ public sealed class GetCartQueryTest : CartQueriesTestsBase
     {
         // Arrange
         DefaultCart.AddItem(DefaultProduct.Id, DefaultProduct.Price, 2);
-        SetupCartExists(true);
+        SetupCartListAsync(new List<Cart> { DefaultCart });
 
         // Act
         var result = await Handler.Handle(Query, CancellationToken.None);
@@ -44,7 +45,7 @@ public sealed class GetCartQueryTest : CartQueriesTestsBase
     public async Task Handle_WithNonExistentCart_ShouldReturnNotFound()
     {
         // Arrange
-        SetupCartExists(false);
+        SetupCartListAsync(new List<Cart>());
 
         // Act
         var result = await Handler.Handle(Query, CancellationToken.None);
@@ -115,17 +116,17 @@ public sealed class GetCartQueryTest : CartQueriesTestsBase
     }
 
     [Fact]
-    public async Task Handle_ShouldCallCartRepositoryWithCorrectUserId()
+    public async Task Handle_ShouldCallCartRepositoryWithSpecification()
     {
         // Arrange
-        SetupCartExists(true);
+        SetupCartListAsync(new List<Cart> { DefaultCart });
 
         // Act
         await Handler.Handle(Query, CancellationToken.None);
 
         // Assert
         CartRepositoryMock.Verify(
-            x => x.GetByUserIdWithItemsAsync(DefaultUserId, It.IsAny<CancellationToken>()),
+            x => x.ListAsync(It.IsAny<ISpecification<Cart>>(), It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -134,9 +135,7 @@ public sealed class GetCartQueryTest : CartQueriesTestsBase
     {
         // Arrange
         var emptyCart = Cart.Create(DefaultUserId);
-        CartRepositoryMock
-            .Setup(x => x.GetByUserIdWithItemsAsync(DefaultUserId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(emptyCart);
+        SetupCartListAsync(new List<Cart> { emptyCart });
 
         // Act
         var result = await Handler.Handle(Query, CancellationToken.None);
@@ -158,9 +157,7 @@ public sealed class GetCartQueryTest : CartQueriesTestsBase
         cartWithMultipleItems.AddItem(DefaultProduct.Id, DefaultProduct.Price, 2);
         cartWithMultipleItems.AddItem(Guid.NewGuid(), 50m, 3);
 
-        CartRepositoryMock
-            .Setup(x => x.GetByUserIdWithItemsAsync(DefaultUserId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(cartWithMultipleItems);
+        SetupCartListAsync(new List<Cart> { cartWithMultipleItems });
 
         // Act
         var result = await Handler.Handle(Query, CancellationToken.None);
@@ -178,7 +175,7 @@ public sealed class GetCartQueryTest : CartQueriesTestsBase
     public async Task Handle_ShouldVerifyLocalizationServiceIsConfigured()
     {
         // Arrange
-        SetupCartExists(false);
+        SetupCartListAsync(new List<Cart>());
 
         // Act
         var result = await Handler.Handle(Query, CancellationToken.None);

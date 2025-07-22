@@ -1,5 +1,6 @@
 
 using ECommerce.Application.Behaviors;
+using ECommerce.SharedKernel.Specifications;
 
 namespace ECommerce.Application.UnitTests.Features.Products.V1.Queries;
 
@@ -23,12 +24,10 @@ public sealed class GetProductByIdQueryTest : ProductQueriesTestsBase
     {
         // Arrange
         ProductRepositoryMock
-            .Setup(x => x.GetByIdAsync(
-                ProductId,
-                It.IsAny<Expression<Func<IQueryable<Product>, IQueryable<Product>>>>(),
-                It.IsAny<bool>(),
+            .Setup(x => x.ListAsync(
+                It.IsAny<ISpecification<Product>>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(DefaultProduct);
+            .ReturnsAsync(new List<Product> { DefaultProduct });
 
         // Act
         var result = await Handler.Handle(Query, CancellationToken.None);
@@ -48,12 +47,10 @@ public sealed class GetProductByIdQueryTest : ProductQueriesTestsBase
     {
         // Arrange
         ProductRepositoryMock
-            .Setup(x => x.GetByIdAsync(
-                ProductId,
-                It.IsAny<Expression<Func<IQueryable<Product>, IQueryable<Product>>>>(),
-                It.IsAny<bool>(),
+            .Setup(x => x.ListAsync(
+                It.IsAny<ISpecification<Product>>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Product?)null);
+            .ReturnsAsync(new List<Product>());
 
         // Act
         var result = await Handler.Handle(Query, CancellationToken.None);
@@ -67,26 +64,22 @@ public sealed class GetProductByIdQueryTest : ProductQueriesTestsBase
     }
 
     [Fact]
-    public async Task Handle_ShouldIncludeCategoryAndStock()
+    public async Task Handle_ShouldUseSpecificationWithIncludes()
     {
         // Arrange
         ProductRepositoryMock
-            .Setup(x => x.GetByIdAsync(
-                ProductId,
-                It.IsAny<Expression<Func<IQueryable<Product>, IQueryable<Product>>>>(),
-                It.IsAny<bool>(),
+            .Setup(x => x.ListAsync(
+                It.IsAny<ISpecification<Product>>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(DefaultProduct);
+            .ReturnsAsync(new List<Product> { DefaultProduct });
 
         // Act
         var result = await Handler.Handle(Query, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
-        ProductRepositoryMock.Verify(x => x.GetByIdAsync(
-            ProductId,
-            It.IsAny<Expression<Func<IQueryable<Product>, IQueryable<Product>>>>(),
-            It.IsAny<bool>(),
+        ProductRepositoryMock.Verify(x => x.ListAsync(
+            It.IsAny<ISpecification<Product>>(),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 

@@ -2,6 +2,7 @@ using Ardalis.Result;
 using ECommerce.Application.Behaviors;
 using ECommerce.Application.Common.CQRS;
 using ECommerce.SharedKernel.DependencyInjection;
+using ECommerce.Application.Features.Products.Specifications;
 using ECommerce.Application.Features.Products.V1.DTOs;
 using ECommerce.Application.Repositories;
 using ECommerce.SharedKernel;
@@ -23,11 +24,9 @@ public sealed class GetProductByIdQueryHandler(
 {
     public override async Task<Result<ProductDto>> Handle(GetProductByIdQuery query, CancellationToken cancellationToken)
     {
-        var product = await productRepository.GetByIdAsync(query.Id,
-            include: x => x.Include(p => p.Stock)
-            .Include(p => p.Category)
-            .Include(p => p.Images),
-            cancellationToken: cancellationToken);
+        var spec = new ProductByIdSpecification(query.Id);
+        var products = await productRepository.ListAsync(spec, cancellationToken);
+        var product = products.FirstOrDefault();
 
         if (product is null)
             return Result.NotFound(Localizer[ProductConsts.NotFound]);

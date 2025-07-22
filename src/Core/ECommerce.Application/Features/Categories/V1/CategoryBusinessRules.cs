@@ -1,3 +1,4 @@
+using ECommerce.Application.Features.Categories.Specifications;
 using ECommerce.Application.Repositories;
 using ECommerce.SharedKernel.DependencyInjection;
 
@@ -7,6 +8,7 @@ public sealed class CategoryBusinessRules(ICategoryRepository categoryRepository
 {
     public async Task<bool> CheckIfCategoryExistsAsync(string name, Guid? excludeId = null, CancellationToken cancellationToken = default)
     {
-        return await categoryRepository.AnyAsync(c => c.Name.Trim().ToLower() == name.ToLower() && (excludeId == null || c.Id != excludeId), cancellationToken);
+        var spec = new CategoryNameUniqueSpecification(name, excludeId);
+        return await categoryRepository.AnyAsync(spec, cancellationToken);
     }
 }

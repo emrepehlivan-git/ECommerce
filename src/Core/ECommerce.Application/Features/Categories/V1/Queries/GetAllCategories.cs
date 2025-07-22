@@ -2,6 +2,7 @@ using Ardalis.Result;
 using ECommerce.Application.Behaviors;
 using ECommerce.Application.Common.CQRS;
 using ECommerce.Application.Extensions;
+using ECommerce.Application.Features.Categories.Specifications;
 using ECommerce.Application.Repositories;
 using ECommerce.Application.Features.Categories.V1.DTOs;
 using ECommerce.SharedKernel.DependencyInjection;
@@ -24,14 +25,10 @@ public sealed class GetAllCategoriesQueryHandler(
 {
     public override async Task<PagedResult<List<CategoryDto>>> Handle(GetAllCategoriesQuery query, CancellationToken cancellationToken)
     {
-        Expression<Func<Category, bool>>? predicate = null;
-
-        if (!string.IsNullOrWhiteSpace(query.PageableRequestParams.Search))
-            predicate = x => x.Name.ToLower().Contains(query.PageableRequestParams.Search.ToLower());
-
+        var spec = new CategorySearchSpecification(query.PageableRequestParams.Search);
+        
         return await categoryRepository.GetPagedAsync<CategoryDto>(
-            orderBy: x => x.ApplyOrderBy(Filter.FromOrderByString(query.OrderBy)),
-            predicate: predicate,
+            specification: spec,
             page: query.PageableRequestParams.Page,
             pageSize: query.PageableRequestParams.PageSize,
             cancellationToken: cancellationToken);
