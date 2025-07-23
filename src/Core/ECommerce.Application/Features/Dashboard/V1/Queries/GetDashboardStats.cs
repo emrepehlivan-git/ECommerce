@@ -27,9 +27,9 @@ public sealed class GetDashboardStatsQueryHandler(
             p => p.Stock != null && p.Stock.Quantity < 10, 
             cancellationToken);
 
-        // Get all orders to calculate revenue
-        var allOrders = orderRepository.Query();
-        var totalRevenue = await allOrders.SumAsync(o => o.TotalAmount, cancellationToken);
+        // Get only delivered orders to calculate revenue
+        var deliveredOrders = orderRepository.Query().Where(o => o.Status == ECommerce.Domain.Enums.OrderStatus.Delivered);
+        var totalRevenue = await deliveredOrders.SumAsync(o => o.TotalAmount, cancellationToken);
 
         return new DashboardStatsResult
         {
