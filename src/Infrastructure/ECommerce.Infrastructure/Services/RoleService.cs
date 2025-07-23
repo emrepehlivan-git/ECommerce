@@ -14,10 +14,7 @@ namespace ECommerce.Infrastructure.Services;
 public sealed class RoleService(
     UserManager<User> userManager, 
     RoleManager<Role> roleManager,
-    IKeycloakPermissionSyncService keycloakSyncService,
-    IPermissionService permissionService,
-    IKeycloakRoleManagementService keycloakRoleManagementService,
-    IECommerceLogger<RoleService> logger) : IRoleService, IScopedDependency
+    IKeycloakRoleManagementService keycloakRoleManagementService) : IRoleService, IScopedDependency
 {
     public async Task<IList<string>> GetRolesAsync()
     {
@@ -115,9 +112,6 @@ public sealed class RoleService(
         {
             // Sync role to Keycloak
             await keycloakRoleManagementService.AssignClientRoleToUserAsync(user.Id.ToString(), role);
-            
-            // Sync permissions to Keycloak
-            await SyncUserPermissionsToKeycloakAsync(user.Id);
         }
         
         return result;
@@ -131,25 +125,8 @@ public sealed class RoleService(
         {
             // Remove role from Keycloak
             await keycloakRoleManagementService.RemoveClientRoleFromUserAsync(user.Id.ToString(), role);
-            
-            // Sync permissions to Keycloak
-            await SyncUserPermissionsToKeycloakAsync(user.Id);
         }
         
         return result;
-    }
-
-    private async Task SyncUserPermissionsToKeycloakAsync(Guid userId)
-    {
-        try
-        {
-            var userPermissions = await permissionService.GetUserPermissionsAsync(userId);
-            await keycloakSyncService.AssignPermissionsToKeycloakUserAsync(userId.ToString(), userPermissions);
-            logger.LogDebug("User {UserId} permissions synced to Keycloak", userId);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Keycloak permission sync error for user {UserId}", userId);
-        }
     }
 } 

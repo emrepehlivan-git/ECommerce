@@ -247,19 +247,6 @@ public static class DependencyInjection
             await dbContext.Database.MigrateAsync();
     }
 
-    public static async Task ConfigurePermissions(this WebApplication app){
-        using var scope = app.Services.CreateScope();
-        try
-        {
-            var permissionSeedingService = scope.ServiceProvider.GetRequiredService<PermissionSeedingService>();
-            var result = await permissionSeedingService.SeedPermissionsAsync();
-            app.Logger.LogInformation("Permission seeding: {Result}", result);
-        }
-        catch (Exception ex)
-        {
-            app.Logger.LogError(ex, "Permission seeding failed");
-        }
-    }
     private static void ConfigureSwagger(IServiceCollection services, IConfiguration configuration)
     {
         services.AddSwaggerGen(options =>

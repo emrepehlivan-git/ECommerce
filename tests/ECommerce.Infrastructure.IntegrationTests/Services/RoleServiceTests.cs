@@ -1,4 +1,4 @@
-using ECommerce.Application.Common.Logging;
+
 using ECommerce.Application.Features.Roles.V1.DTOs;
 using Microsoft.AspNetCore.Identity;
 using MockQueryable.Moq;
@@ -9,10 +9,8 @@ public sealed class RoleServiceTests
 {
     private readonly Mock<UserManager<User>> UserManagerMock;
     private readonly Mock<RoleManager<Role>> RoleManagerMock;
-    private readonly Mock<IKeycloakPermissionSyncService> KeycloakSyncServiceMock;
     private readonly Mock<IPermissionService> PermissionServiceMock;
     private readonly Mock<IKeycloakRoleManagementService> KeycloakRoleManagementServiceMock;
-    private readonly Mock<IECommerceLogger<RoleService>> LoggerMock;
     private readonly RoleService RoleService;
 
     public RoleServiceTests()
@@ -28,18 +26,13 @@ public sealed class RoleServiceTests
             roleStore.Object, null, null, null, null);
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 
-        KeycloakSyncServiceMock = new Mock<IKeycloakPermissionSyncService>();
         PermissionServiceMock = new Mock<IPermissionService>();
         KeycloakRoleManagementServiceMock = new Mock<IKeycloakRoleManagementService>();
-        LoggerMock = new Mock<IECommerceLogger<RoleService>>();
 
         RoleService = new RoleService(
             UserManagerMock.Object, 
             RoleManagerMock.Object,
-            KeycloakSyncServiceMock.Object,
-            PermissionServiceMock.Object,
-            KeycloakRoleManagementServiceMock.Object,
-            LoggerMock.Object);
+            KeycloakRoleManagementServiceMock.Object);
     }
 
     [Fact]
@@ -115,7 +108,6 @@ public sealed class RoleServiceTests
         // Arrange
         var roleId = Guid.NewGuid();
         var role = Role.Create("Admin");
-        // Id'yi set etmek için reflection kullanmak yerine mock'ta doğru role'ü setup edelim
         var roles = new List<Role> { role };
 
         var mockQueryable = roles.AsQueryable().BuildMock();
@@ -126,7 +118,6 @@ public sealed class RoleServiceTests
         var result = await RoleService.FindRoleByIdAsync(roleId);
 
         // Assert
-        // Mock'ta gerçek ID eşleşmesi olmadığı için null olacak
         result.Should().BeNull();
     }
 

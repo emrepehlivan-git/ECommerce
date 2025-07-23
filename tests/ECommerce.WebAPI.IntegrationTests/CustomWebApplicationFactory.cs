@@ -10,24 +10,6 @@ using Moq;
 
 namespace ECommerce.WebAPI.IntegrationTests;
 
-public class TestKeycloakPermissionSyncService : IKeycloakPermissionSyncService
-{
-    public Task AssignPermissionsToKeycloakUserAsync(string userId, IEnumerable<string> permissions)
-    {
-        return Task.CompletedTask;
-    }
-
-    public Task SyncPermissionsToKeycloakAsync()
-    {
-        return Task.CompletedTask;
-    }
-
-    public Task UpdateRolePermissionsInKeycloakAsync(string roleName, List<string> permissions)
-    {
-        return Task.CompletedTask;
-    }
-}
-
 public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     public readonly PostgreSqlContainer DbContainer;
@@ -70,7 +52,6 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
             services.AddAuthentication(defaultScheme: TestAuthHandler.AuthenticationScheme)
                 .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(TestAuthHandler.AuthenticationScheme, _ => { });
 
-            // Add the permission-based authorization infrastructure for tests
             services.AddSingleton<IAuthorizationPolicyProvider, TestPermissionPolicyProvider>();
             services.AddScoped<IAuthorizationHandler, TestPermissionAuthorizationHandler>();
 
@@ -78,9 +59,6 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
             services.RemoveAll<ICurrentUserService>();
             services.AddScoped<ICurrentUserService, TestCurrentUserService>();
             
-            services.RemoveAll<IKeycloakPermissionSyncService>();
-            services.AddScoped<IKeycloakPermissionSyncService, TestKeycloakPermissionSyncService>();
-
             services.AddAuthorization(options =>
             {
                 options.DefaultPolicy = new AuthorizationPolicyBuilder(TestAuthHandler.AuthenticationScheme)

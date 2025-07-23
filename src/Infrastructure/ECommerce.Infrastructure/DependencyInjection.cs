@@ -25,10 +25,8 @@ public static class DependencyInjection
         services.AddObservability(configuration);
         services.AddHttpClient();
         
-        services.AddScoped<IKeycloakPermissionSyncService, KeycloakPermissionSyncService>();
         services.AddScoped<IKeycloakRoleSyncService, KeycloakRoleSyncService>();
         services.AddScoped<IPermissionService, PermissionService>();
-        services.AddScoped<PermissionSeedingService>();
         
         services.Configure<CloudinarySettings>(configuration.GetSection(CloudinarySettings.SectionName));
         services.AddScoped<ICloudinaryService, CloudinaryService>();

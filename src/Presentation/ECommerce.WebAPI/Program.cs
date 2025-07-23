@@ -18,9 +18,7 @@ try
     if (!app.Environment.IsEnvironment("Testing"))
     {
         await app.ApplyMigrations();
-        await app.ConfigurePermissions();
 
-        // Seed işlemini sadece development environment'ta ve veri yoksa çalıştır
         if (app.Environment.IsDevelopment())
         {
             using (var scope = app.Services.CreateScope())

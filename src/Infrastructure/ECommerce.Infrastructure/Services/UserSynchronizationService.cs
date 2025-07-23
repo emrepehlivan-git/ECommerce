@@ -13,7 +13,6 @@ namespace ECommerce.Infrastructure.Services;
 public sealed class UserSynchronizationService(
     UserManager<User> userManager,
     IECommerceLogger<UserSynchronizationService> logger,
-    IServiceProvider serviceProvider,
     IKeycloakRoleSyncService keycloakRoleSyncService,
     IKeycloakRoleManagementService keycloakRoleManagementService) : IUserSynchronizationService, IScopedDependency
 {
@@ -99,32 +98,6 @@ public sealed class UserSynchronizationService(
             logger.LogWarning("User {UserId} rol senkronizasyonu başarısız: {Error}", newUser.Id, string.Join(", ", roleSyncResult.Errors));
         }
 
-        await SyncUserPermissionsToKeycloakAsync(newUser.Id.ToString());
-        
         return Result<User>.Success(newUser);
-    }
-
-    private async Task SyncUserPermissionsToKeycloakAsync(string userId)
-    {
-        try
-        {
-            using var scope = serviceProvider.CreateScope();
-            var permissionSyncService = scope.ServiceProvider.GetService<KeycloakPermissionSyncService>();
-            var permissionService = scope.ServiceProvider.GetRequiredService<IPermissionService>();
-            
-            if (permissionSyncService == null)
-            {
-                logger.LogWarning("KeycloakPermissionSyncService bulunamadı, permission sync atlanıyor");
-                return;
-            }
-
-            var userPermissions = await permissionService.GetUserPermissionsAsync(Guid.Parse(userId));
-            
-            await permissionSyncService.AssignPermissionsToKeycloakUserAsync(userId, userPermissions);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "User {UserId} için permission sync hatası", userId);
-        }
     }
 } 
