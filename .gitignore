@@ -10,6 +10,7 @@ specification-pattern-docs
 # bash
 start-apps.zsh
 stop-apps.zsh
+info.txt
 
 # Build results
 [Dd]ebug/
