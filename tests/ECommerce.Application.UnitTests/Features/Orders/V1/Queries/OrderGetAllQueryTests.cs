@@ -14,7 +14,7 @@ public sealed class OrderGetAllQueryTests : OrderQueriesTestBase
     public OrderGetAllQueryTests()
     {
         Query = new OrderGetAllQuery(new PageableRequestParams(Page: 1, PageSize: 10));
-        Handler = new OrderGetAllQueryHandler(OrderRepositoryMock.Object, LazyServiceProviderMock.Object);
+        Handler = new OrderGetAllQueryHandler(OrderRepositoryMock.Object, CurrentUserServiceMock.Object, LazyServiceProviderMock.Object);
     }
 
     [Fact]
@@ -128,7 +128,7 @@ public sealed class OrderGetAllQueryTests : OrderQueriesTestBase
     }
 
     [Fact]
-    public async Task Handle_ShouldIncludeOrderItemsAndProducts()
+    public async Task Handle_ShouldNotIncludeOrderItemsAndProducts_BecauseProjectionIsUsed()
     {
         // Arrange
         var orderDtos = new List<OrderDto>
@@ -153,10 +153,16 @@ public sealed class OrderGetAllQueryTests : OrderQueriesTestBase
 
         // Assert
         result.Should().NotBeNull();
+        // Verify that include parameter (the 3rd argument) is null or not explicitly checked for specific includes,
+        // effectively confirming the change to remove explicit Includes.
+        // Actually, since I removed the explicit include in the handler, the 3rd arg passed to GetPagedAsync will be null (default).
+        // The original test verified it was called "Times.Once" with "It.IsAny". This still passes if I pass null.
+        // But to be precise, I should verify it is indeed called.
+
         OrderRepositoryMock.Verify(x => x.GetPagedAsync<OrderDto>(
             It.IsAny<Expression<Func<Order, bool>>>(),
             It.IsAny<Expression<Func<IQueryable<Order>, IOrderedQueryable<Order>>>>(),
-            It.IsAny<Expression<Func<IQueryable<Order>, IQueryable<Order>>>>(),
+            null, // Include should be null
             It.IsAny<int>(),
             It.IsAny<int>(),
             It.IsAny<bool>(),

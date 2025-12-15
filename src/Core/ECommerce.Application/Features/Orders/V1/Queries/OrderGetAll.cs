@@ -4,9 +4,9 @@ using ECommerce.SharedKernel.DependencyInjection;
 using ECommerce.Application.Features.Orders.V1.DTOs;
 using ECommerce.Application.Parameters;
 using ECommerce.Application.Repositories;
+using ECommerce.Application.Services;
 using ECommerce.Domain.Enums;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Application.Features.Orders.V1.Queries;
 
@@ -16,14 +16,16 @@ public sealed record OrderGetAllQuery(
 
 public sealed class OrderGetAllQueryHandler(
     IOrderRepository orderRepository,
+    ICurrentUserService currentUserService,
     ILazyServiceProvider lazyServiceProvider) : BaseHandler<OrderGetAllQuery, PagedResult<List<OrderDto>>>(lazyServiceProvider)
 {
     public override async Task<PagedResult<List<OrderDto>>> Handle(OrderGetAllQuery query, CancellationToken cancellationToken)
     {
+        var userId = Guid.Parse(currentUserService.UserId!);
+
         return await orderRepository.GetPagedAsync<OrderDto>(
-            predicate: query.Status.HasValue ? x => x.Status == query.Status.Value : null,
+            predicate: x => x.UserId == userId && (!query.Status.HasValue || x.Status == query.Status.Value),
             orderBy: q => q.OrderByDescending(x => x.OrderDate),
-            include: q => q.Include(x => x.Items).ThenInclude(x => x.Product),
             page: query.PageableRequestParams.Page,
             pageSize: query.PageableRequestParams.PageSize,
             cancellationToken: cancellationToken);

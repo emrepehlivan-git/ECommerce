@@ -8,6 +8,7 @@ namespace ECommerce.Application.UnitTests.Features.Orders.Queries;
 public abstract class OrderQueriesTestBase
 {
     protected readonly Mock<IOrderRepository> OrderRepositoryMock;
+    protected readonly Mock<ICurrentUserService> CurrentUserServiceMock;
     protected readonly Mock<ILazyServiceProvider> LazyServiceProviderMock;
     protected readonly Mock<ILocalizationService> LocalizationServiceMock;
     protected readonly ILocalizationHelper Localizer;
@@ -20,10 +21,13 @@ public abstract class OrderQueriesTestBase
     protected OrderQueriesTestBase()
     {
         OrderRepositoryMock = new Mock<IOrderRepository>();
+        CurrentUserServiceMock = new Mock<ICurrentUserService>();
         LazyServiceProviderMock = new Mock<ILazyServiceProvider>();
         LocalizationServiceMock = new Mock<ILocalizationService>();
 
         Localizer = new LocalizationHelper(LocalizationServiceMock.Object);
+
+        CurrentUserServiceMock.Setup(x => x.UserId).Returns(UserId.ToString());
 
         LazyServiceProviderMock
             .Setup(x => x.LazyGetRequiredService<ILocalizationHelper>())

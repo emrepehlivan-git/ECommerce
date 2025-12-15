@@ -4,11 +4,13 @@ using ECommerce.Application.Features.Orders.V1.Queries;
 using ECommerce.Application.Features.Orders.V1.DTOs;
 using ECommerce.Application.Parameters;
 using ECommerce.Domain.Enums;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Ardalis.Result;
 
 namespace ECommerce.WebAPI.Controllers.V1;
 
+[Authorize]
 public sealed class OrderController() : BaseApiV1Controller
 {
     [HttpGet]
